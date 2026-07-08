@@ -51,8 +51,7 @@ The short version: GLM 5.2 keeps matching or beating closed models on design pre
 
 ## How to Use These
 
-Want to run your own comparisons? Fire off `/design` with a clear brief, plus an optional `DEV_TASTE_PROMPT` or Linear-style guidance, then share the result on X.
-
+Want to run your own comparisons? Use `/design`, it ships with 17 modes, including `redesign` and `checkup` and many more.
 Full command reference: [commandcode.ai/docs/slash-commands/design](https://commandcode.ai/docs/slash-commands/design)
 
 ---
