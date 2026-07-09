@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Retro Pixel Space Shooter</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    background: #05060b;
+    font-family: "Courier New", monospace;
+    color: #fff;
+    overflow: hidden;
+  }
+  .wrap {
+    position: relative;
+    padding: 14px;
+    border: 4px solid #1c2745;
+    background: #090b14;
+    box-shadow: 0 0 35px rgba(50, 130, 255, 0.18), inset 0 0 30px rgba(255,255,255,0.03);
+  }
+  canvas {
+    display: block;
+    width: min(96vw, 900px);
+    height: auto;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background: #02030a;
+  }
+  .hint {
+    text-align: center;
+    color: #8aa4d6;
+    font-size: 13px;
+    margin-top: 10px;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <canvas id="game" width="900" height="520"></canvas>
+    <div class="hint">ARROWS/WASD MOVE • SPACE SHOOT • R RESTART</div>
+  </div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+
+  const W = canvas.width;
+  const H = canvas.height;
+  const keys = {};
+  const rnd = (a, b) => Math.random() * (b - a) + a;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  let state = 'start';
+  let frame = 0;
+  let score = 0;
+  let lives = 3;
+  let shake = 0;
+  let spawnTimer = 0;
+  let gemTimer = 0;
+  let obstacleTimer = 0;
+  let caveOffset = 0;
+
+  const player = {
+    x: 95, y: H / 2, w: 34, h: 22,
+    vx: 0, vy: 0, speed: 0.64, friction: 0.91,
+    cooldown: 0, inv: 0
+  };
+
+  let bullets = [];
+  let enemies = [];
+  let gems = [];
+  let particles = [];
+  let stars = [];
+  let caveTop = [];
+  let caveBottom = [];
+
+  function reset() {
+    state = 'play';
+    frame = 0;
+    score = 0;
+    lives = 3;
+    shake = 0;
+    spawnTimer = 25;
+    gemTimer = 40;
+    obstacleTimer = 80;
+    caveOffset = 0;
+    Object.assign(player, { x: 95, y: H / 2, vx: 0, vy: 0, cooldown: 0, inv: 70 });
+    bullets = [];
+    enemies = [];
+    gems = [];
+    particles = [];
+    stars = [];
+    caveTop = [];
+    caveBottom = [];
+
+    for (let i = 0; i < 90; i++) {
+      stars.push({ x: rnd(0, W), y: rnd(0, H), s: Math.random() < .75 ? 2 : 3, spd: rnd(.4, 2.5), tw: rnd(0, 99) });
+    }
+    for (let x = 0; x <= W + 80; x += 40) {
+      const n = Math.sin(x * 0.024) * 22 + Math.sin(x * 0.009) * 30;
+      caveTop.push({ x, h: 72 + n + rnd(-18, 18) });
+      caveBottom.push({ x, h: 70 - n + rnd(-18, 18) });
+    }
+  }
+
+  function rects(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  function addParticles(x, y, color, count = 12) {
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x, y,
+        vx: rnd(-2.5, 2.5), vy: rnd(-2.5, 2.5),
+        life: rnd(18, 36), max: 36,
+        size: Math.random() < .7 ? 3 : 5,
+        color
+      });
+    }
+  }
+
+  function shoot() {
+    if (player.cooldown > 0) return;
+    bullets.push({ x: player.x + player.w - 2, y: player.y + 7, w: 14, h: 4, vx: 8 });
+    player.cooldown = 11;
+    addParticles(player.x + 4, player.y + 11, '#ff8d28', 4);
+  }
+
+  function spawnEnemy() {
+    const type = Math.random() < .68 ? 'drone' : 'rock';
+    const topLimit = getCaveHeight(W - 80, true) + 24;
+    const bottomLimit = H - getCaveHeight(W - 80, false) - 46;
+    enemies.push({
+      type,
+      x: W + 30,
+      y: rnd(topLimit, bottomLimit),
+      w: type === 'rock' ? 36 : 30,
+      h: type === 'rock' ? 34 : 24,
+      vx: type === 'rock' ? rnd(-3.2, -2.2) : rnd(-4.4, -3.2),
+      bob: rnd(0, Math.PI * 2),
+      hp: type === 'rock' ? 2 : 1
+    });
+  }
+
+  function spawnGem() {
+    const topLimit = getCaveHeight(W - 70, true) + 30;
+    const bottomLimit = H - getCaveHeight(W - 70, false) - 38;
+    gems.push({ x: W + 25, y: rnd(topLimit, bottomLimit), w: 18, h: 18, vx: -3.1, pulse: rnd(0, 10) });
+  }
+
+  function getCaveHeight(x, top) {
+    const arr = top ? caveTop : caveBottom;
+    let closest = arr[0];
+    for (const p of arr) if (Math.abs(p.x - x) < Math.abs(closest.x - x)) closest = p;
+    return closest ? closest.h : 70;
+  }
+
+  function updateCave() {
+    caveOffset -= 2.2;
+    for (const p of caveTop) p.x -= 2.2;
+    for (const p of caveBottom) p.x -= 2.2;
+    if (caveTop[0].x < -60) {
+      caveTop.shift();
+      caveBottom.shift();
+      const lastX = caveTop[caveTop.length - 1].x + 40;
+      const n = Math.sin((lastX + frame * 4) * 0.024) * 24 + Math.sin((lastX + frame) * 0.011) * 28;
+      caveTop.push({ x: lastX, h: clamp(72 + n + rnd(-18, 18), 36, 142) });
+      caveBottom.push({ x: lastX, h: clamp(72 - n + rnd(-18, 18), 36, 142) });
+    }
+  }
+
+  function hitPlayer() {
+    if (player.inv > 0) return;
+    lives--;
+    player.inv = 95;
+    shake = 14;
+    addParticles(player.x + 15, player.y + 12, '#ff4e36', 26);
+    if (lives <= 0) state = 'gameover';
+  }
+
+  function update() {
+    if (state !== 'play') return;
+    frame++;
+    score += 0.06;
+    if (shake > 0) shake *= .86;
+
+    updateCave();
+
+    for (const s of stars) {
+      s.x -= s.spd;
+      s.tw += .04;
+      if (s.x < -5) { s.x = W + rnd(0, 30); s.y = rnd(0, H); s.spd = rnd(.4, 2.5); }
+    }
+
+    let ax = 0, ay = 0;
+    if (keys.ArrowLeft || keys.KeyA) ax -= player.speed;
+    if (keys.ArrowRight || keys.KeyD) ax += player.speed;
+    if (keys.ArrowUp || keys.KeyW) ay -= player.speed;
+    if (keys.ArrowDown || keys.KeyS) ay += player.speed;
+    player.vx = (player.vx + ax) * player.friction;
+    player.vy = (player.vy + ay) * player.friction;
+    player.x += player.vx;
+    player.y += player.vy;
+    player.x = clamp(player.x, 18, W * .58);
+    player.y = clamp(player.y, 16, H - player.h - 16);
+    if (keys.Space) shoot();
+    if (player.cooldown > 0) player.cooldown--;
+    if (player.inv > 0) player.inv--;
+
+    spawnTimer--;
+    gemTimer--;
+    obstacleTimer--;
+    if (spawnTimer <= 0) { spawnEnemy(); spawnTimer = rnd(42, 82); }
+    if (gemTimer <= 0) { spawnGem(); gemTimer = rnd(65, 105); }
+    if (obstacleTimer <= 0) { spawnEnemy(); obstacleTimer = rnd(90, 145); }
+
+    bullets.forEach(b => b.x += b.vx);
+    bullets = bullets.filter(b => b.x < W + 30);
+
+    enemies.forEach(e => {
+      e.x += e.vx;
+      e.bob += .07;
+      if (e.type === 'drone') e.y += Math.sin(e.bob) * .7;
+    });
+    enemies = enemies.filter(e => e.x > -70);
+
+    gems.forEach(g => { g.x += g.vx; g.pulse += .12; });
+    gems = gems.filter(g => g.x > -35);
+
+    for (let i = enemies.length - 1; i >= 0; i--) {
+      const e = enemies[i];
+      for (let j = bullets.length - 1; j >= 0; j--) {
+        if (rects(e, bullets[j])) {
+          bullets.splice(j, 1);
+          e.hp--;
+          addParticles(bullets[j]?.x || e.x, e.y + e.h / 2, '#ffd35b', 8);
+          if (e.hp <= 0) {
+            score += e.type === 'rock' ? 70 : 100;
+            addParticles(e.x + e.w / 2, e.y + e.h / 2, e.type === 'rock' ? '#8ea0a7' : '#f95942', 20);
+            enemies.splice(i, 1);
+          }
+          break;
+        }
+      }
+    }
+
+    const pBox = { x: player.x + 4, y: player.y + 3, w: player.w - 8, h: player.h - 6 };
+    for (let i = enemies.length - 1; i >= 0; i--) {
+      if (rects(pBox, enemies[i])) { enemies.splice(i, 1); hitPlayer(); }
+    }
+    for (let i = gems.length - 1; i >= 0; i--) {
+      if (rects(pBox, gems[i])) {
+        score += 250;
+        addParticles(gems[i].x + 9, gems[i].y + 9, '#35c8ff', 18);
+        gems.splice(i, 1);
+      }
+    }
+
+    const topH = getCaveHeight(player.x + player.w / 2, true);
+    const botH = getCaveHeight(player.x + player.w / 2, false);
+    if (player.y < topH || player.y + player.h > H - botH) hitPlayer();
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx; p.y += p.vy; p.life--; p.vx *= .96; p.vy *= .96;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+  }
+
+  function pixelRect(x, y, w, h, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+  }
+
+  function drawBackground() {
+    ctx.fillStyle = '#02030a';
+    ctx.fillRect(0, 0, W, H);
+
+    for (const s of stars) {
+      const a = .45 + Math.sin(s.tw) * .25;
+      ctx.globalAlpha = a;
+      pixelRect(s.x, s.y, s.s, s.s, '#b9d4ff');
+    }
+    ctx.globalAlpha = 1;
+
+    drawCave(true);
+    drawCave(false);
+  }
+
+  function drawCave(top) {
+    const arr = top ? caveTop : caveBottom;
+    ctx.fillStyle = '#10131e';
+    ctx.beginPath();
+    if (top) {
+      ctx.moveTo(0, 0);
+      for (const p of arr) ctx.lineTo(p.x, p.h);
+      ctx.lineTo(W, 0);
+    } else {
+      ctx.moveTo(0, H);
+      for (const p of arr) ctx.lineTo(p.x, H - p.h);
+      ctx.lineTo(W, H);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = '#31415f';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    for (let i = 0; i < arr.length; i++) {
+      const p = arr[i];
+      const y = top ? p.h : H - p.h;
+      if (i === 0) ctx.moveTo(p.x, y); else ctx.lineTo(p.x, y);
+    }
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(80,130,190,.22)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < arr.length; i += 2) {
+      const p = arr[i];
+      const y = top ? p.h - 12 : H - p.h + 12;
+      ctx.beginPath();
+      ctx.moveTo(p.x, y);
+      ctx.lineTo(p.x + 25, top ? y - 35 : y + 35);
+      ctx.stroke();
+    }
+  }
+
+  function drawShip() {
+    if (player.inv > 0 && Math.floor(frame / 5) % 2 === 0) ctx.globalAlpha = .55;
+    const x = player.x, y = player.y;
+
+    ctx.shadowColor = '#ff8a2c';
+    ctx.shadowBlur = 16;
+    pixelRect(x - 12 - Math.random() * 4, y + 8, 12, 6, '#ff6b22');
+    pixelRect(x - 19 - Math.random() * 5, y + 10, 8, 3, '#ffd05b');
+    ctx.shadowBlur = 0;
+
+    pixelRect(x + 4, y + 4, 20, 14, '#f28322');
+    pixelRect(x + 22, y + 8, 12, 6, '#ffb13b');
+    pixelRect(x + 8, y + 0, 9, 5, '#ffd86a');
+    pixelRect(x + 7, y + 17, 11, 5, '#c94e1d');
+    pixelRect(x + 13, y + 6, 6, 5, '#fff2a7');
+    pixelRect(x, y + 8, 7, 7, '#9c361a');
+    ctx.globalAlpha = 1;
+  }
+
+  function drawBullet(b) {
+    ctx.shadowColor = '#ffdf6e';
+    ctx.shadowBlur = 12;
+    pixelRect(b.x, b.y, b.w, b.h, '#ffe66e');
+    ctx.shadowBlur = 0;
+  }
+
+  function drawEnemy(e) {
+    if (e.type === 'rock') {
+      pixelRect(e.x + 6, e.y, 22, 6, '#6c7881');
+      pixelRect(e.x, e.y + 6, 34, 18, '#87939a');
+      pixelRect(e.x + 6, e.y + 24, 24, 9, '#4c565d');
+      pixelRect(e.x + 21, e.y + 8, 7, 7, '#b3c0c7');
+    } else {
+      ctx.shadowColor = '#ff3c36';
+      ctx.shadowBlur = 8;
+      pixelRect(e.x + 6, e.y + 4, 20, 14, '#bf2640');
+      pixelRect(e.x, e.y + 9, 8, 6, '#ff5b51');
+      pixelRect(e.x + 24, e.y + 9, 8, 6, '#ff5b51');
+      pixelRect(e.x + 10, e.y + 8, 6, 5, '#ffd4cf');
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  function drawGem(g) {
+    const pulse = 1 + Math.sin(g.pulse) * .22;
+    ctx.save();
+    ctx.translate(g.x + 9, g.y + 9);
+    ctx.scale(pulse, pulse);
+    ctx.shadowColor = '#33c8ff';
+    ctx.shadowBlur = 18;
+    pixelRect(-5, -8, 10, 4, '#94e9ff');
+    pixelRect(-8, -4, 16, 8, '#22b9ff');
+    pixelRect(-5, 4, 10, 4, '#0c72ff');
+    pixelRect(-2, -2, 4, 4, '#e5fbff');
+    ctx.restore();
+  }
+
+  function drawParticles() {
+    for (const p of particles) {
+      ctx.globalAlpha = Math.max(0, p.life / p.max);
+      pixelRect(p.x, p.y, p.size, p.size, p.color);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawUI() {
+    pixelText(`SCORE ${Math.floor(score).toString().padStart(5, '0')}`, 22, 32, 18, '#d9f4ff');
+    pixelText(`LIVES ${lives}`, W - 135, 32, 18, '#ffd67d');
+  }
+
+  function pixelText(text, x, y, size, color, align = 'left') {
+    ctx.font = `${size}px Courier New, monospace`;
+    ctx.fillStyle = '#000';
+    ctx.textAlign = align;
+    ctx.fillText(text, x + 2, y + 2);
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+  }
+
+  function drawOverlay(title, lines) {
+    ctx.fillStyle = 'rgba(0,0,0,.58)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = '#2a87ff';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(W/2 - 220, H/2 - 112, 440, 224);
+    ctx.fillStyle = '#071020';
+    ctx.fillRect(W/2 - 216, H/2 - 108, 432, 216);
+    pixelText(title, W/2, H/2 - 48, 34, '#ffaf38', 'center');
+    lines.forEach((line, i) => pixelText(line, W/2, H/2 + 4 + i * 30, 18, '#bfe7ff', 'center'));
+  }
+
+  function draw() {
+    const dx = shake > 1 ? rnd(-shake, shake) : 0;
+    const dy = shake > 1 ? rnd(-shake, shake) : 0;
+    ctx.save();
+    ctx.translate(dx, dy);
+    drawBackground();
+    gems.forEach(drawGem);
+    bullets.forEach(drawBullet);
+    enemies.forEach(drawEnemy);
+    drawShip();
+    drawParticles();
+    ctx.restore();
+    drawUI();
+
+    if (state === 'start') {
+      drawOverlay('EMBER CAVE', ['Retro Pixel Space Shooter', 'Collect blue gems. Blast enemies.', 'Press SPACE to start']);
+    }
+    if (state === 'gameover') {
+      drawOverlay('GAME OVER', [`Final Score ${Math.floor(score)}`, 'Press R or SPACE to restart']);
+    }
+  }
+
+  function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener('keydown', e => {
+    keys[e.code] = true;
+    if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
+    if (state === 'start' && e.code === 'Space') reset();
+    if (state === 'gameover' && (e.code === 'KeyR' || e.code === 'Space')) reset();
+  });
+  window.addEventListener('keyup', e => keys[e.code] = false);
+
+  reset();
+  state = 'start';
+  loop();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EMBERWING</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    background: #05040a;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: monospace;
+  }
+  #wrap {
+    position: relative;
+    line-height: 0;
+  }
+  canvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background: #05040a;
+    box-shadow: 0 0 80px rgba(80, 60, 200, 0.18), 0 0 24px rgba(0,0,0,0.9);
+  }
+  #scanlines {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0) 3px,
+      rgba(0,0,0,0.18) 3px,
+      rgba(0,0,0,0.18) 4px
+    );
+    mix-blend-mode: multiply;
+  }
+  #vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.45) 100%);
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game"></canvas>
+  <div id="scanlines"></div>
+  <div id="vignette"></div>
+</div>
+<script>
+(() => {
+  // ============================================================
+  // EMBERWING — retro horizontal cave shooter
+  // Low internal resolution, upscaled with pixelated rendering
+  // for a genuine 16-bit look.
+  // ============================================================
+
+  const VW = 480, VH = 240;          // virtual resolution
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  canvas.width = VW;
+  canvas.height = VH;
+
+  function fitCanvas() {
+    const scale = Math.max(1, Math.floor(Math.min(
+      window.innerWidth / VW,
+      window.innerHeight / VH
+    )));
+    canvas.style.width  = VW * scale + 'px';
+    canvas.style.height = VH * scale + 'px';
+  }
+  window.addEventListener('resize', fitCanvas);
+  fitCanvas();
+
+  // ---------------- palette ----------------
+  const C = {
+    bg:        '#05040a',
+    starDim:   '#2a2a4a',
+    starMid:   '#5560a0',
+    starHot:   '#c7d4ff',
+    rockDark:  '#141024',
+    rock:      '#241c3e',
+    rockLite:  '#3a2f5e',
+    rockEdge:  '#6a5aa0',
+    shipHull:  '#ff8c1a',
+    shipDark:  '#c24a0a',
+    shipLite:  '#ffd166',
+    cockpit:   '#7fe9ff',
+    flame1:    '#fff3b0',
+    flame2:    '#ffb020',
+    flame3:    '#ff4d1a',
+    bullet:    '#ffe9a0',
+    bulletHot: '#ffffff',
+    gem:       '#38c8ff',
+    gemLite:   '#bff2ff',
+    gemDark:   '#1668c8',
+    enemy1:    '#c840e8',
+    enemy1L:   '#f0a0ff',
+    enemy2:    '#68e858',
+    enemy2L:   '#c8ffb0',
+    hud:       '#ffe9a0',
+    danger:    '#ff4d4d',
+  };
+
+  // ---------------- input ----------------
+  const keys = {};
+  window.addEventListener('keydown', e => {
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+    keys[e.key] = true;
+    if (e.key === ' ' || e.key === 'Enter') {
+      if (state === 'title') startGame();
+      else if (state === 'gameover' && goTimer > 60) startGame();
+    }
+  });
+  window.addEventListener('keyup', e => { keys[e.key] = false; });
+
+  // ---------------- state ----------------
+  let state = 'title';       // title | playing | gameover
+  let frame = 0;
+  let goTimer = 0;
+  let score = 0, best = 0, lives = 3;
+  let shake = 0;
+  let flash = 0;
+  let scrollSpeed = 1.2;
+  let distance = 0;
+
+  // ---------------- stars (3 parallax layers) ----------------
+  const stars = [];
+  for (let i = 0; i < 70; i++) {
+    stars.push({
+      x: Math.random() * VW,
+      y: Math.random() * VH,
+      layer: Math.floor(Math.random() * 3),
+      tw: Math.random() * Math.PI * 2,
+    });
+  }
+
+  // ---------------- cave walls ----------------
+  // Column-based terrain, regenerated as it scrolls off-screen.
+  const COL_W = 8;
+  const NCOLS = Math.ceil(VW / COL_W) + 2;
+  let cols = [];
+  let caveOffset = 0;
+  let topTarget = 30, botTarget = 30;
+  let topH = 30, botH = 30;
+
+  function newColumn() {
+    // wandering targets keep the cave organic
+    if (Math.random() < 0.12) topTarget = 14 + Math.random() * 44;
+    if (Math.random() < 0.12) botTarget = 14 + Math.random() * 44;
+    topH += (topTarget - topH) * 0.25 + (Math.random() - 0.5) * 4;
+    botH += (botTarget - botH) * 0.25 + (Math.random() - 0.5) * 4;
+    topH = Math.max(10, Math.min(70, topH));
+    botH = Math.max(10, Math.min(70, botH));
+    // guarantee a corridor
+    if (VH - topH - botH < 96) {
+      const over = 96 - (VH - topH - botH);
+      topH -= over / 2; botH -= over / 2;
+    }
+    return { top: Math.round(topH), bot: Math.round(botH), seed: Math.random() };
+  }
+  function initCave() {
+    cols = [];
+    topH = botH = 30; topTarget = botTarget = 30;
+    for (let i = 0; i < NCOLS; i++) cols.push(newColumn());
+    caveOffset = 0;
+  }
+
+  function caveAt(x) {
+    const i = Math.max(0, Math.min(cols.length - 1, Math.floor((x + caveOffset) / COL_W)));
+    return cols[i];
+  }
+
+  // ---------------- entities ----------------
+  const ship = {
+    x: 60, y: VH / 2, vx: 0, vy: 0,
+    cooldown: 0,
+    inv: 0,          // invulnerability frames
+  };
+
+  let bullets = [];
+  let gems = [];
+  let enemies = [];
+  let particles = [];
+  let popups = [];
+  let spawnT = 0, gemT = 0;
+
+  function startGame() {
+    state = 'playing';
+    score = 0; lives = 3;
+    scrollSpeed = 1.2;
+    distance = 0;
+    ship.x = 60; ship.y = VH / 2;
+    ship.vx = ship.vy = 0;
+    ship.inv = 90;
+    bullets = []; gems = []; enemies = []; particles = []; popups = [];
+    spawnT = 90; gemT = 40;
+    initCave();
+  }
+  initCave();
+
+  // ---------------- helpers ----------------
+  const R = (a, b) => a + Math.random() * (b - a);
+
+  function px(x, y, w, h, c) {
+    ctx.fillStyle = c;
+    ctx.fillRect(Math.round(x), Math.round(y), w, h);
+  }
+
+  function glow(x, y, r, color, alpha) {
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, color);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = g;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+    ctx.globalAlpha = 1;
+  }
+
+  function boom(x, y, color, n, force) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const s = R(0.4, force);
+      particles.push({
+        x, y,
+        vx: Math.cos(a) * s - scrollSpeed * 0.5,
+        vy: Math.sin(a) * s,
+        life: R(14, 34),
+        max: 34,
+        c: Math.random() < 0.35 ? '#ffffff' : color,
+        sz: Math.random() < 0.3 ? 2 : 1,
+      });
+    }
+  }
+
+  function popup(x, y, t, c) {
+    popups.push({ x, y, text: t, c, life: 40 });
+  }
+
+  // ---------------- spawning ----------------
+  function spawnGem() {
+    const x = VW + 10;
+    const col = caveAt(VW - 4);
+    const y = R(col.top + 20, VH - col.bot - 20);
+    gems.push({ x, y, t: Math.random() * Math.PI * 2, baseY: y });
+  }
+
+  function spawnEnemy() {
+    const x = VW + 12;
+    const col = caveAt(VW - 4);
+    const type = Math.random() < 0.55 ? 'drone' : 'spinner';
+    if (type === 'drone') {
+      // purple sine-wave drone
+      enemies.push({
+        type, x,
+        baseY: R(col.top + 26, VH - col.bot - 26),
+        y: 0, t: Math.random() * Math.PI * 2,
+        amp: R(10, 26), spd: R(0.6, 1.1),
+        hp: 1, r: 6, hurt: 0,
+      });
+    } else {
+      // green spinner — drifts straight, tougher
+      enemies.push({
+        type, x,
+        y: R(col.top + 20, VH - col.bot - 20),
+        t: 0, spd: R(0.9, 1.5),
+        hp: 2, r: 7, hurt: 0,
+      });
+    }
+  }
+
+  // ---------------- update ----------------
+  function update() {
+    frame++;
+
+    // stars always drift
+    for (const s of stars) {
+      s.x -= (0.15 + s.layer * 0.35) * (state === 'playing' ? scrollSpeed : 0.8);
+      if (s.x < -2) { s.x = VW + 2; s.y = Math.random() * VH; }
+    }
+
+    if (state !== 'playing') {
+      if (state === 'gameover') goTimer++;
+      updateParticles();
+      if (flash > 0) flash--;
+      if (shake > 0) shake *= 0.85;
+      return;
+    }
+
+    distance += scrollSpeed;
+    scrollSpeed = Math.min(2.6, 1.2 + distance / 6000);
+
+    // ---- cave scroll ----
+    caveOffset += scrollSpeed;
+    while (caveOffset >= COL_W) {
+      caveOffset -= COL_W;
+      cols.shift();
+      cols.push(newColumn());
+    }
+
+    // ---- ship movement: acceleration + friction = inertia ----
+    const ACC = 0.22, FRIC = 0.90, MAX = 2.6;
+    if (keys['ArrowUp']    || keys['w']) ship.vy -= ACC;
+    if (keys['ArrowDown']  || keys['s']) ship.vy += ACC;
+    if (keys['ArrowLeft']  || keys['a']) ship.vx -= ACC;
+    if (keys['ArrowRight'] || keys['d']) ship.vx += ACC;
+    ship.vx *= FRIC; ship.vy *= FRIC;
+    ship.vx = Math.max(-MAX, Math.min(MAX, ship.vx));
+    ship.vy = Math.max(-MAX, Math.min(MAX, ship.vy));
+    ship.x += ship.vx;
+    ship.y += ship.vy;
+    ship.x = Math.max(10, Math.min(VW - 60, ship.x));
+    ship.y = Math.max(8, Math.min(VH - 8, ship.y));
+
+    if (ship.inv > 0) ship.inv--;
+    if (ship.cooldown > 0) ship.cooldown--;
+
+    // ---- shooting ----
+    if (keys[' '] && ship.cooldown === 0) {
+      bullets.push({ x: ship.x + 10, y: ship.y, vx: 5.2 });
+      ship.cooldown = 9;
+      // muzzle sparks
+      for (let i = 0; i < 3; i++)
+        particles.push({ x: ship.x + 10, y: ship.y, vx: R(1, 2.5), vy: R(-0.8, 0.8), life: 8, max: 8, c: C.flame1, sz: 1 });
+    }
+
+    // ---- bullets ----
+    for (const b of bullets) b.x += b.vx;
+    bullets = bullets.filter(b => {
+      if (b.dead) return false;
+      if (b.x > VW + 8) return false;
+      const col = caveAt(b.x);
+      if (b.y < col.top || b.y > VH - col.bot) {
+        boom(b.x, b.y, C.rockEdge, 4, 1.2);
+        return false;
+      }
+      return true;
+    });
+
+    // ---- gems ----
+    gemT--;
+    if (gemT <= 0) { spawnGem(); gemT = Math.round(R(50, 110)); }
+    for (const g of gems) {
+      g.x -= scrollSpeed;
+      g.t += 0.08;
+      g.y = g.baseY + Math.sin(g.t) * 4;
+      // magnet when close
+      const dx = ship.x - g.x, dy = ship.y - g.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < 900) { g.x += dx * 0.08; g.baseY += dy * 0.08; }
+      if (d2 < 100) {
+        g.dead = true;
+        score += 50;
+        popup(g.x, g.y - 6, '+50', C.gemLite);
+        boom(g.x, g.y, C.gem, 10, 1.6);
+      }
+    }
+    gems = gems.filter(g => !g.dead && g.x > -10);
+
+    // ---- enemies ----
+    spawnT--;
+    if (spawnT <= 0) {
+      spawnEnemy();
+      spawnT = Math.round(R(60, 130) / (0.7 + scrollSpeed * 0.25));
+    }
+    for (const e of enemies) {
+      if (e.type === 'drone') {
+        e.x -= scrollSpeed * 0.8 + e.spd;
+        e.t += 0.07;
+        e.y = e.baseY + Math.sin(e.t) * e.amp;
+      } else {
+        e.x -= scrollSpeed * 0.6 + e.spd;
+        e.t += 0.15;
+      }
+      // bullets vs enemy
+      for (const b of bullets) {
+        if (b.dead) continue;
+        if (Math.abs(b.x - e.x) < e.r + 3 && Math.abs(b.y - e.y) < e.r + 2) {
+          b.dead = true;
+          e.hp--;
+          e.hurt = 6;
+          if (e.hp <= 0) {
+            e.dead = true;
+            const pts = e.type === 'spinner' ? 150 : 100;
+            score += pts;
+            popup(e.x, e.y - 8, '+' + pts, C.hud);
+            boom(e.x, e.y, e.type === 'spinner' ? C.enemy2 : C.enemy1, 18, 2.4);
+            shake = Math.max(shake, 3);
+          } else {
+            boom(b.x, b.y, '#ffffff', 4, 1.2);
+          }
+        }
+      }
+      if (e.hurt > 0) e.hurt--;
+    }
+    bullets = bullets.filter(b => !b.dead);
+    enemies = enemies.filter(e => !e.dead && e.x > -16);
+
+    // ---- collisions with ship ----
+    if (ship.inv === 0) {
+      // cave walls
+      const col = caveAt(ship.x);
+      const colF = caveAt(ship.x + 8);
+      if (ship.y - 3 < Math.max(col.top, colF.top) ||
+          ship.y + 3 > VH - Math.max(col.bot, colF.bot)) {
+        hitShip();
+      }
+      // enemies
+      for (const e of enemies) {
+        if (Math.abs(e.x - ship.x) < e.r + 6 && Math.abs(e.y - ship.y) < e.r + 4) {
+          e.dead = true;
+          boom(e.x, e.y, C.enemy1, 14, 2);
+          hitShip();
+          break;
+        }
+      }
+    }
+
+    updateParticles();
+
+    // popups
+    for (const p of popups) { p.y -= 0.4; p.life--; }
+    popups = popups.filter(p => p.life > 0);
+
+    if (flash > 0) flash--;
+    if (shake > 0) shake *= 0.85;
+  }
+
+  function updateParticles() {
+    for (const p of particles) {
+      p.x += p.vx; p.y += p.vy;
+      p.vy += 0.02;
+      p.life--;
+    }
+    particles = particles.filter(p => p.life > 0 && p.x > -4 && p.x < VW + 4);
+  }
+
+  function hitShip() {
+    lives--;
+    flash = 8;
+    shake = 8;
+    boom(ship.x, ship.y, C.shipHull, 26, 3);
+    boom(ship.x, ship.y, C.flame1, 12, 2);
+    if (lives <= 0) {
+      state = 'gameover';
+      goTimer = 0;
+      best = Math.max(best, score);
+      boom(ship.x, ship.y, C.shipLite, 40, 3.5);
+    } else {
+      ship.inv = 120;
+      ship.y = VH / 2;
+      ship.vx = ship.vy = 0;
+    }
+  }
+
+  // ---------------- drawing ----------------
+  function drawStars() {
+    for (const s of stars) {
+      const tw = Math.sin(s.tw + frame * 0.05) * 0.5 + 0.5;
+      if (s.layer === 0) px(s.x, s.y, 1, 1, C.starDim);
+      else if (s.layer === 1) px(s.x, s.y, 1, 1, C.starMid);
+      else {
+        px(s.x, s.y, 1, 1, tw > 0.6 ? C.starHot : C.starMid);
+        if (tw > 0.85) { px(s.x - 1, s.y, 1, 1, C.starDim); px(s.x + 1, s.y, 1, 1, C.starDim); }
+      }
+    }
+  }
+
+  function drawCave() {
+    for (let i = 0; i < cols.length; i++) {
+      const c = cols[i];
+      const x = i * COL_W - caveOffset;
+      // top wall
+      px(x, 0, COL_W, c.top, C.rock);
+      px(x, c.top - 2, COL_W, 2, C.rockEdge);
+      px(x, c.top - 5, COL_W, 3, C.rockLite);
+      px(x, 0, COL_W, Math.max(0, c.top - 14), C.rockDark);
+      // stalactite detail (deterministic per column)
+      if (c.seed > 0.65) px(x + 2, c.top, 4, 4, C.rockLite);
+      if (c.seed > 0.85) px(x + 3, c.top + 4, 2, 3, C.rockEdge);
+      // bottom wall
+      const by = VH - c.bot;
+      px(x, by, COL_W, c.bot, C.rock);
+      px(x, by, COL_W, 2, C.rockEdge);
+      px(x, by + 2, COL_W, 3, C.rockLite);
+      px(x, by + 14, COL_W, Math.max(0, c.bot - 14), C.rockDark);
+      if (c.seed < 0.35) px(x + 2, by - 4, 4, 4, C.rockLite);
+      if (c.seed < 0.15) px(x + 3, by - 7, 2, 3, C.rockEdge);
+    }
+  }
+
+  function drawShip() {
+    if (ship.inv > 0 && (frame >> 2) % 2 === 0 && state === 'playing') return;
+
+    const x = Math.round(ship.x) - 7, y = Math.round(ship.y) - 4;
+
+    // thruster glow + animated flame
+    const fl = (frame >> 1) % 3;
+    const flameLen = 4 + fl + (keys['ArrowRight'] || keys['d'] ? 3 : 0);
+    glow(x - 2, y + 4, 10 + fl * 2, 'rgba(255,120,20,0.9)', 0.35);
+    px(x - flameLen, y + 3, flameLen, 2, C.flame3);
+    px(x - flameLen + 1, y + 3, flameLen - 2, 2, C.flame2);
+    px(x - 2, y + 3, 2, 2, C.flame1);
+
+    // hull (chunky pixel spaceship)
+    px(x + 2,  y + 2, 10, 4, C.shipHull);      // body
+    px(x + 10, y + 3, 4,  2, C.shipHull);      // nose
+    px(x + 12, y + 3, 2,  2, C.shipLite);      // nose tip
+    px(x + 3,  y,     5,  2, C.shipDark);      // top fin
+    px(x + 3,  y + 6, 5,  2, C.shipDark);      // bottom fin
+    px(x + 2,  y + 2, 10, 1, C.shipLite);      // top highlight
+    px(x + 2,  y + 5, 10, 1, C.shipDark);      // bottom shade
+    px(x + 7,  y + 3, 3,  2, C.cockpit);       // cockpit
+    px(x + 7,  y + 3, 1,  1, '#ffffff');       // cockpit glint
+    px(x,      y + 3, 2,  2, C.shipDark);      // engine block
+  }
+
+  function drawBullets() {
+    for (const b of bullets) {
+      glow(b.x, b.y, 6, 'rgba(255,230,140,0.8)', 0.3);
+      px(b.x - 3, b.y, 4, 1, C.bullet);
+      px(b.x,     b.y, 2, 1, C.bulletHot);
+    }
+  }
+
+  function drawGems() {
+    for (const g of gems) {
+      const pulse = Math.sin(g.t * 2) * 0.5 + 0.5;
+      glow(g.x, g.y, 10 + pulse * 5, 'rgba(60,200,255,0.9)', 0.35 + pulse * 0.2);
+      const x = Math.round(g.x), y = Math.round(g.y);
+      // diamond
+      px(x - 1, y - 3, 2, 1, C.gemLite);
+      px(x - 2, y - 2, 4, 1, C.gem);
+      px(x - 3, y - 1, 6, 2, C.gem);
+      px(x - 2, y + 1, 4, 1, C.gemDark);
+      px(x - 1, y + 2, 2, 1, C.gemDark);
+      px(x - 2, y - 2, 1, 1, '#ffffff');
+      // sparkle
+      if (pulse > 0.8) {
+        px(x + 3, y - 4, 1, 1, '#ffffff');
+        px(x - 4, y + 2, 1, 1, C.gemLite);
+      }
+    }
+  }
+
+  function drawEnemies() {
+    for (const e of enemies) {
+      const x = Math.round(e.x), y = Math.round(e.y);
+      const hurt = e.hurt > 0;
+      if (e.type === 'drone') {
+        glow(x, y, 9, 'rgba(200,60,230,0.7)', 0.25);
+        const body = hurt ? '#ffffff' : C.enemy1;
+        const lite = hurt ? '#ffffff' : C.enemy1L;
+        px(x - 5, y - 2, 10, 4, body);
+        px(x - 3, y - 4, 6, 2, body);
+        px(x - 3, y + 2, 6, 2, body);
+        px(x - 5, y - 2, 10, 1, lite);
+        // eyes track the player
+        const ey = ship.y > e.y ? 1 : ship.y < e.y ? -1 : 0;
+        px(x - 2, y - 1 + ey, 2, 2, '#000000');
+        px(x + 1, y - 1 + ey, 2, 2, '#000000');
+        px(x - 2, y - 1 + ey, 1, 1, '#ff4d4d');
+        px(x + 1, y - 1 + ey, 1, 1, '#ff4d4d');
+      } else {
+        // spinner — rotating cross
+        glow(x, y, 10, 'rgba(100,230,80,0.6)', 0.22);
+        const body = hurt ? '#ffffff' : C.enemy2;
+        const lite = hurt ? '#ffffff' : C.enemy2L;
+        const ph = Math.floor(e.t) % 2;
+        px(x - 2, y - 2, 4, 4, body);
+        px(x - 1, y - 1, 2, 2, lite);
+        if (ph === 0) {
+          px(x - 7, y - 1, 4, 2, body);
+          px(x + 3, y - 1, 4, 2, body);
+          px(x - 1, y - 7, 2, 4, body);
+          px(x - 1, y + 3, 2, 4, body);
+        } else {
+          px(x - 6, y - 6, 3, 3, body);
+          px(x + 3, y - 6, 3, 3, body);
+          px(x - 6, y + 3, 3, 3, body);
+          px(x + 3, y + 3, 3, 3, body);
+        }
+      }
+    }
+  }
+
+  function drawParticles() {
+    for (const p of particles) {
+      ctx.globalAlpha = p.life / p.max;
+      px(p.x, p.y, p.sz, p.sz, p.c);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // ---------------- bitmap font (3x5 pixels) ----------------
+  const FONT = {
+    '0':'111101101101111','1':'010110010010111','2':'111001111100111','3':'111001111001111',
+    '4':'101101111001001','5':'111100111001111','6':'111100111101111','7':'111001010010010',
+    '8':'111101111101111','9':'111101111001111','A':'010101111101101','B':'110101110101110',
+    'C':'111100100100111','D':'110101101101110','E':'111100111100111','F':'111100111100100',
+    'G':'111100101101111','H':'101101111101101','I':'111010010010111','K':'101110100110101',
+    'L':'100100100100111','M':'101111111101101','N':'101111111111101','O':'111101101101111',
+    'P':'111101111100100','R':'111101110110101','S':'111100111001111','T':'111010010010010',
+    'U':'101101101101111','V':'101101101101010','W':'101101111111101','X':'101101010101101',
+    'Y':'101101010010010','+':'000010111010000','-':'000000111000000',' ':'000000000000000',
+    ':':'000010000010000','!':'010010010000010','.':'000000000000010',
+  };
+  function text(str, x, y, c, scale = 1) {
+    str = str.toUpperCase();
+    ctx.fillStyle = c;
+    let cx = x;
+    for (const ch of str) {
+      const bits = FONT[ch] || FONT[' '];
+      for (let i = 0; i < 15; i++) {
+        if (bits[i] === '1') {
+          ctx.fillRect(cx + (i % 3) * scale, y + Math.floor(i / 3) * scale, scale, scale);
+        }
+      }
+      cx += 4 * scale;
+    }
+    return cx - x;
+  }
+  function textW(str, scale = 1) { return str.length * 4 * scale - scale; }
+  function textC(str, y, c, scale = 1) {
+    text(str, Math.round((VW - textW(str, scale)) / 2), y, c, scale);
+  }
+
+  function drawHUD() {
+    text('SCORE', 8, 6, C.rockEdge);
+    text(String(score).padStart(6, '0'), 8, 14, C.hud);
+    // lives as mini ships
+    text('LIVES', VW - 60, 6, C.rockEdge);
+    for (let i = 0; i < lives; i++) {
+      const lx = VW - 60 + i * 12;
+      px(lx, 15, 7, 3, C.shipHull);
+      px(lx + 7, 16, 2, 1, C.shipLite);
+      px(lx + 1, 14, 3, 1, C.shipDark);
+      px(lx + 1, 18, 3, 1, C.shipDark);
+    }
+  }
+
+  function drawTitle() {
+    const bob = Math.sin(frame * 0.05) * 3;
+    // big logo with drop layer
+    textC('EMBERWING', 62 + bob, C.shipDark, 4);
+    textC('EMBERWING', 60 + bob, C.shipHull, 4);
+    glow(VW / 2, 70 + bob, 90, 'rgba(255,140,26,0.5)', 0.22);
+
+    textC('CAVES OF THE DEEP VOID', 104, C.rockEdge);
+    if ((frame >> 4) % 2 === 0) textC('PRESS SPACE TO LAUNCH', 140, C.hud);
+    textC('ARROWS OR WASD : MOVE', 168, C.starMid);
+    textC('SPACE : FIRE', 178, C.starMid);
+    if (best > 0) textC('BEST ' + best, 198, C.gem);
+
+    // demo ship flying by
+    const dx = (frame * 1.4) % (VW + 60) - 30;
+    const dy = 30 + Math.sin(frame * 0.03) * 8;
+    px(dx - 6, dy + 1, 6, 2, C.flame2);
+    px(dx, dy - 1, 8, 4, C.shipHull);
+    px(dx + 8, dy, 3, 2, C.shipLite);
+  }
+
+  function drawGameOver() {
+    ctx.fillStyle = 'rgba(5,4,10,0.6)';
+    ctx.fillRect(0, 0, VW, VH);
+    textC('GAME OVER', 74, C.danger, 3);
+    glow(VW / 2, 82, 70, 'rgba(255,77,77,0.4)', 0.25);
+    textC('SCORE ' + score, 118, C.hud);
+    if (score >= best && score > 0) textC('NEW BEST!', 132, C.gem);
+    else if (best > 0) textC('BEST ' + best, 132, C.starMid);
+    if (goTimer > 60 && (frame >> 4) % 2 === 0) textC('PRESS SPACE TO RETRY', 160, C.hud);
+  }
+
+  // ---------------- main loop ----------------
+  function render() {
+    ctx.save();
+    if (shake > 0.5) {
+      ctx.translate(Math.round(R(-shake, shake)), Math.round(R(-shake, shake)));
+    }
+
+    ctx.fillStyle = C.bg;
+    ctx.fillRect(-10, -10, VW + 20, VH + 20);
+
+    drawStars();
+    drawCave();
+    drawGems();
+    drawEnemies();
+    drawBullets();
+    if (state !== 'gameover') drawShip();
+    drawParticles();
+
+    // score popups
+    for (const p of popups) {
+      ctx.globalAlpha = Math.min(1, p.life / 20);
+      text(p.text, Math.round(p.x - textW(p.text) / 2), Math.round(p.y), p.c);
+      ctx.globalAlpha = 1;
+    }
+
+    if (state === 'playing') drawHUD();
+    if (state === 'title') drawTitle();
+    if (state === 'gameover') { drawHUD(); drawGameOver(); }
+
+    if (flash > 0) {
+      ctx.fillStyle = 'rgba(255,80,40,' + (flash / 16) + ')';
+      ctx.fillRect(-10, -10, VW + 20, VH + 20);
+    }
+
+    ctx.restore();
+  }
+
+  function loop() {
+    update();
+    render();
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+</script>
+</body>
+</html>
