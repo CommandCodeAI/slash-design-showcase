@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<title>Galaxy Shooter</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    background: radial-gradient(circle at center, #142b55, #030612 75%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    color: white;
+  }
+
+  canvas {
+    width: 400px;
+    max-width: 100vw;
+    height: 700px;
+    max-height: 100vh;
+    background: #050713;
+    border: 2px solid rgba(90, 210, 255, 0.55);
+    box-shadow: 0 0 35px rgba(0, 170, 255, 0.5);
+    touch-action: none;
+  }
+</style>
+</head>
+<body>
+<canvas id="game" width="400" height="700"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const W = canvas.width;
+const H = canvas.height;
+
+let state = "start";
+let keys = {};
+let frame = 0;
+let score = 0;
+let lives = 3;
+let level = 1;
+let shake = 0;
+let lastShotFrame = 0;
+
+const player = {
+  x: W / 2,
+  y: H - 85,
+  w: 34,
+  h: 44,
+  vx: 0,
+  speed: 0.7,
+  maxSpeed: 6,
+  power: 1,
+  invincible: 0
+};
+
+let stars = [];
+let bullets = [];
+let enemyBullets = [];
+let enemies = [];
+let particles = [];
+let powerups = [];
+
+function rand(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+function initStars() {
+  stars = [];
+  for (let i = 0; i < 130; i++) {
+    stars.push({
+      x: rand(0, W),
+      y: rand(0, H),
+      r: rand(0.5, 2),
+      s: rand(0.5, 3.2),
+      a: rand(0.35, 1)
+    });
+  }
+}
+
+function resetGame() {
+  state = "playing";
+  frame = 0;
+  score = 0;
+  lives = 3;
+  level = 1;
+  shake = 0;
+  lastShotFrame = -999;
+
+  bullets = [];
+  enemyBullets = [];
+  enemies = [];
+  particles = [];
+  powerups = [];
+
+  player.x = W / 2;
+  player.y = H - 85;
+  player.vx = 0;
+  player.power = 1;
+  player.invincible = 120;
+
+  spawnFormation();
+}
+
+function spawnFormation() {
+  enemies = [];
+
+  const rows = Math.min(2 + level, 5);
+  const cols = 6;
+  const gapX = 52;
+  const gapY = 45;
+  const startX = (W - (cols - 1) * gapX) / 2;
+  const startY = -rows * gapY - 20;
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      enemies.push({
+        x: startX + c * gapX,
+        baseX: startX + c * gapX,
+        y: startY + r * gapY,
+        w: 34,
+        h: 28,
+        hp: 1 + Math.floor(level / 4),
+        color: ["#ff45d6", "#44eaff", "#ffe35c", "#8dff6a", "#ff7b4a"][r % 5],
+        phase: rand(0, Math.PI * 2),
+        shootTimer: rand(100, 260)
+      });
+    }
+  }
+}
+
+function drawBackground() {
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, "#071337");
+  bg.addColorStop(0.5, "#090722");
+  bg.addColorStop(1, "#02040d");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  for (const s of stars) {
+    s.y += s.s + level * 0.06;
+    if (s.y > H) {
+      s.y = -5;
+      s.x = rand(0, W);
+    }
+
+    ctx.globalAlpha = s.a;
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.globalAlpha = 1;
+}
+
+function drawPlayer() {
+  ctx.save();
+  ctx.translate(player.x, player.y);
+
+  if (player.invincible > 0 && frame % 10 < 5) {
+    ctx.globalAlpha = 0.55;
+  }
+
+  ctx.shadowBlur = 22;
+  ctx.shadowColor = "#38dfff";
+
+  ctx.fillStyle = "#48dcff";
+  ctx.beginPath();
+  ctx.moveTo(0, -30);
+  ctx.lineTo(23, 22);
+  ctx.lineTo(9, 16);
+  ctx.lineTo(0, 31);
+  ctx.lineTo(-9, 16);
+  ctx.lineTo(-23, 22);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#126dff";
+  ctx.beginPath();
+  ctx.moveTo(0, -21);
+  ctx.lineTo(11, 13);
+  ctx.lineTo(0, 24);
+  ctx.lineTo(-11, 13);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(0, -3, 5, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.shadowColor = "#00f0ff";
+  ctx.fillStyle = "#00f0ff";
+  ctx.beginPath();
+  ctx.moveTo(-7, 23);
+  ctx.lineTo(0, 42 + Math.sin(frame * 0.35) * 5);
+  ctx.lineTo(7, 23);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function shoot() {
+  if (state !== "playing") return;
+  if (frame - lastShotFrame < 9) return;
+
+  lastShotFrame = frame;
+
+  bullets.push({
+    x: player.x,
+    y: player.y - 34,
+    vx: 0,
+    vy: -10,
+    w: 5,
+    h: 18
+  });
+
+  if (player.power >= 2) {
+    bullets.push({
+      x: player.x - 14,
+      y: player.y - 25,
+      vx: -0.7,
+      vy: -9,
+      w: 4,
+      h: 16
+    });
+
+    bullets.push({
+      x: player.x + 14,
+      y: player.y - 25,
+      vx: 0.7,
+      vy: -9,
+      w: 4,
+      h: 16
+    });
+  }
+
+  if (player.power >= 3) {
+    bullets.push({
+      x: player.x - 23,
+      y: player.y - 12,
+      vx: -1.2,
+      vy: -8.5,
+      w: 4,
+      h: 15
+    });
+
+    bullets.push({
+      x: player.x + 23,
+      y: player.y - 12,
+      vx: 1.2,
+      vy: -8.5,
+      w: 4,
+      h: 15
+    });
+  }
+}
+
+function updatePlayer() {
+  if (keys.ArrowLeft || keys.left) player.vx -= player.speed;
+  if (keys.ArrowRight || keys.right) player.vx += player.speed;
+
+  player.vx *= 0.88;
+  player.vx = Math.max(-player.maxSpeed, Math.min(player.maxSpeed, player.vx));
+
+  player.x += player.vx;
+  player.x = Math.max(28, Math.min(W - 28, player.x));
+
+  if (player.invincible > 0) player.invincible--;
+
+  shoot();
+}
+
+function drawBullets() {
+  ctx.shadowBlur = 16;
+  ctx.shadowColor = "#4af7ff";
+  ctx.fillStyle = "#c8ffff";
+
+  for (const b of bullets) {
+    b.x += b.vx;
+    b.y += b.vy;
+    ctx.fillRect(b.x - b.w / 2, b.y - b.h / 2, b.w, b.h);
+  }
+
+  ctx.shadowBlur = 0;
+  bullets = bullets.filter(b => b.y > -30);
+}
+
+function drawEnemies() {
+  for (const e of enemies) {
+    e.y += 0.55 + level * 0.1;
+    e.x = e.baseX + Math.sin(frame * 0.035 + e.phase) * 18;
+
+    e.shootTimer--;
+    if (e.shootTimer <= 0 && e.y > 15 && e.y < H - 150) {
+      enemyBullets.push({
+        x: e.x,
+        y: e.y + 18,
+        vx: 0,
+        vy: 3.3 + level * 0.25,
+        r: 4
+      });
+      e.shootTimer = rand(100, Math.max(120, 250 - level * 10));
+    }
+
+    ctx.save();
+    ctx.translate(e.x, e.y);
+    ctx.shadowBlur = 16;
+    ctx.shadowColor = e.color;
+    ctx.fillStyle = e.color;
+
+    ctx.beginPath();
+    ctx.moveTo(0, 16);
+    ctx.lineTo(24, -5);
+    ctx.lineTo(11, -15);
+    ctx.lineTo(0, -8);
+    ctx.lineTo(-11, -15);
+    ctx.lineTo(-24, -5);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(-7, -2, 3, 0, Math.PI * 2);
+    ctx.arc(7, -2, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
+function drawEnemyBullets() {
+  ctx.shadowBlur = 14;
+  ctx.shadowColor = "#ff386c";
+  ctx.fillStyle = "#ff8bad";
+
+  for (const b of enemyBullets) {
+    b.x += b.vx;
+    b.y += b.vy;
+
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.shadowBlur = 0;
+  enemyBullets = enemyBullets.filter(b => b.y < H + 20);
+}
+
+function rectHit(a, b) {
+  return (
+    a.x - a.w / 2 < b.x + b.w / 2 &&
+    a.x + a.w / 2 > b.x - b.w / 2 &&
+    a.y - a.h / 2 < b.y + b.h / 2 &&
+    a.y + a.h / 2 > b.y - b.h / 2
+  );
+}
+
+function circleRectHit(circle, rect, padding = 0) {
+  return (
+    circle.x > rect.x - rect.w / 2 - padding &&
+    circle.x < rect.x + rect.w / 2 + padding &&
+    circle.y > rect.y - rect.h / 2 - padding &&
+    circle.y < rect.y + rect.h / 2 + padding
+  );
+}
+
+function explode(x, y, color, amount = 18) {
+  shake = 8;
+
+  for (let i = 0; i < amount; i++) {
+    particles.push({
+      x,
+      y,
+      vx: rand(-4, 4),
+      vy: rand(-4, 4),
+      life: rand(20, 45),
+      size: rand(2, 5),
+      color
+    });
+  }
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vx *= 0.97;
+    p.vy *= 0.97;
+    p.life--;
+
+    ctx.globalAlpha = Math.max(p.life / 45, 0);
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = p.color;
+    ctx.fillStyle = p.color;
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.globalAlpha = 1;
+  ctx.shadowBlur = 0;
+
+  particles = particles.filter(p => p.life > 0);
+}
+
+function spawnPowerup(x, y) {
+  if (Math.random() < 0.2) {
+    powerups.push({
+      x,
+      y,
+      r: 12,
+      vy: 2.2,
+      type: Math.random() < 0.7 ? "power" : "life"
+    });
+  }
+}
+
+function drawPowerups() {
+  for (const p of powerups) {
+    p.y += p.vy;
+
+    const color = p.type === "life" ? "#ff4d7d" : "#58ffcf";
+
+    ctx.shadowBlur = 18;
+    ctx.shadowColor = color;
+    ctx.fillStyle = color;
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r + Math.sin(frame * 0.16) * 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#06102b";
+    ctx.font = "bold 16px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(p.type === "life" ? "♥" : "P", p.x, p.y);
+  }
+
+  ctx.shadowBlur = 0;
+  ctx.textBaseline = "alphabetic";
+
+  powerups = powerups.filter(p => p.y < H + 30);
+}
+
+function damagePlayer() {
+  if (player.invincible > 0) return;
+
+  lives--;
+  player.invincible = 110;
+  explode(player.x, player.y, "#38dfff", 35);
+
+  if (lives <= 0) {
+    state = "gameover";
+  }
+}
+
+function handleCollisions() {
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    const b = bullets[i];
+
+    for (let j = enemies.length - 1; j >= 0; j--) {
+      const e = enemies[j];
+
+      if (rectHit(b, e)) {
+        bullets.splice(i, 1);
+        e.hp--;
+
+        explode(b.x, b.y, "#4af7ff", 5);
+
+        if (e.hp <= 0) {
+          score += 100;
+          explode(e.x, e.y, e.color, 22);
+          spawnPowerup(e.x, e.y);
+          enemies.splice(j, 1);
+        }
+
+        break;
+      }
+    }
+  }
+
+  for (let i = enemyBullets.length - 1; i >= 0; i--) {
+    const b = enemyBullets[i];
+
+    if (circleRectHit(b, player, 6)) {
+      enemyBullets.splice(i, 1);
+      damagePlayer();
+    }
+  }
+
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    const e = enemies[i];
+
+    if (e.y > H + 40) {
+      enemies.splice(i, 1);
+      continue;
+    }
+
+    if (rectHit(e, player)) {
+      enemies.splice(i, 1);
+      damagePlayer();
+    }
+  }
+
+  for (let i = powerups.length - 1; i >= 0; i--) {
+    const p = powerups[i];
+
+    if (circleRectHit(p, player, 8)) {
+      if (p.type === "life") {
+        lives = Math.min(lives + 1, 5);
+      } else {
+        player.power = Math.min(player.power + 1, 3);
+      }
+
+      explode(p.x, p.y, p.type === "life" ? "#ff4d7d" : "#58ffcf", 16);
+      powerups.splice(i, 1);
+    }
+  }
+}
+
+function drawHUD() {
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+  ctx.fillRect(0, 0, W, 54);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 18px Arial";
+  ctx.textAlign = "left";
+  ctx.fillText("Score: " + score, 14, 33);
+
+  ctx.textAlign = "center";
+  ctx.fillText("Lv " + level, W / 2, 33);
+
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#ff4d7d";
+  ctx.fillText("♥".repeat(lives), W - 14, 33);
+}
+
+function drawTouchButtons() {
+  ctx.globalAlpha = 0.75;
+
+  ctx.fillStyle = "rgba(80, 180, 255, 0.15)";
+  ctx.strokeStyle = "rgba(130, 225, 255, 0.7)";
+  ctx.lineWidth = 2;
+
+  roundButton(18, H - 70, 58, 48, 12);
+  roundButton(88, H - 70, 58, 48, 12);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 22px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("◀", 47, H - 38);
+  ctx.fillText("▶", 117, H - 38);
+
+  ctx.globalAlpha = 1;
+}
+
+function roundButton(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+}
+
+function startScreen() {
+  drawBackground();
+
+  ctx.textAlign = "center";
+  ctx.shadowBlur = 26;
+  ctx.shadowColor = "#4af7ff";
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 42px Arial";
+  ctx.fillText("GALAXY", W / 2, 215);
+  ctx.fillText("SHOOTER", W / 2, 265);
+
+  ctx.shadowBlur = 0;
+  ctx.font = "18px Arial";
+  ctx.fillStyle = "#bceeff";
+  ctx.fillText("Destroy alien fleets", W / 2, 330);
+  ctx.fillText("Collect power-ups and survive", W / 2, 360);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 18px Arial";
+  ctx.fillText("Press SPACE or Tap to Start", W / 2, 455);
+
+  ctx.font = "14px Arial";
+  ctx.fillStyle = "#89cfff";
+  ctx.fillText("Arrow keys / touch buttons to move", W / 2, 500);
+}
+
+function gameOverScreen() {
+  drawBackground();
+  drawParticles();
+
+  ctx.textAlign = "center";
+  ctx.shadowBlur = 26;
+  ctx.shadowColor = "#ff3d7f";
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 42px Arial";
+  ctx.fillText("GAME OVER", W / 2, 260);
+
+  ctx.shadowBlur = 0;
+  ctx.font = "22px Arial";
+  ctx.fillText("Score: " + score, W / 2, 320);
+  ctx.fillText("Level: " + level, W / 2, 355);
+
+  ctx.font = "bold 18px Arial";
+  ctx.fillText("Press SPACE or Tap to Restart", W / 2, 455);
+}
+
+function gameLoop() {
+  frame++;
+
+  ctx.save();
+
+  if (shake > 0) {
+    ctx.translate(rand(-shake, shake), rand(-shake, shake));
+    shake *= 0.82;
+    if (shake < 0.5) shake = 0;
+  }
+
+  if (state === "start") {
+    startScreen();
+  }
+
+  if (state === "playing") {
+    drawBackground();
+
+    updatePlayer();
+    drawBullets();
+    drawEnemies();
+    drawEnemyBullets();
+    drawPowerups();
+    drawPlayer();
+    drawParticles();
+    handleCollisions();
+    drawHUD();
+    drawTouchButtons();
+
+    if (enemies.length === 0) {
+      level++;
+      player.power = Math.min(player.power + 1, 3);
+      spawnFormation();
+    }
+  }
+
+  if (state === "gameover") {
+    gameOverScreen();
+  }
+
+  ctx.restore();
+
+  requestAnimationFrame(gameLoop);
+}
+
+document.addEventListener("keydown", e => {
+  if (e.code === "ArrowLeft") keys.ArrowLeft = true;
+  if (e.code === "ArrowRight") keys.ArrowRight = true;
+
+  if (e.code === "Space") {
+    e.preventDefault();
+
+    if (state === "start" || state === "gameover") {
+      resetGame();
+    } else {
+      shoot();
+    }
+  }
+});
+
+document.addEventListener("keyup", e => {
+  if (e.code === "ArrowLeft") keys.ArrowLeft = false;
+  if (e.code === "ArrowRight") keys.ArrowRight = false;
+});
+
+canvas.addEventListener("pointerdown", e => {
+  e.preventDefault();
+
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (W / rect.width);
+  const y = (e.clientY - rect.top) * (H / rect.height);
+
+  if (state === "start" || state === "gameover") {
+    resetGame();
+    return;
+  }
+
+  if (y > H - 95 && x < 165) {
+    if (x < 82) keys.left = true;
+    else keys.right = true;
+  } else {
+    shoot();
+  }
+});
+
+canvas.addEventListener("pointerup", () => {
+  keys.left = false;
+  keys.right = false;
+});
+
+canvas.addEventListener("pointercancel", () => {
+  keys.left = false;
+  keys.right = false;
+});
+
+canvas.addEventListener("pointerleave", () => {
+  keys.left = false;
+  keys.right = false;
+});
+
+initStars();
+gameLoop();
+</script>
+</body>
+</html>
