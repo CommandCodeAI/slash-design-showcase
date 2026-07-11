@@ -9,10 +9,12 @@
 >    npm i -g command-code
 >    ```
 >    Quickstart: [commandcode.ai/docs/quickstart](https://commandcode.ai/docs/quickstart) · npm: [command-code](https://www.npmjs.com/package/command-code) · [`/design` command](https://commandcode.ai/docs/slash-commands/design)
-> 2. Start Command Code (`command-code`), then run `/design` and paste the prompt below
+> 2. Start Command Code (`cmd` on mac/linux, `cmdc` on windows, or `commandcode` anywhere), then run `/design` and paste the prompt below
 > 3. Use Command Code to generate and compare — same prompt, one shot per model
 >
-> Built with [Command Code](https://x.com/CommandCodeAI) · Showcase: [CommandCodeAI/slash-design-showcase](https://github.com/CommandCodeAI/slash-design-showcase) · Docs: [commandcode.ai/docs/slash-commands/design](https://commandcode.ai/docs/slash-commands/design)
+> Built with [Command Code](https://x.com/CommandCodeAI)
+> Showcase: [CommandCodeAI/slash-design-showcase](https://github.com/CommandCodeAI/slash-design-showcase)
+> Docs: [commandcode.ai/docs/slash-commands/design](https://commandcode.ai/docs/slash-commands/design)
 
 ## Prompt
 
