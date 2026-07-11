@@ -1,9 +1,34 @@
-Create a vertical Galaxy Shooter game as a single HTML file using Canvas. Portrait mobile style canvas (400x700). Player controls a cool blue futuristic spaceship at the bottom that moves left and right with arrow keys or on-screen touch buttons. The ship shoots lasers upward automatically or with tap/space. Enemies (colorful alien ships) come down from the top in formations. Destroy enemies and avoid their shots. Add glowing effects, particle explosions, and starfield background that scrolls down. Collect power-ups. Show score at the top, lives (hearts), and level. Include start screen and game over screen with restart. Make it fun, smooth, and visually vibrant like classic vertical shooters. Output only the full code.
+# Space Shooter: one prompt, three models
+
+> ### 🚀 Try this benchmark yourself — with Command Code
+> This benchmark was built in one-shot with [`/design`](https://commandcode.ai/docs/slash-commands/design) in [Command Code](https://commandcode.ai).
+>
+> **How to run this exact benchmark:**
+> 1. Install Command Code:
+>    ```bash
+>    npm i -g command-code
+>    ```
+>    Quickstart: [commandcode.ai/docs/quickstart](https://commandcode.ai/docs/quickstart) · npm: [command-code](https://www.npmjs.com/package/command-code) · [`/design` command](https://commandcode.ai/docs/slash-commands/design)
+> 2. Start Command Code (`cmd` on mac/linux, `cmdc` on windows, or `commandcode` anywhere), then run `/design` and paste the prompt below
+> 3. Use Command Code to generate and compare — same prompt, one shot per model
+>
+> Built with [Command Code](https://x.com/CommandCodeAI)
+> Showcase: [CommandCodeAI/slash-design-showcase](https://github.com/CommandCodeAI/slash-design-showcase)
+> Docs: [commandcode.ai/docs/slash-commands/design](https://commandcode.ai/docs/slash-commands/design)
+>
+> **Seen on X — Game UX Tests (from main README):**
+> - [DeepSeek V4 Pro vs GLM 5.2 vs Fable 5](https://x.com/MrAhmadAwais/status/2074536879308026031)
+> - [DeepSeek V4 Pro vs GLM 5.2 vs Fable 5](https://x.com/naymur_dev/status/2073059979834331206)
+> - [Fable 5 vs GPT-5.5 vs GLM 5.2 vs DeepSeek V4 Pro](https://x.com/naymur_dev/status/2074533456709825022)
+
+## Prompt
+
+> Create a vertical Galaxy Shooter game as a single HTML file using Canvas. Portrait mobile style canvas (400x700). Player controls a cool blue futuristic spaceship at the bottom that moves left and right with arrow keys or on-screen touch buttons. The ship shoots lasers upward automatically or with tap/space. Enemies (colorful alien ships) come down from the top in formations. Destroy enemies and avoid their shots. Add glowing effects, particle explosions, and starfield background that scrolls down. Collect power-ups. Show score at the top, lives (hearts), and level. Include start screen and game over screen with restart. Make it fun, smooth, and visually vibrant like classic vertical shooters. Output only the full code.
 
 ## Models
 
 | Model | Dir | Context | $/MTok in/out | LOC | Est. cost |
-|---|---|---:|---:|---:|---:|
+|---|---|---:|---:|---:|---:|---:|
 | Grok 4.5 | `grok/` | 500K | $2 / $6 | 1983 | ~$0.09 |
 | GPT-5.5 | `chatgpt/` | 1.05M | $5 / $30 | 734 | ~$0.11 |
 | Fable 5 (Claude) | `claude/` | 1M | $10 / $50 | 982 | ~$0.38 |

@@ -1,5 +1,21 @@
 # 2D Racing Game: one prompt, three models
 
+> ### 🚀 Try this benchmark yourself — with Command Code
+> This benchmark was built in one-shot with [`/design`](https://commandcode.ai/docs/slash-commands/design) in [Command Code](https://commandcode.ai).
+>
+> **How to run this exact benchmark:**
+> 1. Install Command Code:
+>    ```bash
+>    npm i -g command-code
+>    ```
+>    Quickstart: [commandcode.ai/docs/quickstart](https://commandcode.ai/docs/quickstart) · npm: [command-code](https://www.npmjs.com/package/command-code) · [`/design` command](https://commandcode.ai/docs/slash-commands/design)
+> 2. Start Command Code (`cmd` on mac/linux, `cmdc` on windows, or `commandcode` anywhere), then run `/design` and paste the prompt below
+> 3. Use Command Code to generate and compare — same prompt, one shot per model
+>
+> Built with [Command Code](https://x.com/CommandCodeAI)
+> Showcase: [CommandCodeAI/slash-design-showcase](https://github.com/CommandCodeAI/slash-design-showcase)
+> Docs: [commandcode.ai/docs/slash-commands/design](https://commandcode.ai/docs/slash-commands/design)
+
 ## Prompt
 
 > Create a complete single HTML file for a fun top-down car racing game using HTML5 Canvas with a 700x700 canvas size. The game should have modern clean graphics with a bright blue player car that has glowing headlights and smooth detailed look, red and yellow enemy cars, a detailed scrolling road with white dashed lines and textured borders, grass or city background on the sides, particle tire smoke when drifting, sparks on collisions, and glowing collectible coins. Implement realistic car physics including acceleration, deceleration, braking, turning with momentum and slight drifting when turning at high speed. The player controls the car using arrow keys or WASD with up to accelerate, down to brake or reverse, and left/right to steer. The road scrolls forward continuously, the player collects glowing coins for points and power-ups for temporary speed boost or shield, while avoiding or overtaking enemy cars coming from the front. Increase difficulty by adding more enemies and higher speed as the score rises. Show score at the top, a speedometer, and lives system. Include a nice start screen with title and press space to start, pause with P key, and game over screen with final score and restart option. Use requestAnimationFrame for smooth 60fps gameplay, add simple Web Audio API sound effects for engine, coin collect, and crash. Make the entire game polished, responsive, addictive, and visually satisfying. Output only the full working HTML code with everything inline.
