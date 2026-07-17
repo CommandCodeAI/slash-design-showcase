@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUNAR — Luxury in Harmony with the Earth</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        ink: '#0a0f0c',
+        ash: '#171310',
+        forest: '#12241c',
+        deepforest: '#0e1b14',
+        moss: '#3f5d4b',
+        sage: '#9db8a4',
+        fern: '#5c8a6a',
+        cream: '#efe9dc',
+        bone: '#cfc8b8',
+        gold: '#c9a96a',
+        smog: '#8a7f6d'
+      },
+      fontFamily: {
+        display: ['Fraunces', 'serif'],
+        body: ['Manrope', 'sans-serif']
+      }
+    }
+  }
+}
+</script>
+<style>
+  html { background: #0a0f0c; }
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: #0a0f0c;
+    color: #efe9dc;
+    transition: background-color 1.6s cubic-bezier(.4,0,.2,1);
+    overflow-x: hidden;
+  }
+  body[data-scene="hero"]     { background-color: #0a0f0c; }
+  body[data-scene="problem"]  { background-color: #16120e; }
+  body[data-scene="journey"]  { background-color: #12241c; }
+  body[data-scene="solution"] { background-color: #0e1b14; }
+  body[data-scene="impact"]   { background-color: #080b09; }
+  body[data-scene="cta"]      { background-color: #0d1417; }
+
+  ::selection { background: #c9a96a; color: #0a0f0c; }
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: #0a0f0c; }
+  ::-webkit-scrollbar-thumb { background: #3f5d4b; border-radius: 5px; }
+  ::-webkit-scrollbar-thumb:hover { background: #5c8a6a; }
+
+  a:focus-visible, button:focus-visible {
+    outline: 2px dashed #c9a96a;
+    outline-offset: 4px;
+  }
+
+  .grain {
+    position: fixed; inset: 0; z-index: 60; pointer-events: none; opacity: .055;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .overline-label {
+    font-size: .6875rem; letter-spacing: .42em; text-transform: uppercase; font-weight: 600;
+  }
+
+  .chapter-marker {
+    display: flex; align-items: center; gap: 1.25rem;
+    opacity: 0; transform: translateY(24px);
+    transition: opacity 1s ease .1s, transform 1s cubic-bezier(.22,1,.36,1) .1s;
+  }
+  .chapter-marker .rule { height: 1px; width: 0; background: currentColor; transition: width 1.4s cubic-bezier(.22,1,.36,1) .45s; }
+  .chapter.is-visible .chapter-marker { opacity: 1; transform: translateY(0); }
+  .chapter.is-visible .chapter-marker .rule { width: 72px; }
+
+  .reveal { opacity: 0; transform: translateY(48px); }
+
+  .display-hero {
+    font-size: clamp(4.5rem, 16vw, 13rem);
+    line-height: .92; letter-spacing: .02em; font-weight: 300;
+  }
+  .display-section {
+    font-size: clamp(2.6rem, 6.5vw, 5rem);
+    line-height: 1.04; font-weight: 300; letter-spacing: -.01em;
+  }
+  .em-italic { font-style: italic; font-weight: 400; }
+
+  .moon-disc {
+    background: radial-gradient(circle at 38% 34%, #f5efe2 0%, #e4dcc8 42%, #c9c0a8 78%, #a89f88 100%);
+    box-shadow: 0 0 60px 18px rgba(239,233,220,.18), 0 0 160px 60px rgba(201,169,106,.10), inset -18px -14px 50px rgba(90,80,60,.35);
+  }
+
+  .card-eco {
+    background: linear-gradient(160deg, rgba(239,233,220,.045), rgba(239,233,220,.012));
+    border: 1px solid rgba(157,184,164,.16);
+    backdrop-filter: blur(8px);
+    transform-style: preserve-3d;
+    transition: border-color .5s ease, background .5s ease;
+  }
+  .card-eco:hover { border-color: rgba(201,169,106,.45); background: linear-gradient(160deg, rgba(239,233,220,.07), rgba(239,233,220,.02)); }
+
+  .num-impact {
+    font-size: clamp(3.4rem, 8vw, 6.5rem);
+    line-height: 1; font-weight: 300; font-variant-numeric: tabular-nums;
+  }
+
+  .dot-nav a {
+    width: 8px; height: 8px; border-radius: 9999px;
+    background: rgba(157,184,164,.35); display: block;
+    transition: background .4s ease, transform .4s ease, box-shadow .4s ease;
+  }
+  .dot-nav a.active { background: #c9a96a; transform: scale(1.5); box-shadow: 0 0 12px rgba(201,169,106,.6); }
+  .dot-nav a:hover { background: #efe9dc; }
+
+  .journey-word {
+    font-size: clamp(3.2rem, 10vw, 8.5rem);
+    line-height: 1; font-weight: 300; letter-spacing: -.02em;
+  }
+
+  .btn-primary {
+    background: #c9a96a; color: #0a0f0c;
+    transition: background .35s ease, transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease;
+  }
+  .btn-primary:hover { background: #efe9dc; transform: translateY(-2px); box-shadow: 0 12px 40px rgba(201,169,106,.25); }
+  .btn-ghost {
+    border: 1px solid rgba(239,233,220,.28); color: #efe9dc;
+    transition: border-color .35s ease, background .35s ease, transform .35s cubic-bezier(.22,1,.36,1);
+  }
+  .btn-ghost:hover { border-color: #c9a96a; background: rgba(201,169,106,.08); transform: translateY(-2px); }
+
+  .smog-haze {
+    background: radial-gradient(ellipse 80% 55% at 50% 110%, rgba(138,127,109,.22), transparent 65%);
+  }
+  .moon-haze {
+    background: radial-gradient(ellipse 70% 55% at 50% -10%, rgba(239,233,220,.12), transparent 60%);
+  }
+
+  @keyframes drift { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+  @keyframes pulse-line { 0%,100% { transform: scaleY(.3); opacity: .4; } 50% { transform: scaleY(1); opacity: 1; } }
+  .scroll-hint-line { transform-origin: top; animation: pulse-line 2.2s ease-in-out infinite; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .reveal { opacity: 1 !important; transform: none !important; }
+    .chapter-marker, .chapter-marker .rule { opacity: 1; transform: none; transition: none; width: 72px; }
+    .scroll-hint-line { animation: none; }
+    body { transition: none; }
+  }
+</style>
+</head>
+<body data-scene="hero" class="antialiased">
+
+<canvas id="cosmos" class="fixed inset-0 w-full h-full z-0 pointer-events-none" style="opacity:.55" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="fixed top-0 inset-x-0 z-50 px-6 md:px-12 py-6 flex items-center justify-between mix-blend-difference">
+  <a href="#hero" class="font-display text-xl tracking-[.35em] font-light text-cream">LUNAR</a>
+  <nav class="hidden md:flex items-center gap-10 overline-label text-cream/70" aria-label="Chapters">
+    <a href="#problem" class="hover:text-cream transition-colors duration-300">Problem</a>
+    <a href="#journey" class="hover:text-cream transition-colors duration-300">Journey</a>
+    <a href="#solution" class="hover:text-cream transition-colors duration-300">Solution</a>
+    <a href="#impact" class="hover:text-cream transition-colors duration-300">Impact</a>
+  </nav>
+</header>
+
+<nav class="dot-nav fixed right-6 md:right-10 top-1/2 -translate-y-1/2 z-50 hidden sm:flex flex-col gap-5" aria-label="Scroll progress">
+  <a href="#hero" data-dot="hero" aria-label="Opening"></a>
+  <a href="#problem" data-dot="problem" aria-label="The Problem"></a>
+  <a href="#journey" data-dot="journey" aria-label="The Journey"></a>
+  <a href="#solution" data-dot="solution" aria-label="The Solution"></a>
+  <a href="#impact" data-dot="impact" aria-label="Impact"></a>
+  <a href="#cta" data-dot="cta" aria-label="Begin"></a>
+</nav>
+
+<main class="relative z-10">
+
+  <section id="hero" class="chapter relative min-h-screen flex flex-col justify-center overflow-hidden" data-scene="hero">
+    <div class="hero-sky absolute inset-0" style="background: linear-gradient(180deg, #060a08 0%, #0a1510 45%, #14301f 100%);"></div>
+
+    <div class="hero-moon absolute left-1/2 -translate-x-1/2" style="top: 12vh;">
+      <div class="moon-disc rounded-full w-[38vmin] h-[38vmin] md:w-[30vmin] md:h-[30vmin]" style="animation: drift 9s ease-in-out infinite;"></div>
+    </div>
+
+    <svg class="hero-trees hero-trees-back absolute bottom-0 left-0 w-full" style="height: 34vh; opacity:.55" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
+      <path fill="#0d1f16" d="M0,320 L0,190 L40,150 L60,185 L90,120 L120,180 L150,140 L180,190 L210,110 L240,175 L280,130 L320,185 L360,140 L400,195 L440,120 L480,180 L520,150 L560,195 L600,105 L640,170 L680,135 L720,190 L760,145 L800,195 L840,115 L880,175 L920,140 L960,190 L1000,125 L1040,180 L1080,150 L1120,195 L1160,130 L1200,175 L1240,145 L1280,190 L1320,120 L1360,170 L1400,150 L1440,185 L1440,320 Z"/>
+    </svg>
+    <svg class="hero-trees hero-trees-front absolute bottom-0 left-0 w-full" style="height: 26vh" viewBox="0 0 1440 260" preserveAspectRatio="none" aria-hidden="true">
+      <path fill="#060d09" d="M0,260 L0,140 L50,95 L80,140 L120,60 L160,135 L200,90 L240,145 L290,50 L340,130 L390,85 L440,145 L490,70 L540,135 L590,95 L640,150 L700,45 L760,130 L810,85 L860,145 L910,65 L960,135 L1010,95 L1060,150 L1110,70 L1160,130 L1210,90 L1260,145 L1310,60 L1360,125 L1400,95 L1440,140 L1440,260 Z"/>
+    </svg>
+
+    <div class="relative px-6 md:px-12 pt-24 text-center">
+      <p class="hero-kicker overline-label text-sage/80 mb-8">Est. beneath an old sky</p>
+      <h1 class="hero-title font-display display-hero text-cream">LUNAR</h1>
+      <p class="hero-tag font-display em-italic text-sage text-xl md:text-2xl mt-8 max-w-xl mx-auto">Luxury that returns more to the earth than it takes.</p>
+    </div>
+
+    <div class="hero-hint absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 text-sage/70">
+      <span class="overline-label" style="font-size:.6rem">Scroll</span>
+      <div class="scroll-hint-line w-px h-14 bg-sage/60"></div>
+    </div>
+  </section>
+
+  <section id="problem" class="chapter relative min-h-screen flex items-center py-36 smog-haze" data-scene="problem">
+    <div class="max-w-5xl mx-auto px-6 md:px-12">
+      <div class="chapter-marker text-smog">
+        <span class="overline-label">Chapter I</span>
+        <span class="rule"></span>
+        <span class="overline-label">The Problem</span>
+      </div>
+      <h2 class="reveal font-display display-section mt-12 text-bone">
+        We built a world of <span class="em-italic text-smog">beautiful things</span> —<br class="hidden md:block">
+        and billed the cost to the <span class="em-italic text-smog">living earth.</span>
+      </h2>
+      <div class="grid md:grid-cols-2 gap-12 mt-16">
+        <p class="reveal text-bone/70 leading-relaxed text-lg max-w-md">
+          Every year, the luxury industry burns through ancient forests, poisons watersheds with dye runoff, and buries a mountain of discarded splendor. Beauty became extraction wearing a silk glove.
+        </p>
+        <div class="reveal flex flex-col gap-8">
+          <div class="border-l border-smog/30 pl-6">
+            <p class="font-display text-3xl text-smog">92 million tonnes</p>
+            <p class="text-bone/50 text-sm mt-2 tracking-wide">of textile waste buried or burned each year</p>
+          </div>
+          <div class="border-l border-smog/30 pl-6">
+            <p class="font-display text-3xl text-smog">20% of clean water</p>
+            <p class="text-bone/50 text-sm mt-2 tracking-wide">polluted globally by fabric dyeing and finishing</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="journey" class="chapter relative min-h-[170vh] py-36" data-scene="journey">
+    <div class="max-w-5xl mx-auto px-6 md:px-12">
+      <div class="chapter-marker text-sage">
+        <span class="overline-label">Chapter II</span>
+        <span class="rule"></span>
+        <span class="overline-label">The Journey</span>
+      </div>
+      <h2 class="reveal font-display display-section mt-12 text-cream max-w-3xl">
+        So we walked back into the forest, and asked what <span class="em-italic text-sage">luxury</span> would look like if nature were the <span class="em-italic text-sage">atelier.</span>
+      </h2>
+    </div>
+    <div class="mt-32 md:mt-48">
+      <div class="journey-step min-h-[60vh] flex items-center px-6 md:px-12">
+        <div class="max-w-5xl mx-auto w-full flex flex-col md:flex-row md:items-end gap-6 md:gap-16">
+          <span class="journey-word font-display text-moss/60">Listen.</span>
+          <p class="reveal text-cream/60 max-w-sm leading-relaxed pb-3">Three years spent with foresters, dyers, and mycologists — learning what the land could offer without being diminished.</p>
+        </div>
+      </div>
+      <div class="journey-step min-h-[60vh] flex items-center px-6 md:px-12">
+        <div class="max-w-5xl mx-auto w-full flex flex-col md:flex-row md:items-end gap-6 md:gap-16">
+          <span class="journey-word font-display text-fern/70">Restore.</span>
+          <p class="reveal text-cream/60 max-w-sm leading-relaxed pb-3">Every supply chain redesigned as a loop. What we harvest, we replant tenfold. What we make, we guarantee for life — then take back to remake.</p>
+        </div>
+      </div>
+      <div class="journey-step min-h-[60vh] flex items-center px-6 md:px-12">
+        <div class="max-w-5xl mx-auto w-full flex flex-col md:flex-row md:items-end gap-6 md:gap-16">
+          <span class="journey-word font-display text-sage">Craft.</span>
+          <p class="reveal text-cream/60 max-w-sm leading-relaxed pb-3">Objects made slowly, by hands that are paid fairly, from materials that were once alive — and will be allowed to live again.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="solution" class="chapter relative py-36" data-scene="solution">
+    <div class="max-w-6xl mx-auto px-6 md:px-12">
+      <div class="chapter-marker text-gold">
+        <span class="overline-label">Chapter III</span>
+        <span class="rule"></span>
+        <span class="overline-label">The Solution</span>
+      </div>
+      <h2 class="reveal font-display display-section mt-12 text-cream max-w-3xl">
+        An ecosystem of objects, <span class="em-italic text-gold">grown</span> rather than extracted.
+      </h2>
+      <div class="grid md:grid-cols-3 gap-6 mt-20" id="eco-grid">
+        <article class="reveal card-eco rounded-2xl p-9 flex flex-col gap-6 min-h-[26rem]">
+          <span class="overline-label text-fern">01 / Material</span>
+          <h3 class="font-display text-3xl text-cream font-light">Regenerative matter</h3>
+          <p class="text-cream/55 leading-relaxed text-[.95rem]">Mycelium leather, algae-dyed silk, and timber harvested only where forests are expanding. Each material is chosen for what it gives back while it grows.</p>
+          <div class="mt-auto pt-6 border-t border-sage/15 flex items-baseline justify-between">
+            <span class="font-display text-2xl text-sage">−84%</span>
+            <span class="text-cream/40 text-xs tracking-wider">water vs. conventional</span>
+          </div>
+        </article>
+        <article class="reveal card-eco rounded-2xl p-9 flex flex-col gap-6 min-h-[26rem]">
+          <span class="overline-label text-fern">02 / Loop</span>
+          <h3 class="font-display text-3xl text-cream font-light">Circular craft</h3>
+          <p class="text-cream/55 leading-relaxed text-[.95rem]">Every LUNAR piece carries a lifetime promise. Return it in a decade and we restore it, remake it, or compost it back into the systems it came from.</p>
+          <div class="mt-auto pt-6 border-t border-sage/15 flex items-baseline justify-between">
+            <span class="font-display text-2xl text-sage">0</span>
+            <span class="text-cream/40 text-xs tracking-wider">pieces to landfill, ever</span>
+          </div>
+        </article>
+        <article class="reveal card-eco rounded-2xl p-9 flex flex-col gap-6 min-h-[26rem]">
+          <span class="overline-label text-fern">03 / Wild</span>
+          <h3 class="font-display text-3xl text-cream font-light">Renewal fund</h3>
+          <p class="text-cream/55 leading-relaxed text-[.95rem]">A fixed share of every purchase flows directly to rewilding trusts — old-growth corridors, river restoration, and the communities who steward them.</p>
+          <div class="mt-auto pt-6 border-t border-sage/15 flex items-baseline justify-between">
+            <span class="font-display text-2xl text-sage">11%</span>
+            <span class="text-cream/40 text-xs tracking-wider">of revenue, in perpetuity</span>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="impact" class="chapter relative py-36" data-scene="impact">
+    <div class="max-w-6xl mx-auto px-6 md:px-12">
+      <div class="chapter-marker text-gold">
+        <span class="overline-label">Chapter IV</span>
+        <span class="rule"></span>
+        <span class="overline-label">Impact</span>
+      </div>
+      <h2 class="reveal font-display display-section mt-12 text-cream max-w-3xl">
+        The earth keeps the <span class="em-italic text-gold">ledger.</span> Here is our balance.
+      </h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16 mt-24">
+        <div class="reveal">
+          <p class="num-impact font-display text-gold"><span class="counter" data-target="1.2" data-decimals="1">0</span>M</p>
+          <div class="w-10 h-px bg-gold/40 my-5"></div>
+          <p class="text-cream/55 text-sm leading-relaxed tracking-wide">native trees planted across four continents</p>
+        </div>
+        <div class="reveal">
+          <p class="num-impact font-display text-gold"><span class="counter" data-target="48">0</span></p>
+          <div class="w-10 h-px bg-gold/40 my-5"></div>
+          <p class="text-cream/55 text-sm leading-relaxed tracking-wide">rivers and watersheds under active restoration</p>
+        </div>
+        <div class="reveal">
+          <p class="num-impact font-display text-gold"><span class="counter" data-target="97">0</span>%</p>
+          <div class="w-10 h-px bg-gold/40 my-5"></div>
+          <p class="text-cream/55 text-sm leading-relaxed tracking-wide">of atelier operations powered by renewables</p>
+        </div>
+        <div class="reveal">
+          <p class="num-impact font-display text-gold"><span class="counter" data-target="310">0</span></p>
+          <div class="w-10 h-px bg-gold/40 my-5"></div>
+          <p class="text-cream/55 text-sm leading-relaxed tracking-wide">artisan partners paid above fair-trade rates</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="cta" class="chapter relative min-h-screen flex items-center moon-haze" data-scene="cta">
+    <div class="max-w-4xl mx-auto px-6 md:px-12 text-center py-36">
+      <div class="chapter-marker justify-center text-sage">
+        <span class="overline-label">The Return</span>
+      </div>
+      <h2 class="reveal font-display mt-14 text-cream" style="font-size:clamp(2.8rem,7.5vw,5.8rem);line-height:1.05;font-weight:300;">
+        Own something the earth <span class="em-italic text-sage">thanks you</span> for.
+      </h2>
+      <p class="reveal text-cream/55 text-lg leading-relaxed max-w-xl mx-auto mt-10">
+        The first LUNAR collection arrives at the next full moon. Twelve objects. Numbered, guaranteed for life, and grown from living systems.
+      </p>
+      <div class="reveal flex flex-col sm:flex-row items-center justify-center gap-5 mt-14">
+        <a href="#cta" class="btn-primary rounded-full px-10 py-4 overline-label" style="font-size:.72rem">Reserve the first edition</a>
+        <a href="#solution" class="btn-ghost rounded-full px-10 py-4 overline-label" style="font-size:.72rem">Explore the ecosystem</a>
+      </div>
+      <p class="reveal overline-label text-cream/30 mt-20" style="font-size:.6rem">LUNAR — luxury in harmony with the earth</p>
+    </div>
+  </section>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  gsap.registerPlugin(ScrollTrigger);
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      const scene = entry.target.dataset.scene;
+      document.body.dataset.scene = scene;
+      entry.target.classList.add('is-visible');
+      document.querySelectorAll('.dot-nav a').forEach((d) => {
+        d.classList.toggle('active', d.dataset.dot === scene);
+      });
+    });
+  }, { threshold: 0.25 });
+  document.querySelectorAll('.chapter').forEach((c) => observer.observe(c));
+
+  if (reduced) {
+    document.querySelectorAll('.counter').forEach((el) => {
+      el.textContent = parseFloat(el.dataset.target).toFixed(parseInt(el.dataset.decimals || 0));
+    });
+  } else {
+    gsap.timeline({ delay: 0.3 })
+      .from('.hero-kicker', { opacity: 0, y: 30, duration: 1.2, ease: 'power3.out' })
+      .from('.hero-title', { opacity: 0, y: 80, letterSpacing: '.3em', duration: 1.6, ease: 'power4.out' }, '-=0.8')
+      .from('.hero-tag', { opacity: 0, y: 40, duration: 1.2, ease: 'power3.out' }, '-=1.0')
+      .from('.hero-hint', { opacity: 0, duration: 1 }, '-=0.4');
+
+    gsap.timeline({
+      scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: 1 }
+    })
+      .to('.hero-moon', { yPercent: -55, scale: 1.35, ease: 'none' }, 0)
+      .to('.hero-trees-front', { yPercent: 45, opacity: 0, ease: 'none' }, 0)
+      .to('.hero-trees-back', { yPercent: 25, opacity: 0, ease: 'none' }, 0)
+      .to('.hero-sky', { opacity: 0.25, ease: 'none' }, 0)
+      .to('.hero-title', { yPercent: -30, opacity: 0, ease: 'none' }, 0)
+      .to('.hero-tag, .hero-kicker', { opacity: 0, ease: 'none' }, 0);
+
+    document.querySelectorAll('.chapter').forEach((chapter) => {
+      const reveals = chapter.querySelectorAll('.reveal');
+      if (!reveals.length) return;
+      gsap.to(reveals, {
+        opacity: 1, y: 0, duration: 1.3, ease: 'power3.out',
+        stagger: 0.14,
+        scrollTrigger: { trigger: chapter, start: 'top 62%' }
+      });
+    });
+
+    document.querySelectorAll('.journey-word').forEach((word) => {
+      gsap.fromTo(word,
+        { opacity: 0, x: -90, filter: 'blur(10px)' },
+        { opacity: 1, x: 0, filter: 'blur(0px)', ease: 'power2.out',
+          scrollTrigger: { trigger: word.closest('.journey-step'), start: 'top 78%', end: 'top 38%', scrub: 1 } });
+    });
+
+    document.querySelectorAll('.counter').forEach((el) => {
+      const target = parseFloat(el.dataset.target);
+      const decimals = parseInt(el.dataset.decimals || 0);
+      const state = { v: 0 };
+      gsap.to(state, {
+        v: target, duration: 2.2, ease: 'power2.out',
+        scrollTrigger: { trigger: el, start: 'top 85%' },
+        onUpdate: () => { el.textContent = state.v.toFixed(decimals); }
+      });
+    });
+  }
+
+  const tiltCards = document.querySelectorAll('.card-eco');
+  if (!reduced && window.matchMedia('(hover: hover)').matches) {
+    tiltCards.forEach((card) => {
+      card.addEventListener('mousemove', (e) => {
+        const r = card.getBoundingClientRect();
+        const rx = ((e.clientY - r.top) / r.height - 0.5) * -7;
+        const ry = ((e.clientX - r.left) / r.width - 0.5) * 9;
+        card.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-4px)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transition = 'transform .7s cubic-bezier(.22,1,.36,1), border-color .5s ease, background .5s ease';
+        card.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0)';
+        setTimeout(() => { card.style.transition = ''; }, 700);
+      });
+    });
+  }
+
+  try {
+    const canvas = document.getElementById('cosmos');
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 100);
+    camera.position.z = 8;
+
+    const keyLight = new THREE.DirectionalLight(0xfff3dd, 1.1);
+    keyLight.position.set(4, 3, 5);
+    scene.add(keyLight);
+    scene.add(new THREE.AmbientLight(0x8fa896, 0.35));
+
+    function makeTexture(size, painter) {
+      const c = document.createElement('canvas');
+      c.width = c.height = size;
+      painter(c.getContext('2d'), size);
+      return new THREE.CanvasTexture(c);
+    }
+
+    const earthTex = makeTexture(512, (ctx, s) => {
+      ctx.fillStyle = '#1c3a2a';
+      ctx.fillRect(0, 0, s, s);
+      for (let i = 0; i < 260; i++) {
+        const g = ['#2e5b3f', '#3f5d4b', '#173022', '#4a6b52'][i % 4];
+        ctx.fillStyle = g;
+        ctx.globalAlpha = 0.25 + Math.random() * 0.4;
+        ctx.beginPath();
+        ctx.ellipse(Math.random() * s, Math.random() * s, 12 + Math.random() * 60, 8 + Math.random() * 40, Math.random() * Math.PI, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = '#5d7681';
+      for (let i = 0; i < 40; i++) {
+        ctx.beginPath();
+        ctx.ellipse(Math.random() * s, Math.random() * s, 20 + Math.random() * 50, 6 + Math.random() * 14, Math.random() * Math.PI, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+
+    const moonTex = makeTexture(512, (ctx, s) => {
+      ctx.fillStyle = '#cfc8b8';
+      ctx.fillRect(0, 0, s, s);
+      for (let i = 0; i < 90; i++) {
+        ctx.fillStyle = i % 2 ? '#b5ad9a' : '#bdb5a1';
+        ctx.globalAlpha = 0.3 + Math.random() * 0.45;
+        ctx.beginPath();
+        ctx.arc(Math.random() * s, Math.random() * s, 3 + Math.random() * 26, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+
+    function makeGlow(color, scale) {
+      const tex = makeTexture(256, (ctx, s) => {
+        const g = ctx.createRadialGradient(s / 2, s / 2, s * 0.28, s / 2, s / 2, s / 2);
+        g.addColorStop(0, color);
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, s, s);
+      });
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.8 }));
+      sprite.scale.setScalar(scale);
+      return sprite;
+    }
+
+    const earth = new THREE.Mesh(new THREE.SphereGeometry(1.35, 48, 48), new THREE.MeshStandardMaterial({ map: earthTex, roughness: 0.9, metalness: 0.05 }));
+    earth.add(makeGlow('rgba(92,138,106,0.55)', 4.6));
+    scene.add(earth);
+
+    const moon = new THREE.Mesh(new THREE.SphereGeometry(0.85, 48, 48), new THREE.MeshStandardMaterial({ map: moonTex, roughness: 1, metalness: 0 }));
+    moon.add(makeGlow('rgba(239,233,220,0.5)', 3.4));
+    scene.add(moon);
+
+    const healthy = new THREE.Color('#ffffff');
+    earth.material.color.set('#4a4238');
+    earth.position.set(2.3, -0.6, -1);
+    earth.rotation.z = 0.18;
+    moon.position.set(4.2, 2.8, -0.5);
+    moon.scale.setScalar(0.55);
+    keyLight.intensity = 0.75;
+
+    const spin = { p: 0 };
+
+    const cosmos = gsap.timeline({
+      defaults: { ease: 'none' },
+      scrollTrigger: {
+        trigger: document.body,
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: reduced ? true : 0.45,
+        invalidateOnRefresh: true
+      }
+    });
+
+    cosmos
+      .to(earth.position, { x: 1.1, y: -0.85, duration: 0.28 }, 0.02)
+      .to(earth.material.color, { r: healthy.r, g: healthy.g, b: healthy.b, duration: 0.34 }, 0.14)
+      .to(earth.position, { x: -3.4, y: -1.9, duration: 0.3 }, 0.48)
+      .to(earth.scale, { x: 0.62, y: 0.62, z: 0.62, duration: 0.3 }, 0.48)
+      .to(moon.position, { x: 2.1, y: 1.7, duration: 0.3 }, 0.3)
+      .to(moon.scale, { x: 0.95, y: 0.95, z: 0.95, duration: 0.3 }, 0.3)
+      .to(moon.position, { x: 1.15, y: 0.5, duration: 0.28 }, 0.72)
+      .to(moon.scale, { x: 1.5, y: 1.5, z: 1.5, duration: 0.28 }, 0.72)
+      .to(keyLight, { intensity: 1.35, duration: 0.4 }, 0.6)
+      .to(spin, { p: 1, duration: 1 }, 0);
+
+    function resize() {
+      renderer.setSize(innerWidth, innerHeight);
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+    }
+    addEventListener('resize', resize);
+    resize();
+
+    function frame(t) {
+      requestAnimationFrame(frame);
+      earth.rotation.y = spin.p * 2.6 + (reduced ? 0 : t * 0.00004);
+      moon.rotation.y = spin.p * 1.4 + (reduced ? 0 : t * 0.00002);
+      renderer.render(scene, camera);
+    }
+    requestAnimationFrame(frame);
+  } catch (e) {
+    document.getElementById('cosmos').style.display = 'none';
+  }
+})();
+</script>
+</body>
+</html>

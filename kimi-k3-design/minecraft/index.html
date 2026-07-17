@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CommandCraft — a tiny Minecraft in your browser</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   CommandCraft UI — chunky pixel-art game interface
+   Font: Press Start 2P (falls back to bold monospace offline)
+   ============================================================ */
+:root {
+  --mc-font: 'Press Start 2P', 'Courier New', monospace;
+  --panel-bg: rgba(14, 14, 18, 0.86);
+  --panel-edge: #000;
+  --slot-bg: #8b8b8b;
+  --slot-dark: #373737;
+  --slot-light: #ffffff;
+  --text-shadow: 2px 2px 0 rgba(0,0,0,0.55);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+body { font-family: var(--mc-font); color: #fff; user-select: none; -webkit-user-select: none; }
+canvas#gl { position: fixed; inset: 0; display: block; }
+
+/* ---------- shared menu look ---------- */
+.screen {
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background-color: #3c2f1e;
+  background-repeat: repeat; background-size: 96px 96px; image-rendering: pixelated;
+}
+.screen::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,8,20,0.25) 0%, rgba(10,8,6,0.72) 100%);
+  pointer-events: none;
+}
+.screen > * { position: relative; z-index: 1; }
+.hidden { display: none !important; }
+
+.game-logo {
+  font-size: clamp(28px, 6vw, 56px); letter-spacing: 2px; color: #e8e8e8;
+  text-shadow: 0 5px 0 #3f3f3f, 0 8px 0 rgba(0,0,0,0.45), 3px 0 0 #3f3f3f, -3px 0 0 #3f3f3f;
+  margin-bottom: 6px; text-align: center; line-height: 1.15;
+}
+.game-logo .green { color: #5fca3f; }
+.tagline { font-size: 10px; color: #bcbcbc; text-shadow: var(--text-shadow); margin-bottom: 34px; }
+.splash {
+  position: absolute; top: 26%; right: 12%;
+  color: #ffff54; font-size: 13px; text-shadow: 2px 2px 0 #3f3f00;
+  transform: rotate(-18deg); animation: splashPulse 0.5s ease-in-out infinite alternate;
+  pointer-events: none; max-width: 260px; text-align: center;
+}
+@keyframes splashPulse { from { transform: rotate(-18deg) scale(1); } to { transform: rotate(-18deg) scale(1.09); } }
+
+.menu-col { display: flex; flex-direction: column; gap: 12px; width: min(400px, 86vw); }
+.mc-btn {
+  font-family: var(--mc-font); font-size: 12px; color: #efefef;
+  text-shadow: var(--text-shadow); text-align: center;
+  padding: 14px 18px; cursor: pointer; border: 2px solid #000;
+  background: linear-gradient(180deg, #8f8f8f 0%, #6f6f6f 48%, #5b5b5b 52%, #4c4c4c 100%);
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.35), inset 0 -3px 0 rgba(0,0,0,0.35);
+  image-rendering: pixelated;
+}
+.mc-btn:hover { background: linear-gradient(180deg, #8a9fc6 0%, #6f83b1 48%, #5d6f9e 52%, #4c5b8a 100%); color: #ffffa0; }
+.mc-btn:active { transform: translateY(2px); box-shadow: inset 0 3px 0 rgba(0,0,0,0.4); }
+.mc-btn.primary { background: linear-gradient(180deg, #6fc24a 0%, #57a637 48%, #4a8f2e 52%, #3d7a26 100%); }
+.mc-btn.primary:hover { background: linear-gradient(180deg, #7fd95a 0%, #63b843 48%, #549c39 52%, #468530 100%); color: #fff; }
+.mc-btn.danger:hover { background: linear-gradient(180deg, #c26a5a 0%, #a65747 48%, #8f463a 52%, #7a3b30 100%); }
+.mc-input {
+  font-family: var(--mc-font); font-size: 12px; color: #eee; width: 100%;
+  background: #1a1a1a; border: 2px solid #000; padding: 12px 14px; outline: none;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+}
+.mc-input:focus { border-color: #fff; }
+.menu-label { font-size: 10px; color: #cfcfcf; text-shadow: var(--text-shadow); margin-bottom: -6px; }
+
+.controls-card {
+  margin-top: 30px; background: var(--panel-bg); border: 2px solid var(--panel-edge);
+  padding: 16px 20px; display: grid; grid-template-columns: auto auto; gap: 7px 22px;
+  font-size: 9px; color: #d8d8d8; line-height: 1.5;
+}
+.controls-card b { color: #ffff9c; font-weight: normal; }
+.controls-title { grid-column: 1 / -1; color: #fff; font-size: 10px; margin-bottom: 4px; }
+.version-tag { position: absolute; bottom: 10px; left: 12px; font-size: 9px; color: #cfcfcf; text-shadow: var(--text-shadow); }
+.seed-note { font-size: 8px; color: #9c9c9c; margin-top: 2px; }
+
+/* ---------- loading ---------- */
+#loading-bar-wrap { width: min(420px, 80vw); height: 18px; border: 2px solid #000; background: #222; margin-top: 18px; }
+#loading-bar { height: 100%; width: 0%; background: linear-gradient(180deg, #7ee05a, #4c9c33); transition: width 0.1s linear; }
+#loading-text { font-size: 10px; color: #ddd; text-shadow: var(--text-shadow); margin-top: 10px; }
+
+/* ---------- HUD ---------- */
+#hud { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
+#crosshair {
+  position: absolute; left: 50%; top: 50%; width: 22px; height: 22px;
+  transform: translate(-50%, -50%); mix-blend-mode: difference; opacity: 0.9;
+}
+#crosshair::before, #crosshair::after { content: ''; position: absolute; background: #ddd; }
+#crosshair::before { left: 50%; top: 0; width: 2px; height: 100%; transform: translateX(-50%); }
+#crosshair::after { top: 50%; left: 0; height: 2px; width: 100%; transform: translateY(-50%); }
+
+#hotbar {
+  position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%);
+  display: flex; gap: 0; background: rgba(0,0,0,0.45); border: 2px solid #111; padding: 2px;
+}
+.hotbar-slot {
+  width: 52px; height: 52px; position: relative;
+  background: rgba(20,20,20,0.55); border: 2px solid #4a4a4a;
+  box-shadow: inset 0 2px 0 rgba(0,0,0,0.5);
+}
+.hotbar-slot.selected { border-color: #fff; box-shadow: inset 0 0 0 2px #fff, 0 0 8px rgba(255,255,255,0.35); }
+.hotbar-slot img, .inv-slot img { width: 100%; height: 100%; image-rendering: pixelated; pointer-events: none; }
+.slot-count {
+  position: absolute; right: 3px; bottom: 1px; font-size: 12px; color: #fff;
+  text-shadow: 2px 2px 0 #3f3f3f; pointer-events: none;
+}
+.slot-durability {
+  position: absolute; left: 4px; right: 4px; bottom: 4px; height: 3px; background: #111; pointer-events: none;
+}
+.slot-durability > div { height: 100%; background: #4fe04f; }
+
+#status-bars {
+  position: absolute; left: 50%; bottom: 68px; transform: translateX(-50%);
+  width: calc(9 * 52px + 4px); display: flex; justify-content: space-between;
+}
+.icon-row { display: flex; gap: 0; }
+.stat-icon { width: 20px; height: 20px; image-rendering: pixelated; }
+.icon-row.shake { animation: statShake 0.35s ease-in-out; }
+@keyframes statShake { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-4px); } 70% { transform: translateY(2px); } }
+
+#item-name-pop {
+  position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%);
+  font-size: 12px; color: #fff; text-shadow: var(--text-shadow);
+  opacity: 0; transition: opacity 0.4s ease;
+}
+#item-name-pop.show { opacity: 1; transition: opacity 0.05s ease; }
+
+#debug {
+  position: absolute; top: 8px; left: 8px; font-size: 9px; line-height: 1.7;
+  color: #fff; background: rgba(16,16,16,0.55); padding: 8px 10px; white-space: pre;
+}
+#fps-tag { position: absolute; top: 8px; right: 10px; font-size: 10px; color: #aef0a2; text-shadow: var(--text-shadow); }
+
+#vignette {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse at center, transparent 42%, rgba(200, 10, 10, 0.55) 100%);
+}
+#vignette.hit { animation: hitFlash 0.45s ease-out; }
+@keyframes hitFlash { 0% { opacity: 1; } 100% { opacity: 0; } }
+#underwater-overlay { position: absolute; inset: 0; background: rgba(20, 60, 160, 0.28); pointer-events: none; }
+
+#hand {
+  position: absolute; right: 4%; bottom: -6px; width: 170px; height: 170px;
+  transform-origin: 85% 95%; pointer-events: none;
+}
+#hand img { width: 100%; height: 100%; image-rendering: pixelated; }
+#hand.swing { animation: handSwing 0.22s ease-out; }
+@keyframes handSwing {
+  0% { transform: rotate(0deg) translate(0,0); }
+  35% { transform: rotate(-24deg) translate(-34px, 14px); }
+  100% { transform: rotate(0deg) translate(0,0); }
+}
+#hand.mine { animation: handMine 0.28s ease-in-out infinite; }
+@keyframes handMine {
+  0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-16deg) translate(-18px, 8px); }
+}
+
+/* ---------- inventory / crafting panels ---------- */
+.inv-panel {
+  background: #c6c6c6; border: 3px solid #000; padding: 14px;
+  box-shadow: inset 0 3px 0 #ffffff, inset 0 -4px 0 #9a9a9a, inset 3px 0 0 #ffffff, inset -3px 0 0 #9a9a9a, 0 14px 40px rgba(0,0,0,0.6);
+  display: flex; flex-direction: column; gap: 10px; max-width: 94vw; max-height: 92vh; overflow: auto;
+}
+.inv-title { color: #3f3f3f; font-size: 11px; text-shadow: none; }
+.inv-grid { display: grid; gap: 0; }
+.inv-grid.cols-9 { grid-template-columns: repeat(9, 52px); }
+.inv-grid.cols-3 { grid-template-columns: repeat(3, 52px); }
+.inv-grid.cols-2 { grid-template-columns: repeat(2, 52px); }
+.inv-slot {
+  width: 52px; height: 52px; position: relative; cursor: pointer;
+  background: var(--slot-bg);
+  box-shadow: inset 2px 2px 0 var(--slot-dark), inset -2px -2px 0 var(--slot-light);
+}
+.inv-slot:hover { background: #a8a8a8; }
+.inv-section-gap { height: 8px; }
+.craft-row { display: flex; align-items: center; gap: 18px; justify-content: center; }
+.craft-arrow { font-size: 22px; color: #3f3f3f; }
+.result-slot { background: #7d7d7d; box-shadow: inset 2px 2px 0 #4a4a4a, inset -2px -2px 0 #d8d8d8; }
+#held-stack {
+  position: fixed; z-index: 90; width: 52px; height: 52px; pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+#held-stack img { width: 100%; height: 100%; image-rendering: pixelated; }
+.inv-hint { font-size: 8px; color: #6a6a6a; text-shadow: none; text-align: center; }
+.creative-strip { display: flex; flex-wrap: wrap; gap: 0; max-width: calc(9 * 52px); }
+
+/* ---------- death screen ---------- */
+#death-screen { background-color: #4a0d0d; }
+#death-screen::before { background: radial-gradient(ellipse at center, rgba(120,0,0,0.25), rgba(30,0,0,0.85)); }
+.death-title { font-size: clamp(24px, 5vw, 44px); color: #fff; text-shadow: 0 4px 0 #5a0000; margin-bottom: 30px; }
+
+@media (max-width: 620px) {
+  .hotbar-slot { width: 40px; height: 40px; }
+  #status-bars { width: calc(9 * 40px + 4px); bottom: 56px; }
+  .inv-grid.cols-9 { grid-template-columns: repeat(9, 40px); }
+  .inv-grid.cols-3 { grid-template-columns: repeat(3, 40px); }
+  .inv-grid.cols-2 { grid-template-columns: repeat(2, 40px); }
+  .inv-slot { width: 40px; height: 40px; }
+  .controls-card { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ TITLE SCREEN ============ -->
+<div id="title-screen" class="screen">
+  <div class="splash" id="splash">Punch trees!</div>
+  <h1 class="game-logo">COMMAND<span class="green">CRAFT</span></h1>
+  <div class="tagline">a tiny minecraft that runs in your browser</div>
+  <div class="menu-col">
+    <label class="menu-label" for="seed-input">World seed</label>
+    <input id="seed-input" class="mc-input" placeholder="leave empty for random" maxlength="24" autocomplete="off">
+    <div class="seed-note">Same seed = same world. Your world auto-saves in this browser.</div>
+    <button id="btn-survival" class="mc-btn primary">Play survival</button>
+    <button id="btn-creative" class="mc-btn">Play creative</button>
+    <button id="btn-continue" class="mc-btn hidden">Continue saved world</button>
+  </div>
+  <div class="controls-card">
+    <div class="controls-title">How to play</div>
+    <span><b>WASD</b> move</span><span><b>Mouse</b> look</span>
+    <span><b>Space</b> jump / swim / fly up</span><span><b>Shift</b> sneak / fly down</span>
+    <span><b>Left click</b> break / attack</span><span><b>Right click</b> place / eat / use</span>
+    <span><b>1–9</b> hotbar</span><span><b>E</b> inventory &amp; crafting</span>
+    <span><b>Ctrl / double-W</b> sprint</span><span><b>G</b> survival ↔ creative</span>
+    <span><b>F3</b> debug info</span><span><b>M</b> mute sounds</span>
+  </div>
+  <div class="version-tag">CommandCraft beta 1.0 — JS + Three.js</div>
+</div>
+
+<!-- ============ LOADING ============ -->
+<div id="loading-screen" class="screen hidden">
+  <h1 class="game-logo" style="font-size: 22px;">Building world…</h1>
+  <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
+  <div id="loading-text">carving chunks</div>
+</div>
+
+<!-- ============ PAUSE ============ -->
+<div id="pause-screen" class="screen hidden">
+  <h1 class="game-logo" style="font-size: 30px;">Paused</h1>
+  <div class="menu-col">
+    <button id="btn-resume" class="mc-btn primary">Back to game</button>
+    <button id="btn-gamemode" class="mc-btn">Switch to creative</button>
+    <button id="btn-save" class="mc-btn">Save world</button>
+    <button id="btn-quit" class="mc-btn">Save &amp; quit to title</button>
+  </div>
+</div>
+
+<!-- ============ DEATH ============ -->
+<div id="death-screen" class="screen hidden">
+  <div class="death-title">You died!</div>
+  <div class="menu-col">
+    <button id="btn-respawn" class="mc-btn primary">Respawn</button>
+  </div>
+</div>
+
+<!-- ============ INVENTORY (2x2 crafting) ============ -->
+<div id="inventory-screen" class="screen hidden" style="background: rgba(0,0,0,0.55);">
+  <div class="inv-panel">
+    <div class="craft-row" id="craft-2x2-area">
+      <div>
+        <div class="inv-title">Crafting</div>
+        <div class="inv-grid cols-2" id="craft-grid-2x2"></div>
+      </div>
+      <div class="craft-arrow">➜</div>
+      <div class="inv-grid cols-2" style="grid-template-columns: 52px;"><div class="inv-slot result-slot" id="craft-result-2x2"></div></div>
+    </div>
+    <div class="inv-section-gap"></div>
+    <div>
+      <div class="inv-title">Inventory</div>
+      <div class="inv-grid cols-9" id="inv-main"></div>
+    </div>
+    <div class="inv-grid cols-9" id="inv-hotbar"></div>
+    <div class="inv-hint">click: pick up / place &nbsp;•&nbsp; right-click: place one &nbsp;•&nbsp; shift-click: quick move</div>
+  </div>
+</div>
+
+<!-- ============ CRAFTING TABLE (3x3) ============ -->
+<div id="crafting-screen" class="screen hidden" style="background: rgba(0,0,0,0.55);">
+  <div class="inv-panel">
+    <div class="craft-row">
+      <div>
+        <div class="inv-title">Crafting table</div>
+        <div class="inv-grid cols-3" id="craft-grid-3x3"></div>
+      </div>
+      <div class="craft-arrow">➜</div>
+      <div class="inv-grid cols-3" style="grid-template-columns: 52px;"><div class="inv-slot result-slot" id="craft-result-3x3"></div></div>
+    </div>
+    <div class="inv-section-gap"></div>
+    <div>
+      <div class="inv-title">Inventory</div>
+      <div class="inv-grid cols-9" id="inv-main-2"></div>
+    </div>
+    <div class="inv-grid cols-9" id="inv-hotbar-2"></div>
+    <div class="inv-hint">click: pick up / place &nbsp;•&nbsp; right-click: place one &nbsp;•&nbsp; shift-click result: craft max</div>
+  </div>
+</div>
+
+<!-- held stack cursor -->
+<div id="held-stack" class="hidden"><img alt=""><div class="slot-count"></div></div>
+
+<!-- ============ HUD ============ -->
+<div id="hud" class="hidden">
+  <div id="crosshair"></div>
+  <div id="vignette"></div>
+  <div id="underwater-overlay" class="hidden"></div>
+  <div id="debug" class="hidden"></div>
+  <div id="fps-tag"></div>
+  <div id="item-name-pop"></div>
+  <div id="status-bars">
+    <div class="icon-row" id="hearts"></div>
+    <div class="icon-row" id="hunger"></div>
+  </div>
+  <div id="hotbar"></div>
+  <div id="hand"><img id="hand-img" alt=""></div>
+</div>
+
+<script src="three.min.js"></script>
+<script src="js/noise.js"></script>
+<script src="js/textures.js"></script>
+<script src="js/blocks.js"></script>
+<script src="js/inventory.js"></script>
+<script src="js/world.js"></script>
+<script src="js/player.js"></script>
+<script src="js/mobs.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

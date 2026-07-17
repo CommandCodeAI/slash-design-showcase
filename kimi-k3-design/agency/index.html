@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEON VOID — Digital Design Studio</title>
+<meta name="description" content="NEON VOID is a digital design studio building worlds, not websites.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        void: '#070605',
+        ink: '#0e0b08',
+        pink: '#e0aa3e',
+        cyan: '#9db8d2',
+        violet: '#c97b4a',
+        lime: '#a9bd7a',
+      },
+      fontFamily: {
+        syne: ['Syne', 'sans-serif'],
+        grotesk: ['"Space Grotesk"', 'sans-serif'],
+      }
+    }
+  }
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<style>
+  html { scroll-behavior: smooth; }
+  body { background: #070605; overflow-x: hidden; }
+  ::selection { background: #e0aa3e; color: #070605; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #050308; }
+  ::-webkit-scrollbar-thumb { background: linear-gradient(#e0aa3e, #9db8d2); border-radius: 3px; }
+
+  @media (hover:hover) and (pointer:fine) {
+    body, a, button, input, textarea, label { cursor: none; }
+  }
+
+  /* ---------- custom cursor ---------- */
+  #cursor-dot, #cursor-ring {
+    position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999;
+    border-radius: 9999px; mix-blend-mode: difference;
+    transform: translate(-50%, -50%);
+  }
+  #cursor-dot { width: 8px; height: 8px; background: #fff; }
+  #cursor-ring {
+    width: 40px; height: 40px; border: 1px solid #fff;
+    transition: width .25s ease, height .25s ease, opacity .25s ease;
+  }
+  #cursor-ring.grow { width: 72px; height: 72px; }
+  @media (hover:none), (pointer:coarse) { #cursor-dot, #cursor-ring { display: none; } }
+
+  /* ---------- grain ---------- */
+  #grain {
+    position: fixed; inset: -50%; width: 200%; height: 200%;
+    pointer-events: none; z-index: 90; opacity: .05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: grainShift 1.2s steps(4) infinite;
+  }
+  @keyframes grainShift {
+    0% { transform: translate(0,0); } 25% { transform: translate(-2%,3%); }
+    50% { transform: translate(3%,-2%); } 75% { transform: translate(-3%,-3%); }
+    100% { transform: translate(0,0); }
+  }
+
+  /* ---------- hamburger ---------- */
+  #menu-btn { width: 56px; height: 56px; }
+  #menu-btn .line {
+    position: absolute; left: 14px; width: 28px; height: 2px;
+    background: #fff; transition: transform .45s cubic-bezier(.7,0,.2,1), opacity .3s, background .3s;
+  }
+  #menu-btn .line:nth-child(1) { top: 22px; }
+  #menu-btn .line:nth-child(2) { top: 32px; width: 18px; }
+  #menu-btn.open .line { background: #9db8d2; }
+  #menu-btn.open .line:nth-child(1) { transform: translateY(5px) rotate(45deg); }
+  #menu-btn.open .line:nth-child(2) { transform: translateY(-5px) rotate(-45deg); width: 28px; }
+  #menu-btn .satellite {
+    position: absolute; inset: 0; opacity: 0; transition: opacity .4s;
+  }
+  #menu-btn.open .satellite { opacity: 1; animation: orbitSpin 3s linear infinite; }
+  #menu-btn .satellite::before {
+    content: ''; position: absolute; top: 2px; left: 50%; width: 6px; height: 6px;
+    margin-left: -3px; border-radius: 9999px; background: #e0aa3e;
+    box-shadow: 0 0 10px #e0aa3e;
+  }
+
+  /* ---------- orbiting menu ---------- */
+  #menu-overlay {
+    clip-path: circle(0% at calc(100% - 52px) 52px);
+    transition: clip-path .85s cubic-bezier(.75,0,.2,1);
+    pointer-events: none;
+  }
+  #menu-overlay.open {
+    clip-path: circle(150% at calc(100% - 52px) 52px);
+    pointer-events: auto;
+  }
+  .orbit-ring {
+    position: absolute; left: 50%; top: 50%; width: 0; height: 0;
+    --r: min(36vw, 290px);
+    animation: orbitSpin 46s linear infinite;
+  }
+  .orbit-item { position: absolute; left: 0; top: 0; }
+  .orbit-item > a {
+    display: block; transform: scale(0);
+    transition: transform .5s cubic-bezier(.2,1.4,.4,1);
+  }
+  #menu-overlay.open .orbit-item > a { transform: scale(1); }
+  .orbit-item > a > span {
+    display: inline-block; animation: orbitSpinRev 46s linear infinite;
+    white-space: nowrap;
+  }
+  .orbit-ring:hover, .orbit-ring:hover .orbit-item > a > span { animation-play-state: paused; }
+  .orbit-item > a:hover .orbit-label { color: #9db8d2; text-shadow: 0 0 24px rgba(157,184,210,.5); }
+  @keyframes orbitSpin { to { transform: rotate(360deg); } }
+  @keyframes orbitSpinRev { to { transform: rotate(-360deg); } }
+  #menu-overlay .fade-item { opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease; }
+  #menu-overlay.open .fade-item { opacity: 1; transform: translateY(0); }
+
+  /* ---------- hero ---------- */
+  #hero-canvas canvas { display: block; }
+  .hero-corner { letter-spacing: .25em; }
+  .scroll-line { width: 1px; height: 64px; background: rgba(255,255,255,.15); overflow: hidden; position: relative; }
+  .scroll-line::after {
+    content: ''; position: absolute; left: 0; top: -40%; width: 100%; height: 40%;
+    background: linear-gradient(#9db8d2, transparent);
+    animation: scrollDrop 1.8s cubic-bezier(.6,0,.4,1) infinite;
+  }
+  @keyframes scrollDrop { to { top: 110%; } }
+
+  /* ---------- typewriter ---------- */
+  .tw-cursor { display: inline-block; width: .55em; height: 1em; margin-left: 4px;
+    background: #a9bd7a; vertical-align: -0.1em; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ---------- manifesto word reveal ---------- */
+  .w { opacity: .13; transition: opacity .35s ease, color .35s ease; }
+  .w.on { opacity: 1; }
+  .w.hot { color: #e0aa3e; }
+
+  /* ---------- works ---------- */
+  .work { will-change: transform; }
+  .work-inner { transition: transform .18s ease-out; transform-style: preserve-3d; }
+  .work .art { transition: transform .6s cubic-bezier(.2,.8,.2,1); }
+  .work:hover .art { transform: scale(1.06); }
+  .work.filtering .art { filter: url(#liq); }
+  .work .view-chip {
+    opacity: 0; transform: translateY(8px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+  .work:hover .view-chip { opacity: 1; transform: translateY(0); }
+
+  /* ---------- process: isometric scenes ---------- */
+  .iso-wrap { height: 230px; display: grid; place-items: center; perspective: 1000px; }
+  .iso-scene {
+    width: 160px; height: 160px; position: relative;
+    transform-style: preserve-3d;
+    transform: rotateX(60deg) rotateZ(45deg);
+  }
+  .iso-ground {
+    position: absolute; inset: -12px;
+    border: 1px solid rgba(255,255,255,.1);
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 32px),
+      linear-gradient(135deg, rgba(224,170,62,.08), rgba(157,184,210,.04));
+  }
+  .cube {
+    position: absolute; left: 0; top: 0;
+    width: var(--w); height: var(--d);
+    transform-style: preserve-3d;
+    transform: translate3d(var(--x), var(--y), 0) scaleZ(0.001);
+    transition: transform 1s cubic-bezier(.2,.9,.25,1.15);
+    transition-delay: var(--dl, 0s);
+  }
+  .step.in-view .cube { transform: translate3d(var(--x), var(--y), 0) scaleZ(1); }
+  .cube .f { position: absolute; }
+  .cube .top {
+    inset: 0; transform: translateZ(var(--h));
+    background: linear-gradient(135deg, var(--c1), var(--c2));
+    box-shadow: 0 0 34px color-mix(in oklab, var(--c1), transparent 70%);
+  }
+  .cube .front {
+    top: 100%; left: 0; width: 100%; height: var(--h);
+    transform-origin: top; transform: rotateX(90deg);
+    background: linear-gradient(180deg, color-mix(in oklab, var(--c1), black 45%), color-mix(in oklab, var(--c1), black 70%));
+  }
+  .cube .side {
+    left: 100%; top: 0; width: var(--h); height: 100%;
+    transform-origin: left; transform: rotateY(-90deg);
+    background: linear-gradient(180deg, color-mix(in oklab, var(--c2), black 55%), color-mix(in oklab, var(--c2), black 80%));
+  }
+  .step.in-view .cube.float { animation: isoFloat 4.5s ease-in-out infinite; animation-delay: 1.4s; }
+  @keyframes isoFloat {
+    0%, 100% { transform: translate3d(var(--x), var(--y), 0) scaleZ(1); }
+    50% { transform: translate3d(var(--x), var(--y), 16px) scaleZ(1); }
+  }
+  .iso-orb {
+    position: absolute; width: 16px; height: 16px; border-radius: 9999px;
+    background: var(--c1); box-shadow: 0 0 18px var(--c1);
+    transform: translate3d(var(--x), var(--y), 40px);
+    opacity: 0; transition: opacity .6s ease 1s;
+  }
+  .step.in-view .iso-orb { opacity: 1; animation: orbBob 3.5s ease-in-out infinite; }
+  @keyframes orbBob {
+    0%, 100% { transform: translate3d(var(--x), var(--y), 40px); }
+    50% { transform: translate3d(var(--x), var(--y), 78px); }
+  }
+  .iso-ring {
+    position: absolute; width: 74px; height: 74px; border-radius: 9999px;
+    border: 2px solid var(--c1); box-shadow: 0 0 22px color-mix(in oklab, var(--c1), transparent 55%);
+    transform: translate3d(var(--x), var(--y), 30px);
+    opacity: 0; transition: opacity .6s ease 1.2s;
+  }
+  .step.in-view .iso-ring { opacity: .9; animation: ringSpin 6s linear infinite; }
+  @keyframes ringSpin {
+    from { transform: translate3d(var(--x), var(--y), 30px) rotateZ(0deg); }
+    to { transform: translate3d(var(--x), var(--y), 30px) rotateZ(360deg); }
+  }
+  .step { opacity: 0; transform: translateY(40px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.8,.2,1); }
+  .step.in-view { opacity: 1; transform: translateY(0); }
+
+  /* ---------- team ---------- */
+  .member .shot canvas { filter: grayscale(.92) contrast(1.08); transition: filter .5s ease, transform .6s cubic-bezier(.2,.8,.2,1); }
+  .member:hover .shot canvas { filter: grayscale(0) contrast(1); transform: scale(1.05); }
+  .member .glitch { opacity: 0; mix-blend-mode: screen; pointer-events: none; transition: opacity .2s; }
+  .member:hover .glitch.g1 { opacity: .55; animation: gShift1 .35s steps(2) infinite; }
+  .member:hover .glitch.g2 { opacity: .55; animation: gShift2 .35s steps(2) infinite; }
+  .member:hover .shot { animation: shotClip .4s steps(3) infinite; }
+  @keyframes gShift1 { 0% { transform: translate(-7px, 2px); } 50% { transform: translate(-3px, -3px); } 100% { transform: translate(-8px, 1px); } }
+  @keyframes gShift2 { 0% { transform: translate(7px, -2px); } 50% { transform: translate(4px, 3px); } 100% { transform: translate(8px, -1px); } }
+  @keyframes shotClip {
+    0% { clip-path: inset(0 0 0 0); }
+    33% { clip-path: inset(6% 0 12% 0); }
+    66% { clip-path: inset(14% 0 3% 0); }
+    100% { clip-path: inset(0 0 0 0); }
+  }
+  .member .alias { opacity: 0; transform: translateY(100%); transition: opacity .35s ease, transform .35s ease; }
+  .member .role { transition: opacity .35s ease, transform .35s ease; }
+  .member:hover .alias { opacity: 1; transform: translateY(0); }
+  .member:hover .role { opacity: 0; transform: translateY(-100%); }
+
+  /* ---------- contact portal ---------- */
+  .portal-ring {
+    position: absolute; left: 50%; top: 50%; border-radius: 9999px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  .portal-ring.r1 {
+    width: 112%; aspect-ratio: 1;
+    background: conic-gradient(from 0deg, #e0aa3e, #c97b4a, #9db8d2, #a9bd7a, #e0aa3e);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+    animation: orbitSpin 9s linear infinite;
+  }
+  .portal-ring.r2 {
+    width: 124%; aspect-ratio: 1; opacity: .5;
+    background: conic-gradient(from 180deg, transparent, #9db8d2, transparent, #e0aa3e, transparent);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
+    animation: orbitSpinRev 14s linear infinite;
+  }
+  .portal-glow {
+    position: absolute; left: 50%; top: 50%; width: 108%; aspect-ratio: 1;
+    transform: translate(-50%, -50%); border-radius: 9999px; pointer-events: none;
+    background: radial-gradient(circle, rgba(224,170,62,.18), transparent 62%);
+    filter: blur(18px);
+  }
+  .field input, .field textarea {
+    background: transparent; border: 0; border-bottom: 1px solid rgba(255,255,255,.14);
+    width: 100%; padding: 14px 2px; color: #fff; outline: none;
+    transition: border-color .3s, box-shadow .3s;
+    font-size: 1rem;
+  }
+  .field input:focus, .field textarea:focus {
+    border-color: #9db8d2; box-shadow: 0 14px 30px -18px rgba(157,184,210,.5);
+  }
+  .field input::placeholder, .field textarea::placeholder { color: rgba(255,255,255,.25); }
+  #form-inner { transition: transform .8s cubic-bezier(.55,-.25,.3,1.3), opacity .5s ease, filter .8s ease; transform-origin: center; }
+  #contact-form.warp #form-inner { transform: scale(0) rotate(680deg); opacity: 0; filter: blur(10px); }
+  #form-success { display: none; }
+  #contact-form.warp #form-success { display: flex; animation: successPop .7s cubic-bezier(.2,1.4,.4,1) both .55s; }
+  @keyframes successPop { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: scale(1); } }
+  .pulse-ring {
+    position: absolute; inset: -14px; border-radius: 9999px; border: 1px solid #a9bd7a;
+    animation: pulseOut 1.8s ease-out infinite;
+  }
+  @keyframes pulseOut { from { transform: scale(.8); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
+
+  .btn-transmit { position: relative; overflow: hidden; isolation: isolate; }
+  .btn-transmit::before {
+    content: ''; position: absolute; inset: 0; z-index: -1;
+    background: linear-gradient(90deg, #e0aa3e, #c97b4a, #9db8d2);
+    transform: translateX(-101%); transition: transform .45s cubic-bezier(.7,0,.2,1);
+  }
+  .btn-transmit:hover::before { transform: translateX(0); }
+  .btn-transmit:hover { color: #050308; border-color: transparent; }
+
+  /* ---------- marquee ---------- */
+  .marquee-inner { display: flex; width: max-content; animation: marquee 22s linear infinite; }
+  @keyframes marquee { to { transform: translateX(-50%); } }
+
+  /* ---------- generic section reveal ---------- */
+  .reveal { opacity: 0; transform: translateY(36px); transition: opacity .8s ease, transform .8s cubic-bezier(.2,.8,.2,1); }
+  .reveal.in-view { opacity: 1; transform: translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+
+<body class="bg-void text-white font-grotesk antialiased selection:bg-pink">
+
+<!-- cursor -->
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
+
+<!-- grain -->
+<div id="grain"></div>
+
+<!-- scroll progress -->
+<div id="progress" class="fixed top-0 left-0 h-[2px] w-0 z-[80] bg-gradient-to-r from-pink via-violet to-cyan"></div>
+
+<!-- shared SVG filter for liquid distortion -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="liq" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence id="liq-turb" type="fractalNoise" baseFrequency="0 0" numOctaves="2" seed="7" result="n"/>
+      <feDisplacementMap id="liq-disp" in="SourceGraphic" in2="n" scale="0" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<!-- ===================== NAV ===================== -->
+<header class="fixed top-0 left-0 w-full z-50 px-6 md:px-10 py-5 flex items-center justify-between mix-blend-difference">
+  <a href="#hero" class="font-syne font-extrabold tracking-[.2em] text-sm md:text-base" data-hover>
+    NEON<span class="text-cyan">VOID</span><sup class="text-[9px] align-super">®</sup>
+  </a>
+  <div class="flex items-center gap-4">
+    <span id="menu-hint" class="hidden md:block text-[10px] tracking-[.35em] text-white/60 transition-opacity duration-300">MENU</span>
+    <button id="menu-btn" class="relative grid place-items-center" aria-label="Toggle menu" aria-expanded="false" data-hover>
+      <span class="satellite"></span>
+      <span class="line"></span>
+      <span class="line"></span>
+    </button>
+  </div>
+</header>
+
+<!-- orbiting menu overlay -->
+<nav id="menu-overlay" class="fixed inset-0 z-40 bg-ink/95 backdrop-blur-xl" aria-hidden="true">
+  <div class="absolute inset-0 opacity-40"
+       style="background: radial-gradient(circle at 50% 50%, rgba(224,170,62,.14), transparent 55%)"></div>
+
+  <!-- orbital rings decoration -->
+  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/5"
+       style="width:min(76vw,600px);height:min(76vw,600px)"></div>
+  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10 border-dashed"
+       style="width:min(100vw,760px);height:min(100vw,760px)"></div>
+
+  <!-- center monogram -->
+  <div class="fade-item absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center" style="transition-delay:.35s">
+    <div class="font-syne font-extrabold text-4xl md:text-6xl bg-gradient-to-r from-pink via-violet to-cyan bg-clip-text text-transparent">NV</div>
+    <div class="mt-2 text-[10px] tracking-[.4em] text-white/40">EST. 2019</div>
+  </div>
+
+  <!-- orbiting items -->
+  <div class="orbit-ring font-syne font-bold text-xl md:text-3xl">
+    <div class="orbit-item" style="transform: rotate(0deg)   translate(var(--r)) rotate(0deg)"><a href="#hero"       style="transition-delay:.20s"><span class="inline-flex items-baseline gap-2 md:gap-3"><span class="text-[10px] md:text-xs font-grotesk text-pink">01</span><span class="orbit-label transition-colors">HOME</span></span></a></div>
+    <div class="orbit-item" style="transform: rotate(60deg)  translate(var(--r)) rotate(-60deg)"><a href="#manifesto"  style="transition-delay:.28s"><span class="inline-flex items-baseline gap-2 md:gap-3"><span class="text-[10px] md:text-xs font-grotesk text-violet">02</span><span class="orbit-label transition-colors">MANIFESTO</span></span></a></div>
+    <div class="orbit-item" style="transform: rotate(120deg) translate(var(--r)) rotate(-120deg)"><a href="#works"    style="transition-delay:.36s"><span class="inline-flex items-baseline gap-2 md:gap-3"><span class="text-[10px] md:text-xs font-grotesk text-cyan">03</span><span class="orbit-label transition-colors">WORKS</span></span></a></div>
+    <div class="orbit-item" style="transform: rotate(180deg) translate(var(--r)) rotate(-180deg)"><a href="#process"  style="transition-delay:.44s"><span class="inline-flex items-baseline gap-2 md:gap-3"><span class="text-[10px] md:text-xs font-grotesk text-lime">04</span><span class="orbit-label transition-colors">PROCESS</span></span></a></div>
+    <div class="orbit-item" style="transform: rotate(240deg) translate(var(--r)) rotate(-240deg)"><a href="#team"     style="transition-delay:.52s"><span class="inline-flex items-baseline gap-2 md:gap-3"><span class="text-[10px] md:text-xs font-grotesk text-pink">05</span><span class="orbit-label transition-colors">TEAM</span></span></a></div>
+    <div class="orbit-item" style="transform: rotate(300deg) translate(var(--r)) rotate(-300deg)"><a href="#contact"  style="transition-delay:.60s"><span class="inline-flex items-baseline gap-2 md:gap-3"><span class="text-[10px] md:text-xs font-grotesk text-cyan">06</span><span class="orbit-label transition-colors">CONTACT</span></span></a></div>
+  </div>
+
+  <div class="fade-item absolute bottom-8 left-6 md:left-10 text-xs tracking-[.25em] text-white/50" style="transition-delay:.5s">
+    HELLO@NEONVOID.STUDIO
+  </div>
+  <div class="fade-item absolute bottom-8 right-6 md:right-10 flex gap-5 text-xs tracking-[.25em] text-white/50" style="transition-delay:.58s">
+    <a href="#" class="hover:text-cyan transition-colors" data-hover>IG</a>
+    <a href="#" class="hover:text-pink transition-colors" data-hover>X</a>
+    <a href="#" class="hover:text-violet transition-colors" data-hover>DR</a>
+  </div>
+</nav>
+
+<main>
+<!-- ===================== HERO ===================== -->
+<section id="hero" class="relative h-[100svh] min-h-[620px] overflow-hidden">
+  <div id="hero-canvas" class="absolute inset-0"></div>
+
+  <h1 class="sr-only">NEON VOID — Digital Design Studio</h1>
+  <div id="hero-fallback" class="hidden absolute inset-0 grid place-items-center pointer-events-none">
+    <div class="font-syne font-extrabold text-[16vw] leading-[.9] text-center bg-gradient-to-r from-pink via-violet to-cyan bg-clip-text text-transparent">
+      NEON<br>VOID
+    </div>
+  </div>
+
+  <!-- corner metadata -->
+  <div class="pointer-events-none absolute inset-0 p-6 md:p-10 flex flex-col justify-between">
+    <div class="flex justify-between pt-16 text-[10px] md:text-xs text-white/50 hero-corner">
+      <span>DIGITAL DESIGN<br>STUDIO</span>
+      <span class="text-right">EST. 2019<br>TOKYO / BERLIN / NYC</span>
+    </div>
+    <div class="flex items-end justify-between text-[10px] md:text-xs text-white/50 hero-corner">
+      <div class="flex flex-col items-center gap-3">
+        <span class="rotate-180" style="writing-mode:vertical-rl">SCROLL</span>
+        <div class="scroll-line"></div>
+      </div>
+      <span class="hidden md:block">WE BUILD WORLDS,<br>NOT WEBSITES</span>
+      <span class="text-right">35.6762° N<br>139.6503° E</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== MANIFESTO ===================== -->
+<section id="manifesto" class="relative py-32 md:py-44 px-6 md:px-10">
+  <div class="max-w-6xl mx-auto">
+    <div class="reveal flex items-center gap-4 mb-12">
+      <span class="font-syne text-pink text-sm">01</span>
+      <span class="h-px flex-1 bg-white/10"></span>
+      <span class="text-xs tracking-[.4em] text-white/50">MANIFESTO</span>
+    </div>
+
+    <h2 class="reveal font-syne font-bold text-2xl md:text-4xl mb-10 text-lime min-h-[1.4em]">
+      <span id="typewriter"></span><span class="tw-cursor"></span>
+    </h2>
+
+    <p id="manifesto-text" class="font-syne font-bold text-3xl md:text-6xl leading-[1.15] max-w-5xl">
+      We are NEON VOID — a studio born in the space between art and engineering. We reject templates. We dissolve the line between brand and experience, between interface and emotion. Every pixel is a decision. Every interaction is a story. We do not follow trends. We build the gravity that pulls them.
+    </p>
+
+    <div class="reveal mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
+      <div><div class="font-syne font-extrabold text-3xl md:text-4xl text-cyan" data-count="87">0</div><div class="mt-1 text-white/50">Projects shipped</div></div>
+      <div><div class="font-syne font-extrabold text-3xl md:text-4xl text-pink" data-count="23">0</div><div class="mt-1 text-white/50">Awards collected</div></div>
+      <div><div class="font-syne font-extrabold text-3xl md:text-4xl text-violet" data-count="12">0</div><div class="mt-1 text-white/50">Countries reached</div></div>
+      <div><div class="font-syne font-extrabold text-3xl md:text-4xl text-lime" data-count="0">0</div><div class="mt-1 text-white/50">Templates used</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== WORKS ===================== -->
+<section id="works" class="relative py-32 md:py-40 px-6 md:px-10">
+  <div class="max-w-7xl mx-auto">
+    <div class="reveal flex items-center gap-4 mb-6">
+      <span class="font-syne text-cyan text-sm">02</span>
+      <span class="h-px flex-1 bg-white/10"></span>
+      <span class="text-xs tracking-[.4em] text-white/50">SELECTED WORKS</span>
+    </div>
+    <h2 class="reveal font-syne font-extrabold text-4xl md:text-7xl mb-20">
+      THINGS WE<br><span class="bg-gradient-to-r from-pink to-cyan bg-clip-text text-transparent">PULLED FROM THE VOID</span>
+    </h2>
+
+    <div id="works-grid" class="grid md:grid-cols-2 gap-x-10 gap-y-20"></div>
+  </div>
+</section>
+
+<!-- marquee divider -->
+<div class="marquee overflow-hidden border-y border-white/10 py-4 select-none" aria-hidden="true">
+  <div class="marquee-inner font-syne font-extrabold text-2xl md:text-4xl tracking-wide">
+    <span class="px-6 whitespace-nowrap">DESIGN <span class="text-pink">✦</span> MOTION <span class="text-cyan">✦</span> WEBGL <span class="text-violet">✦</span> BRAND <span class="text-lime">✦</span> 3D <span class="text-pink">✦</span> TYPE <span class="text-cyan">✦</span>&nbsp;</span>
+    <span class="px-6 whitespace-nowrap">DESIGN <span class="text-pink">✦</span> MOTION <span class="text-cyan">✦</span> WEBGL <span class="text-violet">✦</span> BRAND <span class="text-lime">✦</span> 3D <span class="text-pink">✦</span> TYPE <span class="text-cyan">✦</span>&nbsp;</span>
+  </div>
+</div>
+
+<!-- ===================== PROCESS ===================== -->
+<section id="process" class="relative py-32 md:py-40 px-6 md:px-10">
+  <div class="max-w-7xl mx-auto">
+    <div class="reveal flex items-center gap-4 mb-6">
+      <span class="font-syne text-violet text-sm">03</span>
+      <span class="h-px flex-1 bg-white/10"></span>
+      <span class="text-xs tracking-[.4em] text-white/50">THE PROCESS</span>
+    </div>
+    <h2 class="reveal font-syne font-extrabold text-4xl md:text-7xl mb-24">HOW WE<br><span class="text-white/30">DESCEND &amp; RETURN</span></h2>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-6">
+
+      <!-- STEP 1 -->
+      <div class="step" style="transition-delay:0s">
+        <div class="iso-wrap">
+          <div class="iso-scene">
+            <div class="iso-ground"></div>
+            <div class="cube" style="--x:18px;--y:18px;--w:124px;--d:124px;--h:16px;--c1:#e0aa3e;--c2:#c97b4a;--dl:.05s"><i class="f top"></i><i class="f front"></i><i class="f side"></i></div>
+            <div class="cube float" style="--x:60px;--y:60px;--w:40px;--d:40px;--h:44px;--c1:#e0aa3e;--c2:#f0c778;--dl:.35s"><i class="f top"></i><i class="f front"></i><i class="f side"></i></div>
+            <div class="iso-orb" style="--x:120px;--y:34px;--c1:#9db8d2"></div>
+          </div>
+        </div>
+        <div class="text-center mt-4">
+          <div class="font-syne font-extrabold text-pink text-sm tracking-[.3em]">STEP 01</div>
+          <h3 class="font-syne font-bold text-2xl mt-2">DISCOVER</h3>
+          <p class="text-white/50 text-sm mt-3 max-w-[26ch] mx-auto">We descend into your world. Research, audits, and uncomfortable questions.</p>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step" style="transition-delay:.12s">
+        <div class="iso-wrap">
+          <div class="iso-scene">
+            <div class="iso-ground"></div>
+            <div class="cube" style="--x:14px;--y:80px;--w:64px;--d:64px;--h:22px;--c1:#c97b4a;--c2:#9db8d2;--dl:.05s"><i class="f top"></i><i class="f front"></i><i class="f side"></i></div>
+            <div class="cube" style="--x:88px;--y:88px;--w:56px;--d:56px;--h:52px;--c1:#c97b4a;--c2:#dda271;--dl:.25s"><i class="f top"></i><i class="f front"></i><i class="f side"></i></div>
+            <div class="cube float" style="--x:26px;--y:18px;--w:44px;--d:44px;--h:74px;--c1:#9db8d2;--c2:#c97b4a;--dl:.45s"><i class="f top"></i><i class="f front"></i><i class="f side"></i></div>
+          </div>
+        </div>
+        <div class="text-center mt-4">
+          <div class="font-syne font-extrabold text-violet text-sm tracking-[.3em]">STEP 02</div>
+          <h3 class="font-syne font-bold text-2xl mt-2">DESIGN</h3>
+          <p class="text-white/50 text-sm mt-3 max-w-[26ch] mx-auto">Sketches become systems. Type, color, and motion argued into harmony.</p>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step" style="transition-delay:.24s">
+        <div class="iso-wrap">
+          <div class="iso-scene">
+            <div class="iso-ground"></div>
+            <div class="cube" style="--x:12px;--y:96px;--w:48px;--d:48px;--h:20px;--c1:#9db8d2;--c2:#c97b4a;--dl:.05s"><i class="f top"></i><i class="f front"></i><i class="f side"></i></div>
+            <div class="cube" style="--x:64px;--y:64px;--w:48px;--d:48px;--h:46px;--c1:#9db8d2;--c2:#c3d3e4;--dl:.25s"><i class="f top"></i><i class="f front"></i><i class="f side"></i></div>
+            <div class="cube float" style="--x:112px;--y:28px;--w:44px;--d:44px;--h:76px;--c1:#a9bd7a;--c2:#9db8d2;--dl:.45s"><i class="f top"></i><i class="f front"></i><i class="f side"></i></div>
+            <div class="iso-orb" style="--x:24px;--y:24px;--c1:#e0aa3e"></div>
+          </div>
+        </div>
+        <div class="text-center mt-4">
+          <div class="font-syne font-extrabold text-cyan text-sm tracking-[.3em]">STEP 03</div>
+          <h3 class="font-syne font-bold text-2xl mt-2">DEVELOP</h3>
+          <p class="text-white/50 text-sm mt-3 max-w-[26ch] mx-auto">Code is our clay. WebGL, shaders, and physics obsessed to 60fps.</p>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="step" style="transition-delay:.36s">
+        <div class="iso-wrap">
+          <div class="iso-scene">
+            <div class="iso-ground"></div>
+            <div class="cube" style="--x:52px;--y:52px;--w:56px;--d:56px;--h:96px;--c1:#a9bd7a;--c2:#e0aa3e;--dl:.1s"><i class="f top"></i><i class="f front"></i><i class="f side"></i></div>
+            <div class="iso-ring" style="--x:43px;--y:43px;--c1:#a9bd7a"></div>
+            <div class="iso-orb" style="--x:20px;--y:120px;--c1:#9db8d2"></div>
+            <div class="iso-orb" style="--x:128px;--y:16px;--c1:#e0aa3e"></div>
+          </div>
+        </div>
+        <div class="text-center mt-4">
+          <div class="font-syne font-extrabold text-lime text-sm tracking-[.3em]">STEP 04</div>
+          <h3 class="font-syne font-bold text-2xl mt-2">DELIVER</h3>
+          <p class="text-white/50 text-sm mt-3 max-w-[26ch] mx-auto">We launch, measure, and refine. The void gives back what you feed it.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TEAM ===================== -->
+<section id="team" class="relative py-32 md:py-40 px-6 md:px-10">
+  <div class="max-w-7xl mx-auto">
+    <div class="reveal flex items-center gap-4 mb-6">
+      <span class="font-syne text-pink text-sm">04</span>
+      <span class="h-px flex-1 bg-white/10"></span>
+      <span class="text-xs tracking-[.4em] text-white/50">THE VOID DWELLERS</span>
+    </div>
+    <h2 class="reveal font-syne font-extrabold text-4xl md:text-7xl mb-20">HUMANS,<br><span class="text-white/30">MOSTLY</span></h2>
+
+    <div id="team-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8"></div>
+  </div>
+</section>
+
+<!-- ===================== CONTACT ===================== -->
+<section id="contact" class="relative py-32 md:py-44 px-6 md:px-10 overflow-hidden">
+  <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+    <div class="reveal">
+      <div class="flex items-center gap-4 mb-8">
+        <span class="font-syne text-lime text-sm">05</span>
+        <span class="h-px w-16 bg-white/10"></span>
+        <span class="text-xs tracking-[.4em] text-white/50">CONTACT</span>
+      </div>
+      <h2 class="font-syne font-extrabold text-5xl md:text-7xl leading-[.95]">
+        OPEN<br>A <span class="bg-gradient-to-r from-pink via-violet to-cyan bg-clip-text text-transparent">PORTAL</span>
+      </h2>
+      <p class="mt-8 text-white/50 max-w-[40ch]">Tell us about your impossible project. We respond to every transmission within 24 hours — usually with too many ideas.</p>
+      <a href="mailto:hello@neonvoid.studio" class="inline-block mt-8 text-lg md:text-xl font-syne font-bold border-b-2 border-pink hover:text-pink transition-colors" data-hover>HELLO@NEONVOID.STUDIO</a>
+      <div class="mt-10 flex gap-5 text-xs tracking-[.3em] text-white/40">
+        <a href="#" class="hover:text-cyan transition-colors" data-hover>INSTAGRAM</a>
+        <a href="#" class="hover:text-pink transition-colors" data-hover>X</a>
+        <a href="#" class="hover:text-violet transition-colors" data-hover>DRIBBBLE</a>
+      </div>
+    </div>
+
+    <div class="reveal relative py-10">
+      <div class="portal-glow"></div>
+      <div class="portal-ring r2"></div>
+      <div class="portal-ring r1"></div>
+
+      <div id="contact-form" class="relative bg-ink/80 backdrop-blur-md border border-white/10 rounded-3xl p-8 md:p-10">
+        <form id="form-inner" novalidate>
+          <div class="text-[10px] tracking-[.4em] text-white/40 mb-8">TRANSMISSION FORM // NV-06</div>
+          <div class="field mb-6">
+            <label for="f-name" class="block text-[10px] tracking-[.3em] text-cyan mb-1">YOUR NAME</label>
+            <input id="f-name" type="text" required placeholder="Ada Lovelace" autocomplete="name">
+          </div>
+          <div class="field mb-6">
+            <label for="f-email" class="block text-[10px] tracking-[.3em] text-cyan mb-1">EMAIL</label>
+            <input id="f-email" type="email" required placeholder="ada@analytical.engine" autocomplete="email">
+          </div>
+          <div class="field mb-8">
+            <label for="f-msg" class="block text-[10px] tracking-[.3em] text-cyan mb-1">THE IMPOSSIBLE PROJECT</label>
+            <textarea id="f-msg" rows="4" required placeholder="We need a website that bends spacetime..."></textarea>
+          </div>
+          <button type="submit" class="btn-transmit w-full border border-white/30 rounded-full py-4 font-syne font-bold tracking-[.3em] text-sm transition-colors" data-hover>
+            TRANSMIT →
+          </button>
+        </form>
+
+        <div id="form-success" class="flex-col items-center text-center py-14">
+          <div class="relative w-20 h-20 grid place-items-center mb-8">
+            <span class="pulse-ring"></span>
+            <span class="pulse-ring" style="animation-delay:.6s"></span>
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-pink to-cyan grid place-items-center font-syne font-extrabold text-void text-2xl">✓</div>
+          </div>
+          <h3 class="font-syne font-extrabold text-2xl md:text-3xl">SIGNAL RECEIVED</h3>
+          <p class="text-white/50 text-sm mt-4 max-w-[34ch]">Your message is traveling through the void. Expect an answer within 24 hours.</p>
+          <button id="form-reset" class="mt-8 text-xs tracking-[.3em] text-cyan border-b border-cyan/40 hover:border-cyan pb-1 transition-colors" data-hover>OPEN ANOTHER PORTAL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="border-t border-white/10">
+  <div class="marquee overflow-hidden py-10 select-none" aria-hidden="true">
+    <div class="marquee-inner font-syne font-extrabold text-[14vw] md:text-[9vw] leading-none text-transparent"
+         style="-webkit-text-stroke:1px rgba(255,255,255,.18)">
+      <span class="px-8 whitespace-nowrap">NEON VOID — NEON VOID — NEON VOID —&nbsp;</span>
+      <span class="px-8 whitespace-nowrap">NEON VOID — NEON VOID — NEON VOID —&nbsp;</span>
+    </div>
+  </div>
+  <div class="px-6 md:px-10 py-6 flex flex-col md:flex-row gap-3 items-center justify-between text-[11px] tracking-[.25em] text-white/40">
+    <span>© 2026 NEON VOID STUDIO</span>
+    <span>BUILT IN THE VOID</span>
+    <a href="#hero" class="hover:text-cyan transition-colors" data-hover>BACK TO SURFACE ↑</a>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   NEON VOID — main script
+============================================================ */
+(function () {
+  'use strict';
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const clamp = (v, mn, mx) => Math.min(mx, Math.max(mn, v));
+
+  /* ---------------- custom cursor ---------------- */
+  (function cursor() {
+    if (matchMedia('(hover:none), (pointer:coarse)').matches) return;
+    const dot = document.getElementById('cursor-dot');
+    const ring = document.getElementById('cursor-ring');
+    let mx = innerWidth / 2, my = innerHeight / 2, rx = mx, ry = my;
+    addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      dot.style.transform = `translate(${mx}px,${my}px) translate(-50%,-50%)`;
+    });
+    (function loop() {
+      rx = lerp(rx, mx, .14); ry = lerp(ry, my, .14);
+      ring.style.transform = `translate(${rx}px,${ry}px) translate(-50%,-50%)`;
+      requestAnimationFrame(loop);
+    })();
+    document.addEventListener('mouseover', e => {
+      if (e.target.closest('a,button,[data-hover],input,textarea,.work,.member')) ring.classList.add('grow');
+      else ring.classList.remove('grow');
+    });
+  })();
+
+  /* ---------------- orbiting menu ---------------- */
+  const menuBtn = document.getElementById('menu-btn');
+  const overlay = document.getElementById('menu-overlay');
+  const menuHint = document.getElementById('menu-hint');
+  function toggleMenu(force) {
+    const open = force !== undefined ? force : !overlay.classList.contains('open');
+    overlay.classList.toggle('open', open);
+    menuBtn.classList.toggle('open', open);
+    menuBtn.setAttribute('aria-expanded', String(open));
+    overlay.setAttribute('aria-hidden', String(!open));
+    if (menuHint) menuHint.style.opacity = open ? '0' : '1';
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+  menuBtn.addEventListener('click', () => toggleMenu());
+  overlay.querySelectorAll('a[href^="#"]').forEach(a =>
+    a.addEventListener('click', () => toggleMenu(false)));
+  addEventListener('keydown', e => { if (e.key === 'Escape') toggleMenu(false); });
+
+  /* ---------------- scroll progress ---------------- */
+  const progress = document.getElementById('progress');
+  addEventListener('scroll', () => {
+    const h = document.documentElement;
+    progress.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+  }, { passive: true });
+
+  /* ---------------- HERO: three.js ---------------- */
+  (function hero() {
+    const wrap = document.getElementById('hero-canvas');
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    } catch (e) {
+      document.getElementById('hero-fallback').classList.remove('hidden');
+      return;
+    }
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    wrap.appendChild(renderer.domElement);
+
+    /* --- shape scene --- */
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x070605, 9, 20);
+    const cam = new THREE.PerspectiveCamera(45, 1, .1, 100);
+    cam.position.z = 9;
+
+    scene.add(new THREE.AmbientLight(0x2a1a3a, 1.4));
+    const l1 = new THREE.PointLight(0xe0aa3e, 2.4, 45); l1.position.set(-7, 4, 6);
+    const l2 = new THREE.PointLight(0x9db8d2, 2.2, 45); l2.position.set(7, -3, 6);
+    const l3 = new THREE.PointLight(0xc97b4a, 1.8, 45); l3.position.set(0, 7, -4);
+    const l4 = new THREE.PointLight(0xa9bd7a, .9, 40);  l4.position.set(4, 5, 3);
+    scene.add(l1, l2, l3, l4);
+
+    const group = new THREE.Group();
+    scene.add(group);
+    const mat = () => new THREE.MeshStandardMaterial({ color: 0x1a140e, metalness: .88, roughness: .26 });
+    const wire = (geo, color) => new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ wireframe: true, color, transparent: true, opacity: .14 }));
+
+    const shapes = [];
+    function addShape(geo, x, y, z, s, wc) {
+      const m = new THREE.Mesh(geo, mat());
+      m.position.set(x, y, z); m.scale.setScalar(s);
+      const w = wire(geo, wc); w.scale.setScalar(1.03); m.add(w);
+      group.add(m);
+      shapes.push({ m, phase: Math.random() * Math.PI * 2, speed: .5 + Math.random() * .6, rx: (Math.random() - .5) * .008, ry: (Math.random() - .5) * .01, by: y });
+      return m;
+    }
+    addShape(new THREE.TorusKnotGeometry(1, .3, 180, 24), -4.6, .7, -2, 1, 0x9db8d2);
+    addShape(new THREE.IcosahedronGeometry(1.05, 0), 4.4, 1.5, -2.5, 1, 0xe0aa3e);
+    addShape(new THREE.OctahedronGeometry(.95, 0), 3.3, -2.1, -1.5, 1, 0xa9bd7a);
+    addShape(new THREE.TorusGeometry(.95, .3, 20, 64), .3, 2.8, -3.5, 1, 0xc97b4a);
+    addShape(new THREE.TetrahedronGeometry(.7, 0), -1.8, 2.6, -2.5, 1, 0xe0aa3e);
+
+    const blobGeo = new THREE.IcosahedronGeometry(1.15, 4);
+    const blobBase = blobGeo.attributes.position.array.slice();
+    const blob = new THREE.Mesh(blobGeo, mat());
+    blob.position.set(-3.6, -2.4, -3);
+    const blobWire = wire(blobGeo, 0x9db8d2); blobWire.scale.setScalar(1.02); blob.add(blobWire);
+    group.add(blob);
+
+    /* --- liquid metal text scene (fullscreen shader quad) --- */
+    const tScene = new THREE.Scene();
+    const tCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    const tCanvas = document.createElement('canvas');
+    const tex = new THREE.CanvasTexture(tCanvas);
+    tex.minFilter = THREE.LinearFilter;
+    const uni = {
+      uTex: { value: tex },
+      uMouse: { value: new THREE.Vector2(.5, .5) },
+      uTime: { value: 0 },
+      uStr: { value: 0 },
+      uAspect: { value: 1 }
+    };
+    const quad = new THREE.Mesh(
+      new THREE.PlaneGeometry(2, 2),
+      new THREE.ShaderMaterial({
+        uniforms: uni, transparent: true,
+        vertexShader: `
+          varying vec2 vUv;
+          void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
+        fragmentShader: `
+          precision highp float;
+          varying vec2 vUv;
+          uniform sampler2D uTex; uniform vec2 uMouse;
+          uniform float uTime, uStr, uAspect;
+          void main(){
+            vec2 uv = vUv;
+            vec2 d = uv - uMouse; d.x *= uAspect;
+            float dist = length(d);
+            float ripple = smoothstep(0.38, 0.0, dist);
+            vec2 dir = dist > 0.0001 ? normalize(d) : vec2(0.0);
+            float wave = sin(dist * 34.0 - uTime * 5.0) * ripple;
+            vec2 off = dir * (ripple * 0.05 + wave * 0.018) * uStr;
+            off += uStr * 0.0022 * vec2(sin(uv.y * 26.0 + uTime * 1.6), cos(uv.x * 22.0 - uTime * 1.3));
+            vec2 uv2 = uv - off;
+            float ca = (0.0015 + ripple * 0.014) * uStr;
+            vec4 r = texture2D(uTex, uv2 + vec2(ca, 0.0));
+            vec4 g = texture2D(uTex, uv2);
+            vec4 b = texture2D(uTex, uv2 - vec2(ca, 0.0));
+            float a = max(r.a, max(g.a, b.a));
+            vec3 col = vec3(r.r, g.g, b.b);
+            float sweep = smoothstep(0.035, 0.0, abs(fract(uTime * 0.07) * 1.7 - 0.35 - (uv.x + uv.y) * 0.5));
+            col += sweep * 0.25 * a;
+            gl_FragColor = vec4(col, a);
+          }`
+      })
+    );
+    tScene.add(quad);
+
+    function drawText() {
+      const w = wrap.clientWidth || 1, h = wrap.clientHeight || 1;
+      const W = 1600, H = clamp(Math.round(1600 * h / w), 400, 2048);
+      tCanvas.width = W; tCanvas.height = H;
+      const ctx = tCanvas.getContext('2d');
+      ctx.clearRect(0, 0, W, H);
+      const fs = Math.min(W * 0.155, H * 0.30);
+      ctx.font = `800 ${fs}px Syne, sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      try { ctx.letterSpacing = `${fs * 0.03}px`; } catch (e) {}
+      const grad = ctx.createLinearGradient(W * 0.14, 0, W * 0.86, 0);
+      grad.addColorStop(0, '#e0aa3e'); grad.addColorStop(.5, '#c97b4a'); grad.addColorStop(1, '#9db8d2');
+      ctx.shadowColor = 'rgba(224,170,62,.5)'; ctx.shadowBlur = fs * 0.28;
+      ctx.fillStyle = grad;
+      const cy = H / 2;
+      ctx.fillText('NEON', W / 2, cy - fs * 0.60);
+      ctx.fillText('VOID', W / 2, cy + fs * 0.60);
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = 'rgba(157,184,210,.4)'; ctx.lineWidth = Math.max(1.5, fs * 0.008);
+      ctx.strokeText('NEON', W / 2 + fs * 0.025, cy - fs * 0.60 + fs * 0.025);
+      ctx.strokeText('VOID', W / 2 + fs * 0.025, cy + fs * 0.60 + fs * 0.025);
+      tex.needsUpdate = true;
+    }
+
+    const mouse = { x: .5, y: .5, tx: .5, ty: .5, str: 0, tstr: 0 };
+    const heroEl = document.getElementById('hero');
+    heroEl.addEventListener('mousemove', e => {
+      const r = wrap.getBoundingClientRect();
+      mouse.tx = (e.clientX - r.left) / r.width;
+      mouse.ty = 1 - (e.clientY - r.top) / r.height;
+      mouse.tstr = 1;
+    });
+    heroEl.addEventListener('mouseleave', () => { mouse.tstr = 0; });
+
+    function resize() {
+      const w = wrap.clientWidth || 1, h = wrap.clientHeight || 1;
+      renderer.setSize(w, h);
+      cam.aspect = w / h; cam.updateProjectionMatrix();
+      uni.uAspect.value = w / h;
+      group.scale.setScalar(clamp(w / 1300, .55, 1));
+      drawText();
+    }
+    addEventListener('resize', resize);
+    resize();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawText);
+    addEventListener('load', drawText);
+
+    renderer.autoClear = false;
+    let t = 0;
+    (function loop() {
+      requestAnimationFrame(loop);
+      const rect = heroEl.getBoundingClientRect();
+      if (rect.bottom < 0 || rect.top > innerHeight) return;
+      t += reduced ? 0 : 0.016;
+
+      shapes.forEach(s => {
+        s.m.rotation.x += s.rx; s.m.rotation.y += s.ry;
+        s.m.position.y = s.by + Math.sin(t * s.speed + s.phase) * .35;
+      });
+      if (!reduced) {
+        const pos = blobGeo.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+          const ox = blobBase[i * 3], oy = blobBase[i * 3 + 1], oz = blobBase[i * 3 + 2];
+          const n = 1 + .16 * Math.sin(ox * 2.2 + t * 1.4) * Math.cos(oy * 2 + t * 1.1) + .07 * Math.sin(oz * 3 + t * 2);
+          pos.setXYZ(i, ox * n, oy * n, oz * n);
+        }
+        pos.needsUpdate = true;
+        blobGeo.computeVertexNormals();
+        blob.rotation.y += .004;
+      }
+
+      mouse.x = lerp(mouse.x, mouse.tx, .08);
+      mouse.y = lerp(mouse.y, mouse.ty, .08);
+      mouse.str = lerp(mouse.str, reduced ? 0 : mouse.tstr, .06);
+      group.rotation.y = lerp(group.rotation.y, (mouse.x - .5) * .35, .05);
+      group.rotation.x = lerp(group.rotation.x, (mouse.y - .5) * -.22, .05);
+
+      uni.uMouse.value.set(mouse.x, mouse.y);
+      uni.uTime.value = t;
+      uni.uStr.value = Math.max(mouse.str, .001);
+
+      renderer.clear();
+      renderer.render(scene, cam);
+      renderer.clearDepth();
+      renderer.render(tScene, tCam);
+    })();
+  })();
+
+  /* ---------------- typewriter ---------------- */
+  (function typewriter() {
+    const el = document.getElementById('typewriter');
+    const phrases = [
+      'We design what doesn\'t exist yet.',
+      'We turn noise into signal.',
+      'We build worlds, not websites.',
+      'We are the glow in the void.'
+    ];
+    if (reduced) { el.textContent = phrases[0]; return; }
+    let pi = 0, ci = 0, deleting = false;
+    (function tick() {
+      const p = phrases[pi];
+      el.textContent = p.slice(0, ci);
+      let delay = deleting ? 28 : 62;
+      if (!deleting && ci === p.length) { delay = 1700; deleting = true; }
+      else if (deleting && ci === 0) { deleting = false; pi = (pi + 1) % phrases.length; delay = 350; }
+      else ci += deleting ? -1 : 1;
+      setTimeout(tick, delay);
+    })();
+  })();
+
+  /* ---------------- manifesto word reveal + counters ---------------- */
+  (function manifesto() {
+    const p = document.getElementById('manifesto-text');
+    const words = p.textContent.trim().split(/\s+/);
+    const hot = ['VOID', 'reject', 'gravity', 'emotion.', 'story.'];
+    p.innerHTML = words.map(w =>
+      `<span class="w${hot.includes(w) ? ' hot' : ''}">${w}</span>`).join(' ');
+    const spans = [...p.querySelectorAll('.w')];
+    function onScroll() {
+      const r = p.getBoundingClientRect();
+      const prog = clamp((innerHeight * .85 - r.top) / (r.height + innerHeight * .4), 0, 1);
+      const n = Math.floor(prog * spans.length);
+      spans.forEach((s, i) => s.classList.toggle('on', i < n));
+    }
+    addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    const counters = document.querySelectorAll('[data-count]');
+    const io = new IntersectionObserver(entries => entries.forEach(en => {
+      if (!en.isIntersecting) return;
+      io.unobserve(en.target);
+      const target = +en.target.dataset.count;
+      const t0 = performance.now(), dur = 1400;
+      (function step(now) {
+        const k = clamp((now - t0) / dur, 0, 1);
+        en.target.textContent = Math.round(target * (1 - Math.pow(1 - k, 3)));
+        if (k < 1) requestAnimationFrame(step);
+      })(t0);
+    }), { threshold: .6 });
+    counters.forEach(c => io.observe(c));
+  })();
+
+  /* ---------------- generic reveals ---------------- */
+  const revealIO = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in-view'); revealIO.unobserve(e.target); }
+  }), { threshold: .18 });
+  document.querySelectorAll('.reveal').forEach(el => revealIO.observe(el));
+
+  /* ---------------- works ---------------- */
+  (function works() {
+    const projects = [
+      { title: 'LUMEN / OS',     tags: 'WEBGL · INSTALLATION', hue: [40, 210], shape: 'rings'  },
+      { title: 'PULSE COMMERCE', tags: 'E-COMMERCE · 3D',      hue: [210, 20], shape: 'grid'   },
+      { title: 'CHROMA TYPE',    tags: 'KINETIC TYPE · SPECIMEN', hue: [20, 85], shape: 'bars' },
+      { title: 'ORBITAL RADIO',  tags: 'WEB AUDIO · MICROSITE', hue: [85, 40], shape: 'waves'  },
+      { title: 'VOID WALKER',    tags: 'BROWSER GAME · THREE.JS', hue: [15, 350], shape: 'tri'  },
+      { title: 'DATA BLOOM',     tags: 'GENERATIVE · DATA ART', hue: [45, 205], shape: 'dots'  },
+    ];
+    const grid = document.getElementById('works-grid');
+
+    function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+    function paint(canvas, p, idx) {
+      const W = canvas.width = 880, H = canvas.height = 640;
+      const c = canvas.getContext('2d');
+      const R = rng(idx * 991 + 7);
+      const [h1, h2] = p.hue;
+      c.fillStyle = '#0b0612'; c.fillRect(0, 0, W, H);
+      const bg = c.createLinearGradient(0, 0, W, H);
+      bg.addColorStop(0, `hsl(${h1} 30% 8%)`); bg.addColorStop(1, `hsl(${h2} 32% 12%)`);
+      c.fillStyle = bg; c.fillRect(0, 0, W, H);
+      for (let i = 0; i < 5; i++) {
+        const x = R() * W, y = R() * H, r = 120 + R() * 260;
+        const g = c.createRadialGradient(x, y, 0, x, y, r);
+        const h = i % 2 ? h1 : h2;
+        g.addColorStop(0, `hsl(${h} 50% 55% / .45)`); g.addColorStop(1, 'transparent');
+        c.globalCompositeOperation = 'screen';
+        c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+      }
+      c.globalCompositeOperation = 'source-over';
+      c.strokeStyle = `hsl(${h1} 55% 60% / .8)`;
+      c.fillStyle = `hsl(${h2} 55% 60% / .75)`;
+      c.lineWidth = 3;
+      const cx = W / 2, cy = H / 2;
+      if (p.shape === 'rings') for (let i = 1; i <= 5; i++) { c.beginPath(); c.arc(cx, cy, i * 52, 0, 7); c.stroke(); }
+      if (p.shape === 'grid') for (let i = 0; i < 7; i++) { c.strokeRect(90 + i * 34, 90 + i * 30, W - 180 - i * 68, H - 180 - i * 60); }
+      if (p.shape === 'bars') for (let i = 0; i < 9; i++) { const bh = 60 + R() * (H - 220); c.fillRect(90 + i * 80, H - 110 - bh, 34, bh); }
+      if (p.shape === 'waves') for (let j = 0; j < 5; j++) { c.beginPath(); for (let x = 0; x <= W; x += 8) c.lineTo(x, cy + Math.sin(x * .012 + j * 1.4) * (40 + j * 26) + (j - 2) * 60); c.stroke(); }
+      if (p.shape === 'tri') for (let i = 0; i < 6; i++) { const s = 60 + R() * 160, x = 100 + R() * (W - 200), y = 100 + R() * (H - 200); c.beginPath(); c.moveTo(x, y - s / 2); c.lineTo(x + s / 2, y + s / 2); c.lineTo(x - s / 2, y + s / 2); c.closePath(); R() > .5 ? c.stroke() : c.fill(); }
+      if (p.shape === 'dots') for (let i = 0; i < 260; i++) { const a = R() * Math.PI * 2, rr = Math.pow(R(), .5) * 260; c.beginPath(); c.arc(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * .7, 1 + R() * 5, 0, 7); c.fill(); }
+      c.fillStyle = 'rgba(0,0,0,.16)';
+      for (let y = 0; y < H; y += 4) c.fillRect(0, y, W, 1);
+      const v = c.createRadialGradient(cx, cy, H * .3, cx, cy, H);
+      v.addColorStop(0, 'transparent'); v.addColorStop(1, 'rgba(0,0,0,.55)');
+      c.fillStyle = v; c.fillRect(0, 0, W, H);
+    }
+
+    const turb = document.getElementById('liq-turb');
+    const disp = document.getElementById('liq-disp');
+    let liqState = { cur: 0, target: 0, t: 0, raf: null };
+    function liqLoop() {
+      liqState.t += .05;
+      liqState.cur = lerp(liqState.cur, liqState.target, .12);
+      const f = liqState.cur * (0.008 + 0.004 * Math.sin(liqState.t * 2.4));
+      turb.setAttribute('baseFrequency', `${f} ${f * 1.6}`);
+      disp.setAttribute('scale', String(liqState.cur * (34 + 10 * Math.sin(liqState.t * 3))));
+      if (liqState.cur > .002 || liqState.target > 0) liqState.raf = requestAnimationFrame(liqLoop);
+      else { turb.setAttribute('baseFrequency', '0 0'); disp.setAttribute('scale', '0'); liqState.raf = null; }
+    }
+    function liquify(on) {
+      liqState.target = on ? 1 : 0;
+      if (!liqState.raf) liqState.raf = requestAnimationFrame(liqLoop);
+    }
+
+    projects.forEach((p, i) => {
+      const el = document.createElement('article');
+      el.className = 'work reveal group' + (i % 2 ? ' md:translate-y-16' : '');
+      el.innerHTML = `
+        <div class="work-inner">
+          <div class="relative overflow-hidden rounded-2xl border border-white/10">
+            <canvas class="art w-full block aspect-[11/8]"></canvas>
+            <div class="absolute inset-0 bg-gradient-to-t from-void/70 via-transparent to-transparent pointer-events-none"></div>
+            <span class="absolute top-4 left-5 font-syne font-extrabold text-white/25 text-xl">0${i + 1}</span>
+            <span class="view-chip absolute bottom-4 right-4 text-[10px] tracking-[.3em] bg-lime text-void font-semibold px-4 py-2 rounded-full">ENTER →</span>
+          </div>
+          <div class="mt-5 flex items-baseline justify-between gap-4">
+            <h3 class="font-syne font-bold text-xl md:text-2xl group-hover:text-cyan transition-colors">${p.title}</h3>
+            <span class="text-[10px] tracking-[.25em] text-white/40 text-right">${p.tags}</span>
+          </div>
+        </div>`;
+      grid.appendChild(el);
+      paint(el.querySelector('canvas'), p, i);
+      revealIO.observe(el);
+
+      if (matchMedia('(hover:none)').matches) return;
+      const inner = el.querySelector('.work-inner');
+      el.addEventListener('mousemove', e => {
+        const r = el.getBoundingClientRect();
+        const nx = (e.clientX - r.left) / r.width - .5;
+        const ny = (e.clientY - r.top) / r.height - .5;
+        el.style.transform = `translate(${nx * 16}px, ${ny * 16}px)`;
+        inner.style.transform = `perspective(900px) rotateY(${nx * 10}deg) rotateX(${-ny * 10}deg)`;
+      });
+      el.addEventListener('mouseenter', () => { el.classList.add('filtering'); liquify(true); });
+      el.addEventListener('mouseleave', () => {
+        el.style.transform = ''; inner.style.transform = '';
+        el.classList.remove('filtering'); liquify(false);
+      });
+    });
+  })();
+
+  /* ---------------- process steps ---------------- */
+  const stepIO = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in-view'); stepIO.unobserve(e.target); }
+  }), { threshold: .35 });
+  document.querySelectorAll('.step').forEach(s => stepIO.observe(s));
+
+  /* ---------------- team ---------------- */
+  (function team() {
+    const members = [
+      { name: 'KAI VENCE',    role: 'Creative Director',  alias: '“THE ARCHITECT”',  hue: 40 },
+      { name: 'MIRA SOLIS',   role: 'Head of Motion',     alias: '“THE CONDUCTOR”',  hue: 210 },
+      { name: 'JULES OKAFOR', role: '3D / WebGL Lead',    alias: '“THE SCULPTOR”',   hue: 20 },
+      { name: 'RIN TANAKA',   role: 'Design Engineer',    alias: '“THE ALCHEMIST”',  hue: 85  },
+    ];
+    const grid = document.getElementById('team-grid');
+
+    function portrait(canvas, hue, seed) {
+      const W = canvas.width = 440, H = canvas.height = 550;
+      const c = canvas.getContext('2d');
+      let s = seed; const R = () => (s = (s * 16807) % 2147483647) / 2147483647;
+      const bg = c.createLinearGradient(0, 0, W, H);
+      bg.addColorStop(0, `hsl(${hue} 30% 10%)`); bg.addColorStop(1, `hsl(${(hue + 70) % 360} 32% 16%)`);
+      c.fillStyle = bg; c.fillRect(0, 0, W, H);
+      for (let i = 0; i < 4; i++) {
+        const x = R() * W, y = R() * H, r = 90 + R() * 190;
+        const g = c.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0, `hsl(${(hue + i * 40) % 360} 50% 55% / .4)`); g.addColorStop(1, 'transparent');
+        c.globalCompositeOperation = 'screen'; c.fillStyle = g;
+        c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+      }
+      c.globalCompositeOperation = 'source-over';
+      const cx = W / 2;
+      const body = c.createLinearGradient(0, H * .3, 0, H);
+      body.addColorStop(0, `hsl(${hue} 55% 56%)`); body.addColorStop(1, `hsl(${(hue + 90) % 360} 60% 40%)`);
+      c.fillStyle = body;
+      c.beginPath(); c.arc(cx, H * .36, W * .17, 0, 7); c.fill();              // head
+      c.beginPath();                                                             // shoulders
+      c.moveTo(cx - W * .34, H);
+      c.bezierCurveTo(cx - W * .34, H * .58, cx - W * .2, H * .5, cx, H * .5);
+      c.bezierCurveTo(cx + W * .2, H * .5, cx + W * .34, H * .58, cx + W * .34, H);
+      c.closePath(); c.fill();
+      c.globalCompositeOperation = 'overlay';
+      c.fillStyle = 'rgba(0,0,0,.35)';
+      c.beginPath(); c.arc(cx - W * .05, H * .36, W * .17, Math.PI * .4, Math.PI * 1.4); c.fill();
+      c.globalCompositeOperation = 'source-over';
+      c.strokeStyle = `hsl(${(hue + 180) % 360} 55% 62%)`; c.lineWidth = 3;
+      c.beginPath(); c.arc(cx, H * .36, W * .19, -Math.PI * .35, Math.PI * .3); c.stroke();
+      c.fillStyle = 'rgba(255,255,255,.05)';
+      for (let i = 0; i < 380; i++) c.fillRect(R() * W, R() * H, 1.5, 1.5);
+      c.fillStyle = 'rgba(0,0,0,.18)';
+      for (let y = 0; y < H; y += 4) c.fillRect(0, y, W, 1);
+    }
+
+    members.forEach((m, i) => {
+      const el = document.createElement('div');
+      el.className = 'member reveal group';
+      el.innerHTML = `
+        <div class="shot relative overflow-hidden rounded-2xl border border-white/10 aspect-[4/5]">
+          <canvas class="w-full h-full block object-cover"></canvas>
+          <img class="glitch g1 absolute inset-0 w-full h-full" alt="">
+          <img class="glitch g2 absolute inset-0 w-full h-full" alt="">
+          <div class="absolute inset-0 bg-gradient-to-t from-void/80 via-transparent to-transparent pointer-events-none"></div>
+        </div>
+        <h3 class="font-syne font-bold text-lg md:text-xl mt-4 group-hover:text-cyan transition-colors">${m.name}</h3>
+        <div class="relative h-5 overflow-hidden text-sm">
+          <p class="role absolute inset-x-0 text-white/50">${m.role}</p>
+          <p class="alias absolute inset-x-0 text-pink font-medium">${m.alias}</p>
+        </div>`;
+      grid.appendChild(el);
+      const cv = el.querySelector('canvas');
+      portrait(cv, m.hue, 1234 + i * 777);
+      const url = cv.toDataURL();
+      el.querySelector('.g1').src = url;
+      el.querySelector('.g2').src = url;
+      revealIO.observe(el);
+    });
+  })();
+
+  /* ---------------- contact portal form ---------------- */
+  (function contact() {
+    const form = document.getElementById('contact-form');
+    const inner = document.getElementById('form-inner');
+    inner.addEventListener('submit', e => {
+      e.preventDefault();
+      const name = document.getElementById('f-name');
+      const email = document.getElementById('f-email');
+      const msg = document.getElementById('f-msg');
+      for (const f of [name, email, msg]) {
+        if (!f.value.trim() || (f.type === 'email' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.value))) {
+          f.focus();
+          f.style.borderColor = '#e0aa3e';
+          setTimeout(() => f.style.borderColor = '', 1200);
+          return;
+        }
+      }
+      form.classList.add('warp');
+    });
+    document.getElementById('form-reset').addEventListener('click', () => {
+      form.classList.remove('warp');
+      inner.reset();
+    });
+  })();
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#060607">
+<meta name="description" content="NEXUS One wireless earbuds. Adaptive ANC 3.0, spatial audio, 40-hour battery. Spin it, zoom it, recolor it — live in 3D.">
+<title>NEXUS Audio — NEXUS One Wireless Earbuds</title>
+
+<link rel="preconnect" href="https://api.fontshare.com">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: { void: '#060607', volt: '#d7ff3e', ember: '#ff5c38' },
+      fontFamily: {
+        display: ['"Clash Display"', 'sans-serif'],
+        body: ['Satoshi', 'sans-serif']
+      }
+    }
+  }
+}
+</script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<style>
+  html { background: #060607; }
+  body { background: #060607; }
+  ::selection { background: #d7ff3e; color: #060607; }
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: #060607; }
+  ::-webkit-scrollbar-thumb { background: #26262b; border-radius: 6px; border: 2px solid #060607; }
+  ::-webkit-scrollbar-thumb:hover { background: #d7ff3e; }
+
+  :focus-visible { outline: 2px dashed #d7ff3e; outline-offset: 3px; }
+
+  .glass {
+    background: linear-gradient(160deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
+    border: 1px solid rgba(255,255,255,.09);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 24px 60px rgba(0,0,0,.45);
+  }
+
+  .stroke-text {
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgba(255,255,255,.13);
+  }
+
+  .grain {
+    position: fixed; inset: 0; z-index: 70; pointer-events: none; opacity: .05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .hero-bg {
+    background:
+      radial-gradient(ellipse 70% 55% at 50% 42%, rgba(215,255,62,.07), transparent 65%),
+      radial-gradient(ellipse 45% 40% at 78% 80%, rgba(255,92,56,.05), transparent 70%),
+      linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 72px 72px, 72px 72px;
+    mask-image: radial-gradient(ellipse 90% 85% at 50% 45%, black 40%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 85% at 50% 45%, black 40%, transparent 100%);
+  }
+
+  .reveal { opacity: 0; transform: translateY(44px); transition: opacity .9s cubic-bezier(.22,1,.36,1), transform .9s cubic-bezier(.22,1,.36,1); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  .rrow { opacity: 0; transform: translateY(22px); transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1); }
+  .rrow.in { opacity: 1; transform: none; }
+
+  [data-tilt] { transform-style: preserve-3d; will-change: transform; }
+  [data-tilt] .lift { transform: translateZ(46px); transform-style: preserve-3d; }
+  [data-tilt] .lift-sm { transform: translateZ(24px); }
+  .glare { position: absolute; inset: 0; border-radius: inherit; opacity: 0; transition: opacity .4s; pointer-events: none; }
+
+  .meter { height: 5px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; }
+  .meter i { display: block; height: 100%; width: 0; border-radius: 99px;
+    background: linear-gradient(90deg, rgba(215,255,62,.55), #d7ff3e);
+    transition: width 1.15s cubic-bezier(.22,1,.36,1); }
+  .meter.dim i { background: linear-gradient(90deg, rgba(255,255,255,.18), rgba(255,255,255,.4)); }
+
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .marquee-track { animation: marquee 30s linear infinite; }
+
+  @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  .floaty { animation: floaty 3.2s ease-in-out infinite; }
+
+  @keyframes scrollcue { 0% { transform: scaleY(0); transform-origin: top; } 45% { transform: scaleY(1); transform-origin: top; } 55% { transform: scaleY(1); transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
+  .scrollcue { animation: scrollcue 1.8s cubic-bezier(.65,0,.35,1) infinite; }
+
+  @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+  .pulse-dot { animation: pulse-dot 1.6s ease-in-out infinite; }
+
+  @keyframes stockpulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,92,56,.5); } 60% { box-shadow: 0 0 0 9px rgba(255,92,56,0); } }
+  .stock-fill { animation: stockpulse 2s ease-out infinite; }
+
+  .swatch { width: 34px; height: 34px; border-radius: 99px; border: 1px solid rgba(255,255,255,.25); cursor: pointer; transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s; }
+  .swatch:hover { transform: scale(1.14); }
+  .swatch.active { box-shadow: 0 0 0 2px #060607, 0 0 0 4px #d7ff3e; transform: scale(1.08); }
+
+  .btn-volt {
+    background: #d7ff3e; color: #0c0e00;
+    transition: transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s;
+  }
+  .btn-volt:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 12px 44px rgba(215,255,62,.35); }
+  .btn-volt:active { transform: translateY(0) scale(.98); }
+
+  .btn-ghost {
+    border: 1px solid rgba(255,255,255,.18); color: #fff;
+    transition: border-color .3s, background .3s, transform .3s cubic-bezier(.22,1,.36,1);
+  }
+  .btn-ghost:hover { border-color: rgba(215,255,62,.6); background: rgba(215,255,62,.06); transform: translateY(-2px); }
+
+  .magnet { transition: transform .25s cubic-bezier(.22,1,.36,1); will-change: transform; }
+
+  .nav-scrolled { background: rgba(6,6,7,.72); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-color: rgba(255,255,255,.09); }
+
+  .cd-cell { min-width: 74px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal, .rrow { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .marquee-track, .floaty, .scrollcue, .pulse-dot, .stock-fill { animation: none !important; }
+    .meter i { transition: none !important; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+
+<body class="bg-void text-white font-body antialiased overflow-x-hidden" id="top">
+
+<div class="grain"></div>
+<div id="progress" class="fixed top-0 left-0 h-[2px] w-full bg-volt z-[80] origin-left" style="transform: scaleX(0)"></div>
+
+<!-- NAV -->
+<nav class="fixed top-4 inset-x-4 z-[60]">
+  <div id="navInner" class="max-w-7xl mx-auto flex items-center justify-between h-14 px-5 rounded-full border border-transparent transition-colors duration-500">
+    <a href="#top" class="font-display font-700 font-bold text-lg tracking-wide">NEXUS<span class="text-volt">.</span><span class="text-white/40 text-xs font-body font-medium tracking-[.3em] ml-2 hidden sm:inline">AUDIO</span></a>
+    <div class="hidden md:flex items-center gap-8 text-sm text-white/60">
+      <a href="#features" class="hover:text-volt transition-colors">Tech</a>
+      <a href="#sound" class="hover:text-volt transition-colors">Sound</a>
+      <a href="#compare" class="hover:text-volt transition-colors">Compare</a>
+      <a href="#voices" class="hover:text-volt transition-colors">Voices</a>
+    </div>
+    <a href="#buy" class="btn-volt font-semibold text-sm px-5 py-2 rounded-full">Pre-order — $249</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="relative h-[100svh] min-h-[640px] overflow-hidden">
+  <div class="hero-bg absolute inset-0"></div>
+
+  <h2 aria-hidden="true" class="stroke-text font-display font-bold absolute top-[9%] left-1/2 -translate-x-1/2 text-[clamp(6rem,21vw,19rem)] leading-none tracking-tight select-none z-0 whitespace-nowrap">NEXUS</h2>
+
+  <canvas id="stage" class="absolute inset-0 w-full h-full z-[1] cursor-grab active:cursor-grabbing" role="img" aria-label="Interactive 3D model of the NEXUS One earbuds. Drag to rotate, scroll to zoom."></canvas>
+
+  <div class="absolute inset-x-0 bottom-0 z-10 pointer-events-none">
+    <div class="max-w-7xl mx-auto px-6 pb-24 md:pb-16 flex flex-col md:flex-row md:items-end gap-10 md:gap-6">
+      <div class="max-w-xl">
+        <p class="text-xs tracking-[.35em] text-white/50 mb-4 flex items-center gap-3">
+          <span class="w-2 h-2 rounded-full bg-volt pulse-dot"></span>NEXUS AUDIO · NEXUS ONE
+        </p>
+        <h1 class="font-display font-semibold text-[clamp(2.4rem,5.2vw,4.4rem)] leading-[1.02] tracking-tight" style="text-shadow: 0 2px 30px rgba(6,6,7,.9), 0 0 80px rgba(6,6,7,.7)">
+          Hear everything.<br><span class="text-white/45">Feel nothing else.</span>
+        </h1>
+        <p class="mt-5 text-white/55 text-base md:text-lg leading-relaxed max-w-md">
+          Adaptive ANC 3.0, head-tracked spatial audio, and 40 hours of battery — packed into earbuds you can spin, zoom, and recolor right here.
+        </p>
+        <div class="mt-8 flex flex-wrap items-center gap-4 pointer-events-auto">
+          <a href="#buy" class="btn-volt magnet font-semibold px-7 py-3.5 rounded-full text-sm">Pre-order — $249</a>
+          <a href="#features" class="btn-ghost magnet font-medium px-7 py-3.5 rounded-full text-sm">Explore the tech</a>
+        </div>
+      </div>
+
+      <div class="md:ml-auto pointer-events-auto">
+        <div class="glass rounded-3xl p-5 w-full md:w-64">
+          <p class="text-[10px] tracking-[.3em] text-white/40 mb-1">FINISH</p>
+          <p id="colorName" class="font-display font-medium text-lg mb-4">Midnight Onyx</p>
+          <div class="flex items-center gap-3">
+            <button class="swatch active" data-color="#17181c" data-name="Midnight Onyx" style="background:#17181c" aria-label="Midnight Onyx finish"></button>
+            <button class="swatch" data-color="#e9eaee" data-name="Glacier White" style="background:#e9eaee" aria-label="Glacier White finish"></button>
+            <button class="swatch" data-color="#d7ff3e" data-name="Volt" style="background:#d7ff3e" aria-label="Volt finish"></button>
+            <button class="swatch" data-color="#ff5c38" data-name="Ember" style="background:#ff5c38" aria-label="Ember finish"></button>
+          </div>
+          <div class="h-px bg-white/10 my-4"></div>
+          <p class="text-xs text-white/40 leading-relaxed">Drag to rotate · Scroll to zoom<br><span class="text-white/25">Pinch to zoom on touch</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 hidden md:flex flex-col items-center gap-2 pointer-events-none">
+    <span class="text-[9px] tracking-[.4em] text-white/35">SCROLL</span>
+    <div class="w-px h-8 bg-volt/70 scrollcue"></div>
+  </div>
+</header>
+
+<!-- MARQUEE -->
+<div class="border-y border-white/8 bg-white/[.02] overflow-hidden py-4 select-none" aria-hidden="true">
+  <div class="marquee-track flex whitespace-nowrap w-max">
+    <div class="flex items-center gap-10 pr-10 text-sm tracking-[.25em] text-white/45">
+      <span>ADAPTIVE ANC 3.0</span><span class="text-volt">•</span>
+      <span>40H TOTAL BATTERY</span><span class="text-volt">•</span>
+      <span>SPATIAL AUDIO 360°</span><span class="text-volt">•</span>
+      <span>LDAC HI-RES 990 KBPS</span><span class="text-volt">•</span>
+      <span>11MM GRAPHENE DRIVER</span><span class="text-volt">•</span>
+      <span>IPX5</span><span class="text-volt">•</span>
+      <span>45 MS GAME MODE</span><span class="text-volt">•</span>
+    </div>
+    <div class="flex items-center gap-10 pr-10 text-sm tracking-[.25em] text-white/45">
+      <span>ADAPTIVE ANC 3.0</span><span class="text-volt">•</span>
+      <span>40H TOTAL BATTERY</span><span class="text-volt">•</span>
+      <span>SPATIAL AUDIO 360°</span><span class="text-volt">•</span>
+      <span>LDAC HI-RES 990 KBPS</span><span class="text-volt">•</span>
+      <span>11MM GRAPHENE DRIVER</span><span class="text-volt">•</span>
+      <span>IPX5</span><span class="text-volt">•</span>
+      <span>45 MS GAME MODE</span><span class="text-volt">•</span>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features" class="scroll-mt-28 max-w-7xl mx-auto px-6 py-28 md:py-36">
+  <div class="reveal max-w-2xl">
+    <p class="text-xs tracking-[.35em] text-volt mb-4">ENGINEERED OBSESSION</p>
+    <h2 class="font-display font-semibold text-4xl md:text-6xl tracking-tight leading-[1.05]">Every decibel,<br>deliberate.</h2>
+    <p class="mt-5 text-white/50 text-lg leading-relaxed">Four systems working as one instrument. Hover a card — each one lifts off the page.</p>
+  </div>
+
+  <div class="mt-14 grid sm:grid-cols-2 lg:grid-cols-4 gap-5" style="perspective: 1200px;">
+
+    <article class="reveal glass rounded-3xl p-7 relative overflow-hidden" data-tilt>
+      <div class="glare"></div>
+      <div class="lift">
+        <svg class="w-7 h-7 text-volt" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M3 12h2M7 8v8M11 4v16M15 8v8M19 12h2"/></svg>
+        <p class="mt-8 font-display font-semibold text-5xl tracking-tight">−48<span class="text-2xl text-white/40">dB</span></p>
+        <h3 class="mt-3 font-display font-medium text-xl">Adaptive ANC 3.0</h3>
+        <p class="mt-3 text-sm text-white/50 leading-relaxed">Six mics map your surroundings 500 times a second and erase them in real time. Planes, trains, open offices — gone.</p>
+      </div>
+    </article>
+
+    <article class="reveal glass rounded-3xl p-7 relative overflow-hidden" data-tilt style="transition-delay:.08s">
+      <div class="glare"></div>
+      <div class="lift">
+        <svg class="w-7 h-7 text-volt" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="10" ry="4.5"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(60 12 12)"/></svg>
+        <p class="mt-8 font-display font-semibold text-5xl tracking-tight">360<span class="text-2xl text-white/40">°</span></p>
+        <h3 class="mt-3 font-display font-medium text-xl">Spatial Audio</h3>
+        <p class="mt-3 text-sm text-white/50 leading-relaxed">A stage that follows your head, not your phone. Gyro-tracked at 1,000 Hz so the mix never drifts.</p>
+      </div>
+    </article>
+
+    <article class="reveal glass rounded-3xl p-7 relative overflow-hidden" data-tilt style="transition-delay:.16s">
+      <div class="glare"></div>
+      <div class="lift">
+        <svg class="w-7 h-7 text-volt" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="8" width="17" height="8" rx="2"/><path stroke-linecap="round" d="M22 11v2M6 11l2-2-1 3h3l-2 2 1-3H6z" fill="currentColor" stroke="none"/></svg>
+        <p class="mt-8 font-display font-semibold text-5xl tracking-tight">40<span class="text-2xl text-white/40">H</span></p>
+        <h3 class="mt-3 font-display font-medium text-xl">Marathon Battery</h3>
+        <p class="mt-3 text-sm text-white/50 leading-relaxed">9 hours per charge, 40 with the case. Ten minutes in the case buys you five more hours.</p>
+      </div>
+    </article>
+
+    <article class="reveal glass rounded-3xl p-7 relative overflow-hidden" data-tilt style="transition-delay:.24s">
+      <div class="glare"></div>
+      <div class="lift">
+        <svg class="w-7 h-7 text-volt" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>
+        <p class="mt-8 font-display font-semibold text-5xl tracking-tight">11<span class="text-2xl text-white/40">mm</span></p>
+        <h3 class="mt-3 font-display font-medium text-xl">Quantum Driver</h3>
+        <p class="mt-3 text-sm text-white/50 leading-relaxed">Graphene-coated 11 mm drivers fed by LDAC hi-res streaming at 990 kbps. Detail you can point at.</p>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- SOUND LAB -->
+<section id="sound" class="scroll-mt-28 border-y border-white/8 bg-white/[.015]">
+  <div class="max-w-7xl mx-auto px-6 py-28 md:py-36">
+    <div class="reveal flex flex-col md:flex-row md:items-end gap-6 md:gap-10">
+      <div class="max-w-2xl">
+        <p class="text-xs tracking-[.35em] text-volt mb-4">SOUND LAB</p>
+        <h2 class="font-display font-semibold text-4xl md:text-6xl tracking-tight leading-[1.05]">Watch the low end hit.</h2>
+      </div>
+      <p class="text-white/45 text-sm md:ml-auto max-w-xs leading-relaxed">A live particle field driven by the demo mix. Every dot is a frequency band.</p>
+    </div>
+
+    <div class="reveal glass rounded-[2rem] mt-12 overflow-hidden">
+      <div class="flex items-center gap-4 px-6 md:px-8 py-5 border-b border-white/8">
+        <button id="playBtn" class="magnet w-12 h-12 rounded-full btn-volt grid place-items-center shrink-0" aria-label="Play sound demo" aria-pressed="false">
+          <svg id="iconPlay" class="w-4 h-4 translate-x-[1px]" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="iconPause" class="w-4 h-4 hidden" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+        </button>
+        <div class="min-w-0">
+          <p class="font-medium text-sm truncate">Midnight Run — NEXUS demo mix</p>
+          <p class="text-xs text-white/40 mt-0.5"><span id="vizTime">00:00</span> · mastered for the 11 mm Quantum Driver</p>
+        </div>
+        <span class="ml-auto text-[10px] tracking-[.25em] px-3 py-1.5 rounded-full border border-white/15 text-white/45 shrink-0">SIMULATED</span>
+      </div>
+      <canvas id="viz" class="w-full h-[280px] md:h-[340px] block" aria-label="Particle visualization reacting to the demo audio"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARE -->
+<section id="compare" class="scroll-mt-28 max-w-7xl mx-auto px-6 py-28 md:py-36">
+  <div class="reveal max-w-2xl">
+    <p class="text-xs tracking-[.35em] text-volt mb-4">HEAD TO HEAD</p>
+    <h2 class="font-display font-semibold text-4xl md:text-6xl tracking-tight leading-[1.05]">Not even close.</h2>
+  </div>
+
+  <div class="reveal mt-12 overflow-x-auto" id="compareTable">
+    <table class="w-full min-w-[720px] border-collapse text-sm">
+      <thead>
+        <tr class="text-left">
+          <th class="py-5 pr-6 font-medium text-white/40 text-xs tracking-[.2em] w-[26%]">SPEC</th>
+          <th class="py-5 px-5 w-[28%] rounded-t-2xl bg-volt/[.06] border-x border-t border-volt/15">
+            <span class="font-display font-semibold text-lg text-volt">NEXUS One</span>
+          </th>
+          <th class="py-5 px-5 font-medium text-white/55 w-[23%]">Flagship earbuds<span class="block text-xs text-white/30 font-normal mt-0.5">typical $279 class</span></th>
+          <th class="py-5 px-5 font-medium text-white/55 w-[23%]">Budget earbuds<span class="block text-xs text-white/30 font-normal mt-0.5">typical $89 class</span></th>
+        </tr>
+      </thead>
+      <tbody class="[&>tr]:border-b [&>tr]:border-white/8">
+
+        <tr class="rrow transition-colors hover:bg-white/[.03]">
+          <td class="py-5 pr-6 text-white/60">Active noise cancelling</td>
+          <td class="py-5 px-5 bg-volt/[.06] border-x border-volt/15"><span class="font-display font-semibold text-volt text-base">−48 dB</span><div class="meter mt-2.5"><i data-w="96"></i></div></td>
+          <td class="py-5 px-5 text-white/45">−30 dB<div class="meter dim mt-2.5"><i data-w="60"></i></div></td>
+          <td class="py-5 px-5 text-white/45">−18 dB<div class="meter dim mt-2.5"><i data-w="36"></i></div></td>
+        </tr>
+
+        <tr class="rrow transition-colors hover:bg-white/[.03]">
+          <td class="py-5 pr-6 text-white/60">Total battery with case</td>
+          <td class="py-5 px-5 bg-volt/[.06] border-x border-volt/15"><span class="font-display font-semibold text-volt text-base">40 h</span><div class="meter mt-2.5"><i data-w="100"></i></div></td>
+          <td class="py-5 px-5 text-white/45">30 h<div class="meter dim mt-2.5"><i data-w="75"></i></div></td>
+          <td class="py-5 px-5 text-white/45">20 h<div class="meter dim mt-2.5"><i data-w="50"></i></div></td>
+        </tr>
+
+        <tr class="rrow transition-colors hover:bg-white/[.03]">
+          <td class="py-5 pr-6 text-white/60">Driver</td>
+          <td class="py-5 px-5 bg-volt/[.06] border-x border-volt/15"><span class="font-display font-semibold text-volt text-base">11 mm graphene</span><div class="meter mt-2.5"><i data-w="100"></i></div></td>
+          <td class="py-5 px-5 text-white/45">10 mm dynamic<div class="meter dim mt-2.5"><i data-w="88"></i></div></td>
+          <td class="py-5 px-5 text-white/45">6 mm<div class="meter dim mt-2.5"><i data-w="54"></i></div></td>
+        </tr>
+
+        <tr class="rrow transition-colors hover:bg-white/[.03]">
+          <td class="py-5 pr-6 text-white/60">Hi-res codec</td>
+          <td class="py-5 px-5 bg-volt/[.06] border-x border-volt/15"><span class="text-volt font-semibold">LDAC 990 kbps</span> <span class="text-volt ml-1">✓</span></td>
+          <td class="py-5 px-5 text-white/30">✕</td>
+          <td class="py-5 px-5 text-white/30">✕</td>
+        </tr>
+
+        <tr class="rrow transition-colors hover:bg-white/[.03]">
+          <td class="py-5 pr-6 text-white/60">Spatial audio + head tracking</td>
+          <td class="py-5 px-5 bg-volt/[.06] border-x border-volt/15"><span class="text-volt text-lg">✓</span></td>
+          <td class="py-5 px-5 text-white/45">✓<span class="text-white/25 text-xs ml-2">no head tracking</span></td>
+          <td class="py-5 px-5 text-white/30">✕</td>
+        </tr>
+
+        <tr class="rrow transition-colors hover:bg-white/[.03]">
+          <td class="py-5 pr-6 text-white/60">Game-mode latency</td>
+          <td class="py-5 px-5 bg-volt/[.06] border-x border-volt/15"><span class="font-display font-semibold text-volt text-base">45 ms</span><div class="meter mt-2.5"><i data-w="92"></i></div></td>
+          <td class="py-5 px-5 text-white/45">120 ms<div class="meter dim mt-2.5"><i data-w="52"></i></div></td>
+          <td class="py-5 px-5 text-white/45">180 ms<div class="meter dim mt-2.5"><i data-w="30"></i></div></td>
+        </tr>
+
+        <tr class="rrow transition-colors hover:bg-white/[.03]">
+          <td class="py-5 pr-6 text-white/60">Water resistance</td>
+          <td class="py-5 px-5 bg-volt/[.06] border-x border-b border-volt/15 rounded-b-2xl"><span class="font-semibold text-volt">IPX5</span></td>
+          <td class="py-5 px-5 text-white/45">IPX4</td>
+          <td class="py-5 px-5 text-white/45">IPX2</td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- VOICES -->
+<section id="voices" class="scroll-mt-28 border-y border-white/8 bg-white/[.015]">
+  <div class="max-w-7xl mx-auto px-6 py-28 md:py-36">
+    <div class="reveal max-w-2xl">
+      <p class="text-xs tracking-[.35em] text-volt mb-4">EARLY LISTENERS</p>
+      <h2 class="font-display font-semibold text-4xl md:text-6xl tracking-tight leading-[1.05]">Word travels<br>at 343 m/s.</h2>
+    </div>
+
+    <div class="mt-14 grid md:grid-cols-3 gap-5" style="perspective: 1200px;">
+
+      <figure class="reveal glass rounded-3xl p-8 relative overflow-hidden" data-tilt>
+        <div class="glare"></div>
+        <div class="lift-sm">
+          <div class="relative w-28 h-28">
+            <canvas class="orb w-28 h-28 block" data-color="#d7ff3e" aria-label="3D avatar sphere for Mara Chen"></canvas>
+            <span class="absolute inset-0 grid place-items-center font-display font-semibold text-lg pointer-events-none">MC</span>
+          </div>
+          <div class="flex gap-1 mt-6 text-volt" aria-label="5 out of 5 stars">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>
+          </div>
+          <blockquote class="mt-4 text-lg leading-relaxed text-white/80">"I forgot my studio headphones on a flight and didn't care. The ANC is genuinely unsettling."</blockquote>
+          <figcaption class="mt-5 text-sm"><span class="font-semibold">Mara Chen</span><span class="text-white/40"> · Music producer, Berlin</span></figcaption>
+        </div>
+      </figure>
+
+      <figure class="reveal glass rounded-3xl p-8 relative overflow-hidden" data-tilt style="transition-delay:.1s">
+        <div class="glare"></div>
+        <div class="lift-sm">
+          <div class="relative w-28 h-28">
+            <canvas class="orb w-28 h-28 block" data-color="#ff5c38" aria-label="3D avatar sphere for Dev Okafor"></canvas>
+            <span class="absolute inset-0 grid place-items-center font-display font-semibold text-lg pointer-events-none">DO</span>
+          </div>
+          <div class="flex gap-1 mt-6 text-volt" aria-label="5 out of 5 stars">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>
+          </div>
+          <blockquote class="mt-4 text-lg leading-relaxed text-white/80">"Forty hours is not a typo. I charge the case twice a month and run every day."</blockquote>
+          <figcaption class="mt-5 text-sm"><span class="font-semibold">Dev Okafor</span><span class="text-white/40"> · Ultra runner, Nairobi</span></figcaption>
+        </div>
+      </figure>
+
+      <figure class="reveal glass rounded-3xl p-8 relative overflow-hidden" data-tilt style="transition-delay:.2s">
+        <div class="glare"></div>
+        <div class="lift-sm">
+          <div class="relative w-28 h-28">
+            <canvas class="orb w-28 h-28 block" data-color="#e9eaee" aria-label="3D avatar sphere for Lena Ross"></canvas>
+            <span class="absolute inset-0 grid place-items-center font-display font-semibold text-lg pointer-events-none">LR</span>
+          </div>
+          <div class="flex gap-1 mt-6 text-volt" aria-label="5 out of 5 stars">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>
+          </div>
+          <blockquote class="mt-4 text-lg leading-relaxed text-white/80">"Spatial audio made playlists I've had for a decade feel remastered. I keep turning my head on purpose."</blockquote>
+          <figcaption class="mt-5 text-sm"><span class="font-semibold">Lena Ross</span><span class="text-white/40"> · Podcast host, Toronto</span></figcaption>
+        </div>
+      </figure>
+
+    </div>
+  </div>
+</section>
+
+<!-- BUY -->
+<section id="buy" class="scroll-mt-28 max-w-7xl mx-auto px-6 py-28 md:py-36">
+  <div class="reveal glass rounded-[2.5rem] overflow-hidden relative">
+    <div class="absolute -top-40 -right-40 w-[480px] h-[480px] rounded-full pointer-events-none" style="background: radial-gradient(circle, rgba(215,255,62,.12), transparent 65%)"></div>
+
+    <div class="grid lg:grid-cols-2 gap-0 relative">
+      <div class="p-8 md:p-14 border-b lg:border-b-0 lg:border-r border-white/8">
+        <p class="text-xs tracking-[.35em] text-volt mb-4">LAUNCH DROP 001</p>
+        <h2 class="font-display font-semibold text-5xl md:text-6xl tracking-tight">NEXUS One</h2>
+
+        <div class="mt-6 flex items-end gap-4 flex-wrap">
+          <span class="font-display font-bold text-6xl leading-none">$249</span>
+          <s class="text-white/35 text-2xl mb-1">$329</s>
+          <span class="mb-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-volt text-void">SAVE $80</span>
+        </div>
+
+        <ul class="mt-9 space-y-4 text-sm text-white/60">
+          <li class="flex items-center gap-3"><svg class="w-4 h-4 text-volt shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>45-day at-home trial, free returns</li>
+          <li class="flex items-center gap-3"><svg class="w-4 h-4 text-volt shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Free express shipping, ships August 14</li>
+          <li class="flex items-center gap-3"><svg class="w-4 h-4 text-volt shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>2-year warranty, sweat and rain covered</li>
+        </ul>
+
+        <div class="mt-9">
+          <p class="text-[10px] tracking-[.3em] text-white/40 mb-3">FINISH — <span id="colorName2" class="text-white/70">MIDNIGHT ONYX</span></p>
+          <div class="flex items-center gap-3">
+            <button class="swatch active" data-color="#17181c" data-name="Midnight Onyx" style="background:#17181c" aria-label="Midnight Onyx finish"></button>
+            <button class="swatch" data-color="#e9eaee" data-name="Glacier White" style="background:#e9eaee" aria-label="Glacier White finish"></button>
+            <button class="swatch" data-color="#d7ff3e" data-name="Volt" style="background:#d7ff3e" aria-label="Volt finish"></button>
+            <button class="swatch" data-color="#ff5c38" data-name="Ember" style="background:#ff5c38" aria-label="Ember finish"></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-8 md:p-14 flex flex-col">
+        <div class="flex items-center gap-3">
+          <span class="w-2 h-2 rounded-full bg-ember pulse-dot"></span>
+          <p class="text-xs tracking-[.25em] text-white/50">LAUNCH PRICING ENDS IN</p>
+        </div>
+
+        <div class="mt-5 flex gap-3">
+          <div class="cd-cell glass rounded-2xl px-4 py-4 text-center">
+            <p id="cdH" class="font-display font-bold text-4xl leading-none">09</p>
+            <p class="text-[10px] tracking-[.25em] text-white/40 mt-2">HOURS</p>
+          </div>
+          <div class="cd-cell glass rounded-2xl px-4 py-4 text-center">
+            <p id="cdM" class="font-display font-bold text-4xl leading-none">41</p>
+            <p class="text-[10px] tracking-[.25em] text-white/40 mt-2">MIN</p>
+          </div>
+          <div class="cd-cell glass rounded-2xl px-4 py-4 text-center">
+            <p id="cdS" class="font-display font-bold text-4xl leading-none text-volt">33</p>
+            <p class="text-[10px] tracking-[.25em] text-white/40 mt-2">SEC</p>
+          </div>
+        </div>
+
+        <div class="mt-8">
+          <div class="flex justify-between text-xs mb-2.5">
+            <span class="text-ember font-semibold">Only 17 left at launch price</span>
+            <span class="text-white/35">183 / 200 claimed</span>
+          </div>
+          <div class="h-2 rounded-full bg-white/8 overflow-hidden">
+            <div id="stockBar" class="stock-fill h-full rounded-full bg-ember" style="width:0%"></div>
+          </div>
+        </div>
+
+        <button id="buyBtn" class="magnet btn-volt mt-9 w-full font-display font-semibold text-lg py-5 rounded-2xl">Pre-order NEXUS One — $249</button>
+        <p id="buyNote" class="mt-4 text-center text-xs text-white/35 transition-colors">Secure checkout · Apple Pay · Klarna · No charge until it ships</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="border-t border-white/8">
+  <div class="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center gap-6">
+    <p class="font-display font-bold text-lg">NEXUS<span class="text-volt">.</span><span class="text-white/40 text-xs font-body font-medium tracking-[.3em] ml-2">AUDIO</span></p>
+    <p class="text-xs text-white/35 md:ml-auto">© 2026 NEXUS Audio. Hear everything.</p>
+    <div class="flex gap-6 text-xs text-white/45">
+      <a href="#features" class="hover:text-volt transition-colors">Tech</a>
+      <a href="#sound" class="hover:text-volt transition-colors">Sound</a>
+      <a href="#compare" class="hover:text-volt transition-colors">Compare</a>
+      <a href="#buy" class="hover:text-volt transition-colors">Buy</a>
+    </div>
+  </div>
+</footer>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const canvas = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+camera.position.set(0.4, 0.6, 6.4);
+
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.enablePan = false;
+controls.minDistance = 3.6;
+controls.maxDistance = 9.5;
+controls.minPolarAngle = 0.7;
+controls.maxPolarAngle = 2.35;
+controls.autoRotate = !RM;
+controls.autoRotateSpeed = 0.9;
+if (matchMedia('(pointer: coarse)').matches) controls.touches.ONE = null;
+canvas.style.touchAction = 'pan-y';
+
+let idleTimer;
+controls.addEventListener('start', () => { controls.autoRotate = false; clearTimeout(idleTimer); });
+controls.addEventListener('end', () => { idleTimer = setTimeout(() => { if (!RM) controls.autoRotate = true; }, 3500); });
+
+const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+keyLight.position.set(4, 6, 5);
+scene.add(keyLight);
+const rimLight = new THREE.PointLight(0xd7ff3e, 30, 20, 2);
+rimLight.position.set(-5, 2, -4);
+scene.add(rimLight);
+const fillLight = new THREE.PointLight(0xff9a62, 12, 18, 2);
+fillLight.position.set(4, -2, 3);
+scene.add(fillLight);
+
+const shellMat = new THREE.MeshPhysicalMaterial({ color: 0x17181c, roughness: 0.26, metalness: 0.12, clearcoat: 1, clearcoatRoughness: 0.22, envMapIntensity: 1.3 });
+const rubberMat = new THREE.MeshStandardMaterial({ color: 0x0c0c0e, roughness: 0.75, metalness: 0 });
+const accentMat = new THREE.MeshStandardMaterial({ color: 0xd7ff3e, emissive: 0xd7ff3e, emissiveIntensity: 2.2, roughness: 0.4 });
+const goldMat = new THREE.MeshStandardMaterial({ color: 0xd8b273, metalness: 1, roughness: 0.3, envMapIntensity: 1.4 });
+
+function makeEarbud() {
+  const g = new THREE.Group();
+
+  const bud = new THREE.Mesh(new THREE.SphereGeometry(0.62, 48, 48), shellMat);
+  bud.scale.set(1, 0.9, 0.95);
+  bud.position.set(0, 0.45, 0);
+  g.add(bud);
+
+  const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.21, 0.34, 32), shellMat);
+  nozzle.rotation.x = 1.15;
+  nozzle.position.set(0, 0.52, 0.5);
+  g.add(nozzle);
+
+  const tip = new THREE.Mesh(new THREE.SphereGeometry(0.2, 32, 32), rubberMat);
+  tip.scale.set(0.85, 0.75, 0.7);
+  tip.position.set(0, 0.62, 0.66);
+  g.add(tip);
+
+  const stemG = new THREE.Group();
+  const stem = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 1.0, 12, 32), shellMat);
+  stemG.add(stem);
+
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.305, 0.02, 16, 64), accentMat);
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = 0.28;
+  stemG.add(ring);
+
+  const c1 = new THREE.Mesh(new THREE.SphereGeometry(0.05, 16, 16), goldMat);
+  c1.position.set(-0.1, -0.78, 0.16);
+  const c2 = c1.clone();
+  c2.position.x = 0.1;
+  stemG.add(c1, c2);
+
+  const grille = new THREE.Mesh(new THREE.CircleGeometry(0.09, 24), rubberMat);
+  grille.position.set(0, -0.1, 0.305);
+  stemG.add(grille);
+
+  stemG.position.set(0, -0.62, 0);
+  stemG.rotation.z = 0.1;
+  g.add(stemG);
+
+  const led = new THREE.Mesh(new THREE.SphereGeometry(0.045, 16, 16), accentMat);
+  led.position.set(0, 0.42, 0.605);
+  g.add(led);
+
+  return g;
+}
+
+const product = new THREE.Group();
+const e1 = makeEarbud();
+e1.position.set(0.5, 0.05, 0.15);
+e1.rotation.set(0.06, -1.62, 0.12);
+const e2 = makeEarbud();
+e2.position.set(-1.05, -0.25, -0.85);
+e2.rotation.set(-0.08, 2.3, -0.14);
+e2.scale.setScalar(0.92);
+product.add(e1, e2);
+scene.add(product);
+
+const halo = new THREE.Mesh(new THREE.TorusGeometry(2.0, 0.012, 16, 128), accentMat.clone());
+halo.material.transparent = true;
+halo.material.opacity = 0.55;
+halo.material.emissiveIntensity = 1.2;
+halo.rotation.x = Math.PI / 2;
+halo.position.y = -1.7;
+scene.add(halo);
+
+const halo2 = new THREE.Mesh(new THREE.TorusGeometry(2.6, 0.008, 16, 128), halo.material.clone());
+halo2.material.opacity = 0.16;
+halo2.rotation.x = Math.PI / 2;
+halo2.position.y = -1.72;
+scene.add(halo2);
+
+const glowCanvas = document.createElement('canvas');
+glowCanvas.width = glowCanvas.height = 256;
+const gg = glowCanvas.getContext('2d');
+const grad = gg.createRadialGradient(128, 128, 0, 128, 128, 128);
+grad.addColorStop(0, 'rgba(215,255,62,.5)');
+grad.addColorStop(0.4, 'rgba(215,255,62,.1)');
+grad.addColorStop(1, 'rgba(215,255,62,0)');
+gg.fillStyle = grad;
+gg.fillRect(0, 0, 256, 256);
+const glow = new THREE.Mesh(
+  new THREE.PlaneGeometry(5, 5),
+  new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(glowCanvas), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })
+);
+glow.rotation.x = -Math.PI / 2;
+glow.position.y = -1.74;
+scene.add(glow);
+
+const pCount = 260;
+const pGeo = new THREE.BufferGeometry();
+const pPos = new Float32Array(pCount * 3);
+for (let i = 0; i < pCount; i++) {
+  const r = 3.5 + Math.random() * 3;
+  const th = Math.random() * Math.PI * 2;
+  const ph = Math.acos(2 * Math.random() - 1);
+  pPos[i * 3] = r * Math.sin(ph) * Math.cos(th);
+  pPos[i * 3 + 1] = r * Math.cos(ph);
+  pPos[i * 3 + 2] = r * Math.sin(ph) * Math.sin(th);
+}
+pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.035, transparent: true, opacity: 0.4, depthWrite: false }));
+scene.add(particles);
+
+const targetColor = new THREE.Color(0x17181c);
+const nameEls = [document.getElementById('colorName'), document.getElementById('colorName2')];
+document.querySelectorAll('.swatch').forEach(btn => {
+  btn.addEventListener('click', () => {
+    targetColor.set(btn.dataset.color);
+    nameEls.forEach((el, i) => { if (el) el.textContent = i === 1 ? btn.dataset.name.toUpperCase() : btn.dataset.name; });
+    document.querySelectorAll('.swatch').forEach(b => b.classList.toggle('active', b.dataset.color === btn.dataset.color));
+  });
+});
+
+function sizeHero() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (canvas.width !== Math.floor(w * renderer.getPixelRatio()) || canvas.height !== Math.floor(h * renderer.getPixelRatio())) {
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    if (w / h > 1.3) camera.setViewOffset(w, h, -w * 0.11, 0, w, h);
+    else camera.clearViewOffset();
+    camera.updateProjectionMatrix();
+  }
+}
+
+const orbs = [];
+document.querySelectorAll('.orb').forEach(cv => {
+  const r = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
+  r.setPixelRatio(Math.min(devicePixelRatio, 2));
+  const s = new THREE.Scene();
+  const cam = new THREE.PerspectiveCamera(35, 1, 0.1, 20);
+  cam.position.z = 3.4;
+  const col = new THREE.Color(cv.dataset.color || '#d7ff3e');
+  const geo = new THREE.IcosahedronGeometry(1, 4);
+  const base = geo.attributes.position.array.slice();
+  const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: col, roughness: 0.32, metalness: 0.1, flatShading: true, emissive: col, emissiveIntensity: 0.18 }));
+  s.add(mesh);
+  const wire = new THREE.Mesh(new THREE.IcosahedronGeometry(1.04, 1), new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.1 }));
+  s.add(wire);
+  const l1 = new THREE.PointLight(0xffffff, 20, 0, 2);
+  l1.position.set(2, 2, 3);
+  s.add(l1);
+  const l2 = new THREE.PointLight(col, 10, 0, 2);
+  l2.position.set(-2, -1, 2);
+  s.add(l2);
+  const size = () => r.setSize(cv.clientWidth, cv.clientWidth, false);
+  size();
+  orbs.push({ r, s, cam, mesh, wire, geo, base, size, phase: Math.random() * 10 });
+});
+
+addEventListener('resize', () => { sizeHero(); orbs.forEach(o => o.size()); });
+
+const clock = new THREE.Clock();
+function loop() {
+  requestAnimationFrame(loop);
+  const t = clock.getElapsedTime();
+  sizeHero();
+
+  if (!RM) {
+    product.position.y = Math.sin(t * 0.8) * 0.07;
+    e1.rotation.z = 0.12 + Math.sin(t * 0.5) * 0.04;
+    e2.rotation.z = -0.14 + Math.sin(t * 0.45 + 2) * 0.04;
+    particles.rotation.y = t * 0.03;
+    halo.rotation.z = t * 0.1;
+  }
+  shellMat.color.lerp(targetColor, 0.08);
+  controls.update();
+  renderer.render(scene, camera);
+
+  for (const o of orbs) {
+    if (!RM) {
+      const p = o.geo.attributes.position;
+      const t2 = t * 0.9 + o.phase;
+      for (let i = 0; i < p.count; i++) {
+        const x = o.base[i * 3], y = o.base[i * 3 + 1], z = o.base[i * 3 + 2];
+        const n = 1 + 0.16 * Math.sin(x * 2.4 + t2) * Math.sin(y * 2.8 + t2 * 1.3) * Math.sin(z * 2.2 + t2 * 0.7);
+        p.setXYZ(i, x * n, y * n, z * n);
+      }
+      p.needsUpdate = true;
+      o.mesh.rotation.y = t * 0.25 + o.phase;
+      o.mesh.rotation.x = Math.sin(t * 0.2 + o.phase) * 0.25;
+      o.wire.rotation.y = -t * 0.15;
+    }
+    o.r.render(o.s, o.cam);
+  }
+}
+loop();
+</script>
+
+<script>
+(function () {
+  const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const DPR = Math.min(devicePixelRatio, 2);
+
+  const nav = document.getElementById('navInner');
+  const progress = document.getElementById('progress');
+  addEventListener('scroll', () => {
+    nav.classList.toggle('nav-scrolled', scrollY > 40);
+    const max = document.documentElement.scrollHeight - innerHeight;
+    progress.style.transform = 'scaleX(' + (max > 0 ? scrollY / max : 0) + ')';
+  }, { passive: true });
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.15, rootMargin: '0px 0px -6% 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  const rowIO = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const rows = [...document.querySelectorAll('.rrow')];
+      rows.forEach((r, i) => setTimeout(() => r.classList.add('in'), i * 90));
+      document.querySelectorAll('#compareTable .meter i').forEach((b, i) => {
+        setTimeout(() => { b.style.width = b.dataset.w + '%'; }, 250 + i * 80);
+      });
+      rowIO.disconnect();
+    });
+  }, { threshold: 0.25 });
+  const cmp = document.getElementById('compareTable');
+  if (cmp) rowIO.observe(cmp);
+
+  const stockIO = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        document.getElementById('stockBar').style.transition = 'width 1.4s cubic-bezier(.22,1,.36,1)';
+        document.getElementById('stockBar').style.width = '8.5%';
+        stockIO.disconnect();
+      }
+    });
+  }, { threshold: 0.4 });
+  stockIO.observe(document.getElementById('buy'));
+
+  document.querySelectorAll('[data-tilt]').forEach(card => {
+    const glare = card.querySelector('.glare');
+    card.addEventListener('pointermove', e => {
+      if (e.pointerType === 'touch' || RM) return;
+      const r = card.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width;
+      const py = (e.clientY - r.top) / r.height;
+      card.style.transition = 'transform 80ms';
+      card.style.transform = 'perspective(1000px) rotateX(' + ((py - 0.5) * -10).toFixed(2) + 'deg) rotateY(' + ((px - 0.5) * 13).toFixed(2) + 'deg) translateY(-6px)';
+      if (glare) {
+        glare.style.opacity = 1;
+        glare.style.background = 'radial-gradient(560px circle at ' + (px * 100) + '% ' + (py * 100) + '%, rgba(255,255,255,.13), transparent 45%)';
+      }
+    });
+    card.addEventListener('pointerleave', () => {
+      card.style.transition = 'transform .6s cubic-bezier(.22,1,.36,1)';
+      card.style.transform = '';
+      if (glare) glare.style.opacity = 0;
+    });
+  });
+
+  document.querySelectorAll('.magnet').forEach(btn => {
+    btn.addEventListener('pointermove', e => {
+      if (e.pointerType === 'touch' || RM) return;
+      const r = btn.getBoundingClientRect();
+      btn.style.transform = 'translate(' + ((e.clientX - r.left - r.width / 2) * 0.14) + 'px,' + ((e.clientY - r.top - r.height / 2) * 0.22) + 'px)';
+    });
+    btn.addEventListener('pointerleave', () => { btn.style.transform = ''; });
+  });
+
+  const pad = n => String(n).padStart(2, '0');
+  const cdEnd = Date.now() + (9 * 3600 + 41 * 60 + 33) * 1000;
+  const cdH = document.getElementById('cdH'), cdM = document.getElementById('cdM'), cdS = document.getElementById('cdS');
+  function tickCd() {
+    const d = Math.max(0, cdEnd - Date.now()) / 1000;
+    cdH.textContent = pad(Math.floor(d / 3600));
+    cdM.textContent = pad(Math.floor(d % 3600 / 60));
+    cdS.textContent = pad(Math.floor(d % 60));
+  }
+  tickCd();
+  setInterval(tickCd, 1000);
+
+  const buyBtn = document.getElementById('buyBtn');
+  const buyNote = document.getElementById('buyNote');
+  buyBtn.addEventListener('click', () => {
+    buyBtn.textContent = 'Reserved — check your inbox';
+    buyBtn.style.pointerEvents = 'none';
+    buyNote.textContent = 'Unit 184 of 200 held for you for 15:00';
+    buyNote.classList.add('text-volt');
+    let hold = 15 * 60;
+    const iv = setInterval(() => {
+      hold--;
+      if (hold <= 0) { clearInterval(iv); buyNote.textContent = 'Hold expired — reserve again'; buyNote.classList.remove('text-volt'); buyBtn.textContent = 'Pre-order NEXUS One — $249'; buyBtn.style.pointerEvents = ''; return; }
+      buyNote.textContent = 'Unit 184 of 200 held for you for ' + pad(Math.floor(hold / 60)) + ':' + pad(hold % 60);
+    }, 1000);
+  });
+
+  const viz = document.getElementById('viz');
+  const vc = viz.getContext('2d');
+  let playing = false, vMix = 0, elapsed = 0, cols = 0, disp = [];
+
+  function sizeViz() {
+    const r = viz.getBoundingClientRect();
+    viz.width = r.width * DPR;
+    viz.height = r.height * DPR;
+    vc.setTransform(DPR, 0, 0, DPR, 0, 0);
+    cols = Math.max(48, Math.floor(r.width / 11));
+    disp = new Array(cols).fill(0);
+  }
+  sizeViz();
+  addEventListener('resize', sizeViz);
+
+  const playBtn = document.getElementById('playBtn');
+  const iconPlay = document.getElementById('iconPlay');
+  const iconPause = document.getElementById('iconPause');
+  const vizTime = document.getElementById('vizTime');
+  playBtn.addEventListener('click', () => {
+    playing = !playing;
+    iconPlay.classList.toggle('hidden', playing);
+    iconPause.classList.toggle('hidden', !playing);
+    playBtn.setAttribute('aria-pressed', playing);
+    playBtn.setAttribute('aria-label', playing ? 'Pause sound demo' : 'Play sound demo');
+  });
+
+  let lastT = performance.now();
+  function drawViz(now) {
+    requestAnimationFrame(drawViz);
+    const dt = Math.min(0.05, (now - lastT) / 1000);
+    lastT = now;
+    const t = now / 1000;
+    if (playing) {
+      elapsed += dt;
+      vizTime.textContent = pad(Math.floor(elapsed / 60)) + ':' + pad(Math.floor(elapsed % 60));
+    }
+    vMix += ((playing ? 1 : 0) - vMix) * 0.045;
+
+    const W = viz.width / DPR, H = viz.height / DPR, cy = H / 2;
+    vc.clearRect(0, 0, W, H);
+
+    vc.strokeStyle = 'rgba(255,255,255,.12)';
+    vc.lineWidth = 1;
+    vc.beginPath(); vc.moveTo(0, cy); vc.lineTo(W, cy); vc.stroke();
+
+    const step = W / cols;
+    const kick = Math.pow(Math.max(0, Math.sin(t * Math.PI * 4)), 8);
+    for (let i = 0; i < cols; i++) {
+      const f = i / cols;
+      let e = 0.1 + 0.05 * Math.sin(t * 0.8 + i * 0.5);
+      if (vMix > 0.01) {
+        const bass = f < 0.18 ? kick * Math.pow(1 - f / 0.18, 1.5) : 0;
+        const mid = 0.38 * Math.abs(Math.sin(t * 1.9 + i * 0.32)) * (0.5 + 0.5 * Math.sin(t * 0.6));
+        const hi = f > 0.55 ? 0.32 * Math.abs(Math.sin(t * 3.1 + i * 1.4)) : 0;
+        e += vMix * (bass * 0.95 + mid * 0.55 + hi * 0.55);
+      }
+      e = Math.min(1, e);
+      disp[i] += (e - disp[i]) * 0.22;
+      const rows = Math.round(disp[i] * 12);
+      const x = i * step + step / 2;
+      for (let rr = 0; rr < rows; rr++) {
+        const a = 0.22 + 0.78 * (rr / Math.max(1, rows));
+        vc.fillStyle = (rr === rows - 1 && disp[i] > 0.5) ? 'rgba(255,255,255,' + a + ')' : 'rgba(215,255,62,' + (a * 0.85) + ')';
+        vc.beginPath(); vc.arc(x, cy - 15 - rr * 11, 2.4, 0, 7); vc.fill();
+        vc.beginPath(); vc.arc(x, cy + 15 + rr * 11, 2.4, 0, 7); vc.fill();
+      }
+    }
+  }
+  requestAnimationFrame(drawViz);
+})();
+</script>
+
+</body>
+</html>

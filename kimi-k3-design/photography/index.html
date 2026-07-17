@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elena Voss Photography — Light, shadow & the quiet moments between</title>
+<meta name="description" content="Elena Voss is a fine-art photographer crafting portraits, editorials and landscapes with quiet light and honest emotion.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        paper:  '#f6f3ee',
+        cream:  '#ede7dc',
+        ink:    '#17140f',
+        smoke:  '#8a8175',
+        bronze: '#a5825f'
+      },
+      fontFamily: {
+        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        sans:  ['Jost', 'system-ui', 'sans-serif']
+      }
+    }
+  }
+}
+</script>
+<style>
+  html { -webkit-font-smoothing: antialiased; }
+  body { background: #f6f3ee; color: #17140f; }
+  ::selection { background: #a5825f; color: #f6f3ee; }
+
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: #f6f3ee; }
+  ::-webkit-scrollbar-thumb { background: #d8d0c2; border-radius: 5px; border: 2px solid #f6f3ee; }
+  ::-webkit-scrollbar-thumb:hover { background: #a5825f; }
+
+  .grain::after {
+    content: ''; position: fixed; inset: -50%; z-index: 90; pointer-events: none; opacity: .035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .eyebrow { font-size: .6875rem; letter-spacing: .38em; text-transform: uppercase; font-weight: 400; }
+
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 1s ease, transform 1s cubic-bezier(.22,1,.36,1); }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+
+  .masonry-item { opacity: 0; transform: translateY(26px); transition: opacity .9s ease, transform .9s cubic-bezier(.22,1,.36,1); }
+  .masonry-item.in { opacity: 1; transform: translateY(0); }
+
+  #heroStage { perspective: 1400px; }
+  #heroTilt { transform-style: preserve-3d; will-change: transform; }
+  .hero-float { animation: heroFloat 7s ease-in-out infinite alternate; will-change: transform; }
+  @keyframes heroFloat {
+    from { transform: translateY(-9px); }
+    to   { transform: translateY(9px); }
+  }
+  .frame-shadow {
+    box-shadow:
+      0 1px 2px rgba(23,20,15,.06),
+      0 12px 24px -8px rgba(23,20,15,.12),
+      0 42px 80px -20px rgba(23,20,15,.28),
+      0 80px 140px -40px rgba(23,20,15,.16);
+  }
+
+  .scroll-line { position: relative; width: 1px; height: 64px; background: rgba(23,20,15,.18); overflow: hidden; }
+  .scroll-line::after {
+    content: ''; position: absolute; left: 0; top: -40%; width: 100%; height: 40%;
+    background: #a5825f; animation: scrollDot 2.2s cubic-bezier(.65,0,.35,1) infinite;
+  }
+  @keyframes scrollDot {
+    0% { top: -40%; } 60%, 100% { top: 110%; }
+  }
+
+  #lightbox { opacity: 0; transition: opacity .45s ease; }
+  #lightbox.lb-show { opacity: 1; }
+  #lbMain { opacity: 0; transform: translateY(24px) scale(.94); transition: opacity .6s ease, transform .6s cubic-bezier(.22,1,.36,1); }
+  .lb-show #lbMain { opacity: 1; transform: translateY(0) scale(1); }
+  #lbStage { perspective: 1600px; }
+  #lbTilt { transform-style: preserve-3d; will-change: transform; }
+  .lb-float { animation: lbFloat 8s ease-in-out infinite alternate; will-change: transform; }
+  @keyframes lbFloat {
+    from { transform: translateY(-7px) rotate(-.35deg); }
+    to   { transform: translateY(7px) rotate(.35deg); }
+  }
+  .lb-side { transition: opacity .5s ease, transform .6s cubic-bezier(.22,1,.36,1); cursor: pointer; }
+  .lb-side:hover { opacity: .85 !important; }
+  #lbMain.swap { opacity: 0; transition: opacity .18s ease; }
+
+  .journal-scroll { scrollbar-width: none; -ms-overflow-style: none; cursor: grab; }
+  .journal-scroll::-webkit-scrollbar { display: none; }
+  .journal-scroll.dragging { cursor: grabbing; scroll-snap-type: none; }
+  .journal-scroll.dragging * { pointer-events: none; }
+
+  .field { position: relative; }
+  .field input, .field textarea, .field select {
+    width: 100%; background: transparent; border: 0; border-bottom: 1px solid rgba(23,20,15,.22);
+    padding: .85rem 0; font-size: 1rem; font-weight: 300; color: #17140f; outline: none;
+    transition: border-color .35s ease; border-radius: 0; appearance: none;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus { border-color: #17140f; }
+  .field label {
+    position: absolute; left: 0; top: .85rem; font-size: .6875rem; letter-spacing: .28em;
+    text-transform: uppercase; color: #8a8175; pointer-events: none;
+    transition: all .3s cubic-bezier(.22,1,.36,1);
+  }
+  .field input:focus + label, .field input:not(:placeholder-shown) + label,
+  .field textarea:focus + label, .field textarea:not(:placeholder-shown) + label,
+  .field select:focus + label, .field select.has-value + label {
+    top: -.55rem; font-size: .5625rem; color: #a5825f;
+  }
+  .field::after {
+    content: ''; position: absolute; left: 0; bottom: 0; height: 1px; width: 100%;
+    background: #a5825f; transform: scaleX(0); transform-origin: left;
+    transition: transform .5s cubic-bezier(.22,1,.36,1);
+  }
+  .field:focus-within::after { transform: scaleX(1); }
+
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+    outline: 1px dashed #a5825f; outline-offset: 4px;
+  }
+
+  .hairline { border-color: rgba(23,20,15,.12); }
+
+  .nav-scrolled { background: rgba(246,243,238,.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid rgba(23,20,15,.08); }
+
+  #menuOverlay { opacity: 0; pointer-events: none; transition: opacity .45s ease; }
+  #menuOverlay.open { opacity: 1; pointer-events: auto; }
+  #menuOverlay .menu-link { opacity: 0; transform: translateY(18px); transition: opacity .5s ease, transform .5s cubic-bezier(.22,1,.36,1); }
+  #menuOverlay.open .menu-link { opacity: 1; transform: translateY(0); }
+
+  .link-line { position: relative; }
+  .link-line::after {
+    content: ''; position: absolute; left: 0; bottom: -3px; width: 100%; height: 1px;
+    background: currentColor; transform: scaleX(0); transform-origin: right;
+    transition: transform .4s cubic-bezier(.22,1,.36,1);
+  }
+  .link-line:hover::after { transform: scaleX(1); transform-origin: left; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal, .masonry-item, #menuOverlay .menu-link { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .hero-float, .lb-float, .scroll-line::after { animation: none !important; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body class="grain font-sans font-light overflow-x-hidden">
+
+<!-- ══════════ NAV ══════════ -->
+<nav id="nav" class="fixed top-0 left-0 right-0 z-50 transition-all duration-500">
+  <div class="max-w-[1600px] mx-auto flex items-center justify-between px-6 md:px-12 py-5 md:py-6">
+    <a href="#top" class="font-serif text-xl md:text-2xl tracking-wide">Elena <em class="italic font-light">Voss</em></a>
+    <div class="hidden md:flex items-center gap-10 eyebrow text-ink/70">
+      <a href="#work" class="link-line hover:text-ink transition-colors">Work</a>
+      <a href="#about" class="link-line hover:text-ink transition-colors">About</a>
+      <a href="#journal" class="link-line hover:text-ink transition-colors">Journal</a>
+      <a href="#contact" class="border border-ink/25 rounded-full px-6 py-2.5 hover:bg-ink hover:text-paper transition-all duration-400">Book a session</a>
+    </div>
+    <button id="menuBtn" class="md:hidden flex flex-col gap-1.5 p-2" aria-label="Open menu">
+      <span class="block w-6 h-px bg-ink"></span>
+      <span class="block w-6 h-px bg-ink"></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile menu -->
+<div id="menuOverlay" class="fixed inset-0 z-[60] bg-paper flex flex-col items-center justify-center gap-8">
+  <button id="menuClose" class="absolute top-6 right-6 eyebrow text-smoke p-3" aria-label="Close menu">Close</button>
+  <a href="#work"    class="menu-link font-serif text-5xl font-light hover:italic transition-all" style="transition-delay:.05s">Work</a>
+  <a href="#about"   class="menu-link font-serif text-5xl font-light hover:italic transition-all" style="transition-delay:.12s">About</a>
+  <a href="#journal" class="menu-link font-serif text-5xl font-light hover:italic transition-all" style="transition-delay:.19s">Journal</a>
+  <a href="#contact" class="menu-link font-serif text-5xl font-light hover:italic transition-all" style="transition-delay:.26s">Contact</a>
+  <p class="menu-link eyebrow text-smoke mt-6" style="transition-delay:.34s">studio@elenavoss.com</p>
+</div>
+
+<!-- ══════════ HERO ══════════ -->
+<header id="top" class="relative h-[100svh] min-h-[640px] overflow-hidden">
+  <div class="absolute inset-0">
+    <img src="https://picsum.photos/seed/elena-hero/1920/1280" alt="" class="w-full h-full object-cover opacity-[.32] saturate-[.55] sepia-[.12]">
+    <div class="absolute inset-0 bg-gradient-to-b from-paper/70 via-paper/20 to-paper"></div>
+  </div>
+
+  <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+    <h1 class="font-serif font-light text-center leading-[.9] text-ink/90 select-none" style="font-size: clamp(4.5rem, 15vw, 13rem);">
+      Elena<br><em class="italic">Voss</em>
+    </h1>
+  </div>
+
+  <div id="heroStage" class="relative z-10 h-full flex items-center justify-center">
+    <div id="heroTilt">
+      <div class="hero-float">
+        <figure class="frame-shadow bg-white p-3 md:p-4 w-[min(64vw,300px)] md:w-[min(38vw,340px)]">
+          <div class="overflow-hidden">
+            <img src="https://picsum.photos/seed/elena-portrait/900/1200" alt="Featured portrait by Elena Voss" class="w-full aspect-[3/4] object-cover saturate-[.8]">
+          </div>
+          <figcaption class="flex items-baseline justify-between pt-3 pb-1 px-1">
+            <span class="font-serif italic text-lg">Quiet Hour</span>
+            <span class="eyebrow text-smoke" style="font-size:.5625rem;">No. 07</span>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+
+  <div class="absolute top-24 md:top-28 left-1/2 -translate-x-1/2 z-20">
+    <p class="eyebrow text-ink/60 bg-paper/60 backdrop-blur-sm px-5 py-2 rounded-full">Fine-art photography — Est. 2009</p>
+  </div>
+
+  <div class="absolute bottom-8 md:bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3">
+    <span class="eyebrow text-ink/50" style="font-size:.5625rem;">Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+
+  <p class="absolute bottom-8 md:bottom-10 left-6 md:left-12 z-20 eyebrow text-ink/50 hidden sm:block">Portraits · Editorial · Landscape</p>
+  <p class="absolute bottom-8 md:bottom-10 right-6 md:right-12 z-20 font-serif italic text-lg text-ink/60 hidden sm:block">Light, shadow &amp; the quiet moments between</p>
+</header>
+
+<!-- ══════════ WORK / MASONRY ══════════ -->
+<section id="work" class="relative py-28 md:py-40">
+  <div class="max-w-[1600px] mx-auto px-6 md:px-12">
+    <div class="reveal flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-16 md:mb-24">
+      <div>
+        <p class="eyebrow text-bronze mb-5">01 — Selected works</p>
+        <h2 class="font-serif font-light leading-[1.02]" style="font-size: clamp(2.75rem, 6vw, 5.25rem);">A study of<br><em class="italic">stillness</em></h2>
+      </div>
+      <p class="max-w-xs text-smoke leading-relaxed font-light">Sixteen years of chasing soft light across three continents. Every frame an attempt to hold a fleeting quiet.</p>
+    </div>
+
+    <div id="masonry" class="columns-1 sm:columns-2 lg:columns-3 gap-7 [column-fill:_balance]"></div>
+
+    <div id="sentinel" class="flex justify-center pt-20 pb-4">
+      <div id="loadHint" class="flex flex-col items-center gap-4">
+        <div class="w-px h-12 bg-ink/15 overflow-hidden relative">
+          <div class="absolute inset-x-0 top-0 h-1/2 bg-bronze animate-pulse"></div>
+        </div>
+        <span class="eyebrow text-smoke" style="font-size:.5625rem;">Loading more frames</span>
+      </div>
+      <p id="loadEnd" class="hidden font-serif italic text-2xl text-smoke">— the end of this collection —</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ ABOUT ══════════ -->
+<section id="about" class="relative py-28 md:py-44 bg-cream/60 overflow-hidden">
+  <div class="max-w-[1400px] mx-auto px-6 md:px-12 grid md:grid-cols-12 gap-14 md:gap-10 items-center">
+    <div class="md:col-span-5 reveal">
+      <div class="overflow-hidden">
+        <img id="aboutImg" src="https://picsum.photos/seed/elena-about/900/1150" alt="Elena Voss in her studio" class="w-full aspect-[4/5] object-cover saturate-[.75] scale-110 will-change-transform">
+      </div>
+      <p class="eyebrow text-smoke mt-5" style="font-size:.5625rem;">The artist — Lisbon studio, 2024</p>
+    </div>
+
+    <div class="md:col-span-6 md:col-start-7">
+      <p class="eyebrow text-bronze mb-6 reveal">02 — About</p>
+      <h2 class="font-serif font-light leading-[1.05] mb-10 reveal" style="font-size: clamp(2.5rem, 5vw, 4.25rem);">I photograph the pause<br><em class="italic">before the word</em></h2>
+      <div class="space-y-6 max-w-lg text-ink/70 leading-[1.85] font-light reveal">
+        <p>Elena Voss began with her grandfather's Leica and a one-way ticket to Lisbon. Sixteen years later, her work lives in the space between documentation and poetry — portraits that breathe, editorials that whisper, landscapes that hold their silence.</p>
+        <p>Her photographs have appeared in independent print across Europe and in private collections from Copenhagen to Kyoto. She works slowly, shoots sparingly, and believes the best frame is usually the one after everyone relaxes.</p>
+      </div>
+      <blockquote class="font-serif italic font-light text-2xl md:text-3xl leading-snug text-ink/85 border-l border-bronze/50 pl-7 my-12 reveal">
+        “Light doesn't ask permission. Neither does honesty. My job is simply to be there when both arrive.”
+      </blockquote>
+      <div class="flex divide-x divide-ink/10 reveal">
+        <div class="pr-10"><p class="font-serif text-4xl font-light">16</p><p class="eyebrow text-smoke mt-2" style="font-size:.5625rem;">Years</p></div>
+        <div class="px-10"><p class="font-serif text-4xl font-light">120<span class="text-bronze">+</span></p><p class="eyebrow text-smoke mt-2" style="font-size:.5625rem;">Weddings</p></div>
+        <div class="pl-10"><p class="font-serif text-4xl font-light">9</p><p class="eyebrow text-smoke mt-2" style="font-size:.5625rem;">Exhibitions</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ JOURNAL ══════════ -->
+<section id="journal" class="relative py-28 md:py-40">
+  <div class="max-w-[1600px] mx-auto px-6 md:px-12">
+    <div class="reveal flex items-end justify-between gap-6 mb-14 md:mb-20">
+      <div>
+        <p class="eyebrow text-bronze mb-5">03 — Journal</p>
+        <h2 class="font-serif font-light leading-[1.02]" style="font-size: clamp(2.75rem, 6vw, 5.25rem);">Stories from<br><em class="italic">the field</em></h2>
+      </div>
+      <div class="hidden md:flex gap-3">
+        <button id="jPrev" aria-label="Previous stories" class="w-12 h-12 rounded-full border border-ink/20 flex items-center justify-center hover:bg-ink hover:text-paper transition-all duration-300">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+        <button id="jNext" aria-label="Next stories" class="w-12 h-12 rounded-full border border-ink/20 flex items-center justify-center hover:bg-ink hover:text-paper transition-all duration-300">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="reveal">
+    <div id="journalTrack" class="journal-scroll flex gap-7 overflow-x-auto px-6 md:px-12 pb-6 snap-x snap-mandatory"></div>
+    <p class="eyebrow text-smoke px-6 md:px-12 mt-2" style="font-size:.5625rem;">Drag or scroll →</p>
+  </div>
+</section>
+
+<!-- ══════════ CONTACT ══════════ -->
+<section id="contact" class="relative py-28 md:py-44 bg-ink text-paper">
+  <div class="max-w-[1400px] mx-auto px-6 md:px-12 grid md:grid-cols-2 gap-16 md:gap-24">
+    <div>
+      <p class="eyebrow text-bronze mb-6 reveal">04 — Contact</p>
+      <h2 class="font-serif font-light leading-[1.05] mb-10 reveal" style="font-size: clamp(2.75rem, 5.5vw, 4.75rem);">Let's make<br><em class="italic">something quiet</em><br>&amp; true</h2>
+      <p class="max-w-md text-paper/60 leading-[1.85] font-light mb-14 reveal">Weddings, portraits, editorial commissions and long conversations about light. Currently booking autumn 2026 onward.</p>
+      <div class="space-y-7 reveal">
+        <div>
+          <p class="eyebrow text-paper/40 mb-2" style="font-size:.5625rem;">Studio</p>
+          <a href="mailto:studio@elenavoss.com" class="font-serif text-2xl font-light link-line">studio@elenavoss.com</a>
+        </div>
+        <div>
+          <p class="eyebrow text-paper/40 mb-2" style="font-size:.5625rem;">Based in</p>
+          <p class="font-serif text-2xl font-light">Lisbon, Portugal — available worldwide</p>
+        </div>
+        <div class="flex gap-8 pt-2 eyebrow text-paper/50">
+          <a href="#" class="link-line hover:text-paper transition-colors">Instagram</a>
+          <a href="#" class="link-line hover:text-paper transition-colors">Behance</a>
+          <a href="#" class="link-line hover:text-paper transition-colors">Pinterest</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="reveal">
+      <form id="contactForm" class="space-y-9 pt-2" novalidate>
+        <div class="field">
+          <input type="text" id="fName" placeholder=" " required class="!text-paper !border-paper/25">
+          <label for="fName" class="!text-paper/45">Your name</label>
+        </div>
+        <div class="field">
+          <input type="email" id="fEmail" placeholder=" " required class="!text-paper !border-paper/25">
+          <label for="fEmail" class="!text-paper/45">Email address</label>
+        </div>
+        <div class="field">
+          <select id="fType" required class="!text-paper !border-paper/25 bg-transparent">
+            <option value="" class="text-ink" selected></option>
+            <option value="wedding" class="text-ink">Wedding</option>
+            <option value="portrait" class="text-ink">Portrait session</option>
+            <option value="editorial" class="text-ink">Editorial commission</option>
+            <option value="print" class="text-ink">Fine-art print inquiry</option>
+            <option value="other" class="text-ink">Something else</option>
+          </select>
+          <label for="fType" class="!text-paper/45">Type of session</label>
+        </div>
+        <div class="field">
+          <textarea id="fMsg" rows="4" placeholder=" " required class="!text-paper !border-paper/25 resize-none"></textarea>
+          <label for="fMsg" class="!text-paper/45">Tell me about your story</label>
+        </div>
+        <div class="pt-4">
+          <button type="submit" id="submitBtn" class="group relative w-full md:w-auto rounded-full border border-paper/30 px-12 py-4 eyebrow overflow-hidden transition-all duration-500 hover:border-paper">
+            <span class="absolute inset-0 bg-paper translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)]"></span>
+            <span id="btnLabel" class="relative z-10 group-hover:text-ink transition-colors duration-500">Send inquiry</span>
+          </button>
+          <p id="formNote" class="font-serif italic text-lg text-bronze mt-6 opacity-0 transition-opacity duration-700">Thank you — I read every note personally and reply within two days.</p>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer class="bg-ink text-paper/40 border-t border-paper/10">
+  <div class="max-w-[1600px] mx-auto px-6 md:px-12 py-12 flex flex-col md:flex-row items-center justify-between gap-6">
+    <p class="font-serif text-xl text-paper/80">Elena <em class="italic">Voss</em></p>
+    <p class="eyebrow" style="font-size:.5625rem;">© 2026 Elena Voss Photography — All frames reserved</p>
+    <a href="#top" class="eyebrow link-line hover:text-paper transition-colors" style="font-size:.5625rem;">Back to top ↑</a>
+  </div>
+</footer>
+
+<!-- ══════════ LIGHTBOX ══════════ -->
+<div id="lightbox" class="fixed inset-0 z-[80] hidden items-center justify-center" role="dialog" aria-modal="true" aria-label="Photo gallery">
+  <div id="lbBackdrop" class="absolute inset-0 bg-ink/95"></div>
+
+  <div class="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-6 md:px-10 py-6">
+    <p class="eyebrow text-paper/50" id="lbCounter">01 / 30</p>
+    <button id="lbClose" class="eyebrow text-paper/70 hover:text-paper transition-colors p-3 tracking-[.3em]">Close ✕</button>
+  </div>
+
+  <div id="lbStage" class="relative z-10 w-full flex items-center justify-center gap-6 md:gap-14 px-4">
+    <img id="lbPrevImg" alt="" class="lb-side hidden md:block w-40 lg:w-52 aspect-[3/4] object-cover opacity-40 saturate-[.7]" style="transform: rotateY(38deg) translateZ(-160px) scale(.9);">
+    <div id="lbTilt">
+      <div class="lb-float">
+        <figure id="lbMain" class="bg-white p-3 md:p-4 frame-shadow">
+          <img id="lbImg" src="" alt="" class="max-h-[68vh] w-auto max-w-[86vw] md:max-w-[52vw] object-cover saturate-[.85]">
+          <figcaption class="flex items-baseline justify-between gap-8 pt-3 pb-1 px-1">
+            <span id="lbTitle" class="font-serif italic text-lg text-ink"></span>
+            <span id="lbMeta" class="eyebrow text-smoke" style="font-size:.5625rem;"></span>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+    <img id="lbNextImg" alt="" class="lb-side hidden md:block w-40 lg:w-52 aspect-[3/4] object-cover opacity-40 saturate-[.7]" style="transform: rotateY(-38deg) translateZ(-160px) scale(.9);">
+  </div>
+
+  <div class="absolute bottom-8 inset-x-0 z-20 flex items-center justify-center gap-4">
+    <button id="lbPrev" aria-label="Previous photo" class="w-12 h-12 rounded-full border border-paper/25 text-paper/80 flex items-center justify-center hover:bg-paper hover:text-ink transition-all duration-300">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 6l-6 6 6 6"/></svg>
+    </button>
+    <button id="lbNext" aria-label="Next photo" class="w-12 h-12 rounded-full border border-paper/25 text-paper/80 flex items-center justify-center hover:bg-paper hover:text-ink transition-all duration-300">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 6l6 6-6 6"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ── Photo data ─────────────────────────────── */
+const CATS = ['Portrait','Editorial','Landscape','Wedding','Street','Still life'];
+const PLACES = ['Lisbon','Kyoto','Reykjavík','Marrakech','Copenhagen','Big Sur','Vienna','Santorini','Faroe Islands','Provence'];
+const TITLES = ['Quiet Hour','Amber Study','The Long Exhale','Vestige','Her Sunday Coat','Salt & Linen','Northern Fable','Half-Light','The Waiting Room','Marigold','Winter Apiary','Second Skin','Low Tide Psalm','Paper Boats','The Cartographer\u2019s Wife','Umbra','Foxglove','A Room in Vienna','Static Bloom','The Ninth Wave','Undertow','Glasshouse','Meridian','Wild Fig','The Apprentice','Cinder & Gold','Pale Fire','Sunday Vespers','Drift','Last Orchard'];
+const HEIGHTS = [880, 700, 1050, 800, 960, 740, 1120, 860, 680, 1000];
+
+const photos = TITLES.map((t, i) => ({
+  id: i,
+  src: `https://picsum.photos/seed/elena-w${i + 1}/800/${HEIGHTS[i % HEIGHTS.length]}`,
+  side: `https://picsum.photos/seed/elena-w${i + 1}/400/540`,
+  title: t,
+  cat: CATS[i % CATS.length],
+  place: PLACES[i % PLACES.length]
+}));
+const pad = n => String(n + 1).padStart(2, '0');
+
+/* ── Reveal-on-scroll ───────────────────────── */
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); revealObs.unobserve(e.target); }
+  });
+}, { threshold: .12 });
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+/* ── Masonry + infinite scroll ──────────────── */
+const masonry = document.getElementById('masonry');
+const BATCH = 6;
+let loaded = 0;
+
+const itemObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); itemObs.unobserve(e.target); }
+  });
+}, { threshold: .08, rootMargin: '0px 0px -4% 0px' });
+
+function loadBatch() {
+  if (loaded >= photos.length) return;
+  const frag = document.createDocumentFragment();
+  const batch = photos.slice(loaded, loaded + BATCH);
+  batch.forEach((p, i) => {
+    const fig = document.createElement('figure');
+    fig.className = 'masonry-item break-inside-avoid mb-7 group';
+    fig.style.transitionDelay = `${i * 90}ms`;
+    fig.innerHTML = `
+      <button class="block w-full text-left overflow-hidden focus-visible:outline-none" data-photo="${p.id}" aria-label="Open ${p.title}">
+        <span class="block overflow-hidden">
+          <img src="${p.src}" alt="${p.title} — ${p.cat} photographed in ${p.place}" loading="lazy"
+               class="w-full object-cover saturate-[.8] transition-all duration-[900ms] ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-[1.045] group-hover:saturate-100">
+        </span>
+        <span class="flex items-baseline justify-between pt-3">
+          <span class="font-serif italic text-lg leading-none">${p.title}</span>
+          <span class="eyebrow text-smoke" style="font-size:.5625rem;">${p.cat} · ${pad(p.id)}</span>
+        </span>
+      </button>`;
+    frag.appendChild(fig);
+    itemObs.observe(fig);
+  });
+  masonry.appendChild(frag);
+  loaded += batch.length;
+  if (loaded >= photos.length) {
+    document.getElementById('loadHint').classList.add('hidden');
+    document.getElementById('loadEnd').classList.remove('hidden');
+    sentinelObs.disconnect();
+  }
+}
+
+const sentinelObs = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) loadBatch();
+}, { rootMargin: '900px 0px' });
+sentinelObs.observe(document.getElementById('sentinel'));
+loadBatch();
+
+/* ── Journal cards ──────────────────────────── */
+const STORIES = [
+  { seed: 'j-faroe',  date: 'June 2026',      tag: 'Field notes',  title: 'Fog has a grammar in the Faroes',       ex: 'Three mornings waiting for the light to break over Sørvágsvatn, and what patience actually looks like.' },
+  { seed: 'j-lisbon', date: 'May 2026',       tag: 'Process',      title: 'Why I still shoot the first frame last', ex: 'On walking a location twice before lifting the camera, and the discipline of arriving slowly.' },
+  { seed: 'j-kyoto',  date: 'April 2026',     tag: 'Travel',       title: 'Kyoto before the temples open',           ex: 'A week of 4 a.m. alarms, empty gardens, and the particular blue of a city not yet awake.' },
+  { seed: 'j-print',  date: 'March 2026',     tag: 'Studio',       title: 'The print is the photograph',             ex: 'Notes on cotton paper, archival inks, and why a file on a screen is only ever a rehearsal.' },
+  { seed: 'j-wed',    date: 'February 2026',  tag: 'Weddings',     title: 'Photographing what cannot be posed',      ex: 'The glance between a father and daughter, thirty seconds before the aisle. Some frames you earn by disappearing.' },
+  { seed: 'j-gear',   date: 'January 2026',   tag: 'Gear',         title: 'One camera, one lens, one year',          ex: 'Twelve months with a fixed 35mm and everything it taught me about seeing instead of collecting.' }
+];
+const track = document.getElementById('journalTrack');
+track.innerHTML = STORIES.map((s, i) => `
+  <article class="snap-start shrink-0 w-[82vw] sm:w-[380px] group">
+    <div class="overflow-hidden mb-6">
+      <img src="https://picsum.photos/seed/${s.seed}/800/600" alt="" loading="lazy"
+           class="w-full aspect-[4/3] object-cover saturate-[.75] transition-all duration-[900ms] ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-[1.05] group-hover:saturate-100">
+    </div>
+    <div class="flex items-center gap-4 eyebrow text-smoke mb-4" style="font-size:.5625rem;">
+      <span class="text-bronze">${s.tag}</span><span class="w-6 h-px bg-ink/20"></span><span>${s.date}</span>
+    </div>
+    <h3 class="font-serif font-light text-3xl leading-tight mb-3 group-hover:italic transition-all">${s.title}</h3>
+    <p class="text-smoke leading-[1.8] font-light text-[.95rem] mb-5">${s.ex}</p>
+    <a href="#" class="eyebrow link-line text-ink/70" style="font-size:.5625rem;">Read story</a>
+  </article>`).join('');
+
+document.getElementById('jPrev').addEventListener('click', () => track.scrollBy({ left: -420, behavior: 'smooth' }));
+document.getElementById('jNext').addEventListener('click', () => track.scrollBy({ left:  420, behavior: 'smooth' }));
+
+let dragging = false, dragX = 0, dragScroll = 0, dragMoved = false;
+track.addEventListener('pointerdown', e => {
+  dragging = true; dragMoved = false; dragX = e.clientX; dragScroll = track.scrollLeft;
+  track.setPointerCapture(e.pointerId);
+});
+track.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  const dx = e.clientX - dragX;
+  if (Math.abs(dx) > 6) { dragMoved = true; track.classList.add('dragging'); }
+  track.scrollLeft = dragScroll - dx;
+});
+const endDrag = () => { dragging = false; track.classList.remove('dragging'); };
+track.addEventListener('pointerup', endDrag);
+track.addEventListener('pointercancel', endDrag);
+track.addEventListener('click', e => { if (dragMoved) e.preventDefault(); }, true);
+
+/* ── Lightbox ───────────────────────────────── */
+const lb = document.getElementById('lightbox');
+const lbImg = document.getElementById('lbImg');
+const lbMain = document.getElementById('lbMain');
+const lbTiltEl = document.getElementById('lbTilt');
+const lbPrevImg = document.getElementById('lbPrevImg');
+const lbNextImg = document.getElementById('lbNextImg');
+let lbIdx = 0, lbOpen = false;
+
+function renderLb() {
+  const p = photos[lbIdx];
+  lbImg.src = p.src;
+  lbImg.alt = `${p.title} — ${p.cat}`;
+  document.getElementById('lbTitle').textContent = p.title;
+  document.getElementById('lbMeta').textContent = `${p.cat} · ${p.place}`;
+  document.getElementById('lbCounter').textContent = `${pad(lbIdx)} / ${photos.length}`;
+  lbPrevImg.src = photos[(lbIdx - 1 + photos.length) % photos.length].side;
+  lbNextImg.src = photos[(lbIdx + 1) % photos.length].side;
+}
+
+function openLb(i) {
+  lbIdx = i; renderLb(); lbOpen = true;
+  lb.classList.remove('hidden'); lb.classList.add('flex');
+  document.body.style.overflow = 'hidden';
+  requestAnimationFrame(() => requestAnimationFrame(() => lb.classList.add('lb-show')));
+  document.getElementById('lbClose').focus();
+}
+function closeLb() {
+  lbOpen = false;
+  lb.classList.remove('lb-show');
+  setTimeout(() => { lb.classList.add('hidden'); lb.classList.remove('flex'); document.body.style.overflow = ''; }, 450);
+}
+function stepLb(d) {
+  lbMain.classList.add('swap');
+  setTimeout(() => {
+    lbIdx = (lbIdx + d + photos.length) % photos.length;
+    renderLb();
+    lbImg.addEventListener('load', () => lbMain.classList.remove('swap'), { once: true });
+    setTimeout(() => lbMain.classList.remove('swap'), 500);
+  }, 180);
+}
+
+masonry.addEventListener('click', e => {
+  const btn = e.target.closest('[data-photo]');
+  if (btn) openLb(+btn.dataset.photo);
+});
+document.getElementById('lbClose').addEventListener('click', closeLb);
+document.getElementById('lbBackdrop').addEventListener('click', closeLb);
+document.getElementById('lbPrev').addEventListener('click', () => stepLb(-1));
+document.getElementById('lbNext').addEventListener('click', () => stepLb(1));
+lbPrevImg.addEventListener('click', () => stepLb(-1));
+lbNextImg.addEventListener('click', () => stepLb(1));
+window.addEventListener('keydown', e => {
+  if (!lbOpen) return;
+  if (e.key === 'Escape') closeLb();
+  if (e.key === 'ArrowLeft') stepLb(-1);
+  if (e.key === 'ArrowRight') stepLb(1);
+});
+
+/* ── 3D tilt (hero + lightbox) & about parallax */
+const heroTilt = document.getElementById('heroTilt');
+const heroStage = document.getElementById('heroStage');
+const aboutImg = document.getElementById('aboutImg');
+const aboutSection = document.getElementById('about');
+
+let hx = 0, hy = 0, hcx = 0, hcy = 0;
+let lx = 0, ly = 0, lcx = 0, lcy = 0;
+
+if (!RM) {
+  heroStage.addEventListener('mousemove', e => {
+    const r = heroStage.getBoundingClientRect();
+    hx = ((e.clientX - r.left) / r.width  - .5) * 11;
+    hy = -((e.clientY - r.top) / r.height - .5) * 8;
+  });
+  heroStage.addEventListener('mouseleave', () => { hx = 0; hy = 0; });
+
+  lb.addEventListener('mousemove', e => {
+    lx = ((e.clientX / window.innerWidth)  - .5) * 7;
+    ly = -((e.clientY / window.innerHeight) - .5) * 5;
+  });
+
+  (function loop() {
+    hcx += (hx - hcx) * .055; hcy += (hy - hcy) * .055;
+    heroTilt.style.transform = `rotateX(${hcy.toFixed(3)}deg) rotateY(${hcx.toFixed(3)}deg)`;
+
+    if (lbOpen) {
+      lcx += (lx - lcx) * .06; lcy += (ly - lcy) * .06;
+      lbTiltEl.style.transform = `rotateX(${lcy.toFixed(3)}deg) rotateY(${lcx.toFixed(3)}deg)`;
+    }
+
+    const r = aboutSection.getBoundingClientRect();
+    if (r.bottom > 0 && r.top < window.innerHeight) {
+      const prog = (window.innerHeight - r.top) / (window.innerHeight + r.height);
+      aboutImg.style.transform = `translateY(${((prog - .5) * -52).toFixed(1)}px) scale(1.1)`;
+    }
+    requestAnimationFrame(loop);
+  })();
+}
+
+/* ── Nav state & mobile menu ────────────────── */
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('nav-scrolled', window.scrollY > 40);
+}, { passive: true });
+
+const menuOverlay = document.getElementById('menuOverlay');
+document.getElementById('menuBtn').addEventListener('click', () => menuOverlay.classList.add('open'));
+document.getElementById('menuClose').addEventListener('click', () => menuOverlay.classList.remove('open'));
+menuOverlay.querySelectorAll('a').forEach(a => a.addEventListener('click', () => menuOverlay.classList.remove('open')));
+
+/* ── Contact form ───────────────────────────── */
+const form = document.getElementById('contactForm');
+const typeSelect = document.getElementById('fType');
+typeSelect.addEventListener('change', () => typeSelect.classList.toggle('has-value', !!typeSelect.value));
+
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  if (!form.checkValidity()) { form.reportValidity(); return; }
+  const btn = document.getElementById('submitBtn');
+  const label = document.getElementById('btnLabel');
+  btn.disabled = true;
+  label.textContent = 'Sending…';
+  setTimeout(() => {
+    label.textContent = 'Inquiry sent';
+    document.getElementById('formNote').style.opacity = '1';
+    form.querySelectorAll('input, textarea').forEach(el => el.value = '');
+    typeSelect.value = ''; typeSelect.classList.remove('has-value');
+    setTimeout(() => { btn.disabled = false; label.textContent = 'Send inquiry'; }, 4000);
+  }, 1200);
+});
+</script>
+</body>
+</html>

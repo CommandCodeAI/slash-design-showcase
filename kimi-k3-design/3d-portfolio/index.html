@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alex Rivera — 3D Motion Designer</title>
+<meta name="description" content="Alex Rivera crafts immersive 3D worlds, motion identities and CGI experiences for forward-thinking brands.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;500;700;900&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        void: '#070907',
+        panel: '#0d0f0c',
+        neon: '#d4f53c',
+        pulse: '#ff6b2b',
+        ghost: '#edf0e4',
+        dim: '#969d8c'
+      },
+      fontFamily: {
+        display: ['Unbounded', 'sans-serif'],
+        body: ['"Space Grotesk"', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace']
+      }
+    }
+  }
+}
+</script>
+
+<style>
+  :root {
+    --neon: #d4f53c;
+    --pulse: #ff6b2b;
+  }
+
+  html { background: #070907; }
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+
+  body {
+    background: #070907;
+    color: #edf0e4;
+    font-family: 'Space Grotesk', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+  @media (pointer: coarse) { body { cursor: auto; } }
+
+  ::selection { background: rgba(212,245,60,.25); color: #fff; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #070907; }
+  ::-webkit-scrollbar-thumb { background: linear-gradient(#d4f53c, #ff6b2b); border-radius: 3px; }
+
+  /* ---------- grain ---------- */
+  .grain {
+    position: fixed; inset: -50%; z-index: 90; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+    opacity: .05;
+    animation: grain-shift 8s steps(10) infinite;
+  }
+  @keyframes grain-shift {
+    0%,100%{transform:translate(0,0)} 10%{transform:translate(-5%,-8%)} 20%{transform:translate(-12%,4%)}
+    30%{transform:translate(6%,-14%)} 40%{transform:translate(-4%,12%)} 50%{transform:translate(-10%,6%)}
+    60%{transform:translate(12%,0)} 70%{transform:translate(0,10%)} 80%{transform:translate(3%,12%)} 90%{transform:translate(-8%,4%)}
+  }
+
+  /* ---------- cursor ---------- */
+  .cursor-dot, .cursor-ring {
+    position: fixed; top: 0; left: 0; z-index: 100; pointer-events: none;
+    border-radius: 50%; transform: translate(-50%,-50%);
+  }
+  .cursor-dot { width: 6px; height: 6px; background: var(--neon); box-shadow: 0 0 12px var(--neon); }
+  .cursor-ring {
+    width: 36px; height: 36px; border: 1px solid rgba(212,245,60,.5);
+    transition: width .25s ease, height .25s ease, border-color .25s ease, background .25s ease;
+  }
+  .cursor-ring.is-hover {
+    width: 64px; height: 64px; border-color: rgba(255,107,43,.7);
+    background: rgba(255,107,43,.06);
+  }
+  @media (pointer: coarse) { .cursor-dot, .cursor-ring { display: none; } }
+
+  /* ---------- preloader ---------- */
+  #preloader {
+    position: fixed; inset: 0; z-index: 200; background: #070907;
+    display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 24px;
+  }
+  .preloader-bar { width: 220px; height: 1px; background: rgba(237,240,228,.12); overflow: hidden; }
+  .preloader-bar span { display: block; height: 100%; width: 100%; background: linear-gradient(90deg,#d4f53c,#ff6b2b); transform: scaleX(0); transform-origin: left; }
+
+  /* ---------- nav ---------- */
+  #nav {
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    background: rgba(7,9,7,.25);
+    border-bottom: 1px solid transparent;
+    transition: background .5s ease, border-color .5s ease, box-shadow .5s ease;
+  }
+  #nav.scrolled {
+    background: rgba(6,6,14,.9);
+    border-bottom: 1px solid rgba(212,245,60,.14);
+    box-shadow: 0 8px 40px rgba(0,0,0,.5);
+  }
+  .nav-link { position: relative; }
+  .nav-link::after {
+    content:''; position:absolute; left:0; bottom:-4px; height:1px; width:100%;
+    background: var(--neon); transform: scaleX(0); transform-origin: right;
+    transition: transform .35s cubic-bezier(.65,0,.35,1);
+  }
+  .nav-link:hover::after { transform: scaleX(1); transform-origin: left; }
+
+  /* ---------- hero ---------- */
+  #hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hero-vignette {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 70% 55% at 50% 45%, transparent 40%, rgba(7,9,7,.85) 100%),
+      linear-gradient(to bottom, rgba(7,9,7,.4), transparent 30%, transparent 70%, #070907 100%);
+  }
+  .hero-word { display: inline-block; overflow: hidden; vertical-align: bottom; padding-bottom: .08em; }
+  .hero-word > span { display: inline-block; transform: translateY(115%) rotate(5deg); filter: blur(8px); will-change: transform, filter; }
+
+  .text-stroke {
+    -webkit-text-stroke: 1px rgba(212,245,60,.55);
+    color: transparent;
+  }
+  .neon-glow { text-shadow: 0 0 24px rgba(212,245,60,.45), 0 0 80px rgba(212,245,60,.18); }
+
+  .scroll-hint-line { width: 1px; height: 56px; background: rgba(237,240,228,.2); overflow: hidden; position: relative; }
+  .scroll-hint-line::after {
+    content:''; position:absolute; left:0; top:-100%; width:100%; height:100%;
+    background: linear-gradient(to bottom, transparent, var(--neon));
+    animation: hint-drop 2.2s cubic-bezier(.65,0,.35,1) infinite;
+  }
+  @keyframes hint-drop { 0%{top:-100%} 60%,100%{top:100%} }
+
+  /* ---------- marquee ---------- */
+  .marquee-track { display: flex; width: max-content; animation: marquee 26s linear infinite; }
+  @keyframes marquee { to { transform: translateX(-50%); } }
+  .marquee-outline {
+    -webkit-text-stroke: 1px rgba(237,240,228,.22); color: transparent;
+    transition: color .4s ease, -webkit-text-stroke-color .4s ease;
+  }
+  .marquee-row:hover .marquee-outline { color: rgba(212,245,60,.9); -webkit-text-stroke-color: transparent; }
+
+  /* ---------- about portrait ---------- */
+  .portrait-stage { perspective: 1100px; }
+  .portrait {
+    transform-style: preserve-3d;
+    animation: float-y 7s ease-in-out infinite;
+  }
+  @keyframes float-y { 0%,100%{transform:translateY(0) rotateX(0deg)} 50%{transform:translateY(-18px) rotateX(4deg)} }
+  .portrait-layer { position: absolute; inset: 0; border-radius: 24px; }
+  .ring-orbit { animation: spin-slow 14s linear infinite; }
+  @keyframes spin-slow { to { transform: rotate(360deg); } }
+
+  /* ---------- tilt cards ---------- */
+  .tilt {
+    transform: perspective(1000px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateZ(0);
+    transition: transform .18s ease-out, border-color .4s ease, box-shadow .4s ease;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+  .tilt:hover { border-color: rgba(212,245,60,.4); box-shadow: 0 24px 80px rgba(212,245,60,.1), 0 4px 24px rgba(0,0,0,.6); }
+  .tilt .glare {
+    position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s ease;
+    background: radial-gradient(420px circle at var(--gx,50%) var(--gy,50%), rgba(212,245,60,.14), transparent 45%);
+  }
+  .tilt:hover .glare { opacity: 1; }
+  .work-visual { transition: transform .5s cubic-bezier(.22,1,.36,1), filter .5s ease; }
+  .tilt:hover .work-visual { transform: scale(1.06) translateZ(30px); filter: saturate(1.3); }
+
+  /* ---------- horizontal gallery ---------- */
+  .h-panel-visual { transition: transform .6s cubic-bezier(.22,1,.36,1); }
+  .h-panel:hover .h-panel-visual { transform: scale(1.04) rotate(-1deg); }
+
+  /* ---------- timeline cubes ---------- */
+  .cube-wrap { perspective: 600px; }
+  .cube {
+    width: 52px; height: 52px; position: relative;
+    transform-style: preserve-3d;
+    animation: cube-spin 9s linear infinite;
+  }
+  .cube.alt { animation-direction: reverse; animation-duration: 11s; }
+  @keyframes cube-spin {
+    from { transform: rotateX(-18deg) rotateY(0deg); }
+    to   { transform: rotateX(-18deg) rotateY(360deg); }
+  }
+  .cube .face {
+    position: absolute; inset: 0;
+    border: 1px solid rgba(212,245,60,.55);
+    background: rgba(212,245,60,.04);
+    box-shadow: inset 0 0 18px rgba(212,245,60,.12);
+  }
+  .cube.pink .face { border-color: rgba(255,107,43,.55); background: rgba(255,107,43,.04); box-shadow: inset 0 0 18px rgba(255,107,43,.12); }
+  .face.f  { transform: translateZ(26px); }
+  .face.b  { transform: rotateY(180deg) translateZ(26px); }
+  .face.r  { transform: rotateY(90deg) translateZ(26px); }
+  .face.l  { transform: rotateY(-90deg) translateZ(26px); }
+  .face.t  { transform: rotateX(90deg) translateZ(26px); }
+  .face.bt { transform: rotateX(-90deg) translateZ(26px); }
+
+  .timeline-line { transform-origin: top; transform: scaleY(0); }
+
+  /* ---------- form ---------- */
+  .field {
+    background: rgba(13,15,12,.6);
+    border: 1px solid rgba(237,240,228,.1);
+    transition: transform .3s cubic-bezier(.22,1,.36,1), border-color .3s ease, box-shadow .3s ease;
+    transform: perspective(700px) translateZ(0);
+  }
+  .field:focus-within {
+    border-color: rgba(212,245,60,.6);
+    box-shadow: 0 0 0 1px rgba(212,245,60,.25), 0 12px 40px rgba(212,245,60,.1);
+    transform: perspective(700px) translateZ(14px) rotateX(1.5deg);
+  }
+  .field input, .field textarea {
+    background: transparent; outline: none; width: 100%;
+    color: #edf0e4; font-size: 1rem;
+  }
+  .field input::placeholder, .field textarea::placeholder { color: rgba(150,157,140,.55); }
+
+  .btn-3d {
+    transform: perspective(600px) translateZ(0);
+    transition: transform .18s ease, box-shadow .3s ease, background .3s ease;
+    box-shadow: 0 0 0 rgba(212,245,60,0);
+  }
+  .btn-3d:hover {
+    transform: perspective(600px) translateZ(18px) rotateX(6deg);
+    box-shadow: 0 18px 50px rgba(212,245,60,.35);
+  }
+  .btn-3d:active { transform: perspective(600px) translateZ(4px) rotateX(2deg) scale(.98); }
+
+  /* ---------- reveal defaults (JS animates in) ---------- */
+  [data-reveal] { opacity: 0; }
+
+  /* ---------- reduced motion ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    [data-reveal] { opacity: 1; }
+    .hero-word > span { transform: none; filter: none; }
+  }
+</style>
+</head>
+
+<body class="font-body antialiased">
+
+<!-- ===================== PRELOADER ===================== -->
+<div id="preloader">
+  <div class="font-mono text-xs tracking-[0.4em] text-dim uppercase">Initialising world</div>
+  <div id="preloader-count" class="font-display font-900 text-6xl text-ghost neon-glow">000</div>
+  <div class="preloader-bar"><span id="preloader-fill"></span></div>
+</div>
+
+<!-- cursor -->
+<div class="cursor-dot" id="cursor-dot"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- grain -->
+<div class="grain"></div>
+
+<!-- scroll progress -->
+<div class="fixed top-0 left-0 right-0 h-[2px] z-[80] bg-transparent pointer-events-none">
+  <div id="scroll-progress" class="h-full w-full origin-left scale-x-0 bg-gradient-to-r from-neon to-pulse"></div>
+</div>
+
+<!-- ===================== NAV ===================== -->
+<nav id="nav" class="fixed top-0 left-0 right-0 z-[70] px-6 md:px-12 py-5 flex items-center justify-between">
+  <a href="#hero" data-hover class="font-display font-700 text-sm tracking-widest text-ghost">
+    AR<span class="text-neon">.</span>RIVERA
+  </a>
+  <div class="hidden md:flex items-center gap-10 font-mono text-[11px] tracking-[0.25em] uppercase text-dim">
+    <a href="#about" data-hover class="nav-link hover:text-ghost transition-colors">About</a>
+    <a href="#works" data-hover class="nav-link hover:text-ghost transition-colors">Works</a>
+    <a href="#gallery" data-hover class="nav-link hover:text-ghost transition-colors">Fragments</a>
+    <a href="#process" data-hover class="nav-link hover:text-ghost transition-colors">Process</a>
+    <a href="#contact" data-hover class="nav-link hover:text-ghost transition-colors">Contact</a>
+  </div>
+  <a href="#contact" data-hover class="font-mono text-[11px] tracking-[0.25em] uppercase px-5 py-2.5 border border-neon/40 text-neon rounded-full hover:bg-neon/10 transition-colors">
+    Start a project
+  </a>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<header id="hero" class="relative h-screen min-h-[640px] overflow-hidden">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-vignette"></div>
+
+  <div class="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
+    <div id="hero-kicker" class="font-mono text-[11px] md:text-xs tracking-[0.5em] uppercase text-neon mb-8 opacity-0">
+      Alex Rivera — 3D Motion Designer
+    </div>
+
+    <h1 class="font-display font-900 leading-[1.02] text-[11vw] md:text-[7.5vw] lg:text-[6vw] max-w-6xl">
+      <span class="hero-word"><span>Crafting</span></span>
+      <span class="hero-word"><span class="text-stroke">Worlds</span></span><br>
+      <span class="hero-word"><span>in</span></span>
+      <span class="hero-word"><span class="neon-glow text-neon">Motion</span></span>
+    </h1>
+
+    <p id="hero-sub" class="mt-10 max-w-xl text-dim text-base md:text-lg leading-relaxed opacity-0">
+      CGI, real-time graphics and motion identities for brands that refuse to stand still.
+    </p>
+
+    <div id="hero-cta" class="mt-12 flex items-center gap-6 opacity-0">
+      <a href="#works" data-hover class="btn-3d bg-neon text-void font-mono text-xs tracking-[0.2em] uppercase px-8 py-4 rounded-full font-medium">
+        View selected works
+      </a>
+      <a href="#contact" data-hover class="font-mono text-xs tracking-[0.2em] uppercase text-dim hover:text-ghost transition-colors underline underline-offset-8 decoration-neon/40">
+        Get in touch
+      </a>
+    </div>
+  </div>
+
+  <div id="scroll-hint" class="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3 opacity-0">
+    <span class="font-mono text-[10px] tracking-[0.4em] uppercase text-dim">Scroll</span>
+    <div class="scroll-hint-line"></div>
+  </div>
+
+  <!-- corner coordinates -->
+  <div class="absolute bottom-8 left-8 z-10 font-mono text-[10px] tracking-[0.3em] text-dim/60 hidden md:block">35.6762° N / 139.6503° E</div>
+  <div class="absolute bottom-8 right-8 z-10 font-mono text-[10px] tracking-[0.3em] text-dim/60 hidden md:block">EST. 2016 — TOKYO / REMOTE</div>
+</header>
+
+<!-- ===================== MARQUEE ===================== -->
+<section class="marquee-row relative py-10 border-y border-white/5 overflow-hidden bg-panel/40">
+  <div class="marquee-track font-display font-700 text-4xl md:text-6xl uppercase whitespace-nowrap">
+    <span class="pr-12">
+      3D Motion <span class="text-neon mx-4">✦</span> <span class="marquee-outline">CGI</span> <span class="text-pulse mx-4">✦</span>
+      Art Direction <span class="text-neon mx-4">✦</span> <span class="marquee-outline">Real-time</span> <span class="text-pulse mx-4">✦</span>
+      Simulation <span class="text-neon mx-4">✦</span> <span class="marquee-outline">Identity</span> <span class="text-pulse mx-4">✦</span>
+    </span>
+    <span class="pr-12" aria-hidden="true">
+      3D Motion <span class="text-neon mx-4">✦</span> <span class="marquee-outline">CGI</span> <span class="text-pulse mx-4">✦</span>
+      Art Direction <span class="text-neon mx-4">✦</span> <span class="marquee-outline">Real-time</span> <span class="text-pulse mx-4">✦</span>
+      Simulation <span class="text-neon mx-4">✦</span> <span class="marquee-outline">Identity</span> <span class="text-pulse mx-4">✦</span>
+    </span>
+  </div>
+</section>
+
+<!-- ===================== ABOUT ===================== -->
+<section id="about" class="relative py-32 md:py-44 px-6 md:px-12 overflow-hidden">
+  <div class="absolute -top-40 -right-40 w-[560px] h-[560px] rounded-full bg-pulse/10 blur-[140px] pointer-events-none"></div>
+
+  <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+
+    <!-- parallax 3D portrait -->
+    <div class="portrait-stage relative h-[440px] md:h-[540px]" data-reveal>
+      <div class="portrait absolute inset-8 md:inset-12">
+        <!-- back glow -->
+        <div class="portrait-layer bg-gradient-to-br from-neon/20 via-transparent to-pulse/20 blur-2xl" data-depth="0.08" style="transform:translateZ(-80px)"></div>
+        <!-- frame -->
+        <div class="portrait-layer border border-neon/25 bg-panel/60 backdrop-blur-sm" data-depth="0.16" style="transform:translateZ(-30px)"></div>
+        <!-- orbiting ring -->
+        <div class="absolute -inset-6 md:-inset-10 rounded-full border border-dashed border-neon/20 ring-orbit" data-depth="0.3" style="transform:translateZ(20px)">
+          <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-neon shadow-[0_0_16px_#d4f53c]"></div>
+        </div>
+        <!-- portrait core: abstract head -->
+        <div class="portrait-layer flex items-center justify-center" data-depth="0.45" style="transform:translateZ(50px)">
+          <svg viewBox="0 0 200 240" class="w-52 md:w-64 drop-shadow-[0_0_30px_rgba(212,245,60,.35)]">
+            <defs>
+              <linearGradient id="pg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#d4f53c"/><stop offset="1" stop-color="#ff6b2b"/>
+              </linearGradient>
+            </defs>
+            <g fill="none" stroke="url(#pg)" stroke-width="1.4">
+              <ellipse cx="100" cy="95" rx="52" ry="64"/>
+              <path d="M48 95 Q100 130 152 95 M60 60 Q100 90 140 60 M100 31 v128 M70 40 Q100 20 130 40"/>
+              <path d="M100 159 v40 M60 210 q40 -24 80 0" />
+              <circle cx="82" cy="88" r="5"/><circle cx="118" cy="88" r="5"/>
+            </g>
+            <g fill="#d4f53c" opacity="0.9">
+              <circle cx="82" cy="88" r="1.8"/><circle cx="118" cy="88" r="1.8"/>
+            </g>
+          </svg>
+        </div>
+        <!-- floating chips -->
+        <div class="absolute -left-4 top-10 md:left-0 px-4 py-2 rounded-lg border border-neon/30 bg-void/80 backdrop-blur font-mono text-[10px] tracking-[0.25em] text-neon uppercase" data-depth="0.6" style="transform:translateZ(90px)">Cinema 4D</div>
+        <div class="absolute -right-2 bottom-16 md:right-2 px-4 py-2 rounded-lg border border-pulse/30 bg-void/80 backdrop-blur font-mono text-[10px] tracking-[0.25em] text-pulse uppercase" data-depth="0.75" style="transform:translateZ(110px)">Houdini</div>
+        <div class="absolute right-6 -top-3 px-4 py-2 rounded-lg border border-white/10 bg-void/80 backdrop-blur font-mono text-[10px] tracking-[0.25em] text-dim uppercase" data-depth="0.5" style="transform:translateZ(70px)">Unreal 5</div>
+      </div>
+    </div>
+
+    <!-- copy -->
+    <div>
+      <div class="font-mono text-[11px] tracking-[0.5em] uppercase text-neon mb-6" data-reveal>01 — About</div>
+      <h2 class="font-display font-700 text-4xl md:text-5xl leading-tight mb-8" data-reveal>
+        The space between <span class="text-neon">pixels</span> and <span class="text-stroke">physics</span>.
+      </h2>
+      <p class="text-dim text-lg leading-relaxed mb-6 max-w-xl" data-reveal>
+        I'm Alex Rivera. For the past nine years I've been building impossible objects and teaching them to move —
+        fluid sims that behave like fabric, chrome that remembers light, geometry that breathes.
+      </p>
+      <p class="text-dim text-lg leading-relaxed mb-12 max-w-xl" data-reveal>
+        My work lives where art direction meets real-time rendering: launch films, interactive installations,
+        and motion systems for studios like Onyx, Field and Nocturne.
+      </p>
+      <div class="grid grid-cols-3 gap-6 max-w-xl" data-reveal>
+        <div class="border-l border-neon/30 pl-4">
+          <div class="font-display font-700 text-3xl text-ghost"><span data-count="9">0</span>+</div>
+          <div class="font-mono text-[10px] tracking-[0.25em] uppercase text-dim mt-1">Years</div>
+        </div>
+        <div class="border-l border-pulse/30 pl-4">
+          <div class="font-display font-700 text-3xl text-ghost"><span data-count="120">0</span>+</div>
+          <div class="font-mono text-[10px] tracking-[0.25em] uppercase text-dim mt-1">Projects</div>
+        </div>
+        <div class="border-l border-white/20 pl-4">
+          <div class="font-display font-700 text-3xl text-ghost"><span data-count="14">0</span></div>
+          <div class="font-mono text-[10px] tracking-[0.25em] uppercase text-dim mt-1">Awards</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SELECTED WORKS ===================== -->
+<section id="works" class="relative py-32 md:py-40 px-6 md:px-12">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-16">
+      <div>
+        <div class="font-mono text-[11px] tracking-[0.5em] uppercase text-neon mb-6" data-reveal>02 — Selected Works</div>
+        <h2 class="font-display font-700 text-4xl md:text-6xl leading-tight" data-reveal>Chosen <span class="text-stroke">realities</span></h2>
+      </div>
+      <p class="text-dim max-w-sm text-sm leading-relaxed" data-reveal>
+        Six pieces from the archive. Hover to lean in — each frame is a world that shipped.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <!-- card template x6 -->
+      <article class="tilt group relative rounded-2xl border border-white/8 bg-panel/60 overflow-hidden" data-reveal data-hover>
+        <div class="glare rounded-2xl"></div>
+        <div class="work-visual relative h-64 overflow-hidden">
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(212,245,60,.35),transparent_55%),radial-gradient(circle_at_75%_80%,rgba(255,107,43,.3),transparent_50%),linear-gradient(160deg,#0b0b1c,#070907)]"></div>
+          <svg viewBox="0 0 200 200" class="absolute inset-0 w-full h-full p-10 opacity-80"><g fill="none" stroke="#d4f53c" stroke-width="0.8" opacity="0.7"><circle cx="100" cy="100" r="60"/><ellipse cx="100" cy="100" rx="60" ry="22"/><ellipse cx="100" cy="100" rx="22" ry="60"/><circle cx="100" cy="100" r="34"/><path d="M40 100h120M100 40v120"/></g></svg>
+        </div>
+        <div class="relative p-6 flex items-end justify-between">
+          <div>
+            <div class="font-mono text-[10px] tracking-[0.3em] uppercase text-neon mb-2">Fluid Sim / Launch Film</div>
+            <h3 class="font-display font-500 text-xl">Neon Drift</h3>
+          </div>
+          <span class="font-mono text-[10px] text-dim">2025</span>
+        </div>
+      </article>
+
+      <article class="tilt group relative rounded-2xl border border-white/8 bg-panel/60 overflow-hidden" data-reveal data-hover>
+        <div class="glare rounded-2xl"></div>
+        <div class="work-visual relative h-64 overflow-hidden">
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_25%,rgba(255,107,43,.4),transparent_55%),radial-gradient(circle_at_20%_85%,rgba(212,245,60,.22),transparent_50%),linear-gradient(200deg,#12071a,#070907)]"></div>
+          <svg viewBox="0 0 200 200" class="absolute inset-0 w-full h-full p-10 opacity-80"><g fill="none" stroke="#ff6b2b" stroke-width="0.8" opacity="0.7"><path d="M100 40 L160 130 L40 130 Z"/><path d="M100 70 L135 120 L65 120 Z"/><circle cx="100" cy="100" r="78" stroke-dasharray="4 6"/><path d="M100 22v156M22 100h156"/></g></svg>
+        </div>
+        <div class="relative p-6 flex items-end justify-between">
+          <div>
+            <div class="font-mono text-[10px] tracking-[0.3em] uppercase text-pulse mb-2">Identity / Real-time</div>
+            <h3 class="font-display font-500 text-xl">Void Bloom</h3>
+          </div>
+          <span class="font-mono text-[10px] text-dim">2025</span>
+        </div>
+      </article>
+
+      <article class="tilt group relative rounded-2xl border border-white/8 bg-panel/60 overflow-hidden" data-reveal data-hover>
+        <div class="glare rounded-2xl"></div>
+        <div class="work-visual relative h-64 overflow-hidden">
+          <div class="absolute inset-0 bg-[conic-gradient(from_210deg_at_50%_50%,rgba(212,245,60,.25),rgba(7,9,7,0)_30%,rgba(255,107,43,.22)_60%,rgba(7,9,7,0)_85%),linear-gradient(120deg,#0a0a1a,#070907)]"></div>
+          <svg viewBox="0 0 200 200" class="absolute inset-0 w-full h-full p-10 opacity-80"><g fill="none" stroke="#d4f53c" stroke-width="0.8" opacity="0.7"><rect x="55" y="55" width="90" height="90" rx="6"/><rect x="75" y="75" width="50" height="50" rx="4" transform="rotate(45 100 100)"/><circle cx="100" cy="100" r="12"/><path d="M55 55l45 45 45-45M55 145l45-45 45 45"/></g></svg>
+        </div>
+        <div class="relative p-6 flex items-end justify-between">
+          <div>
+            <div class="font-mono text-[10px] tracking-[0.3em] uppercase text-neon mb-2">Product CGI / Chrome</div>
+            <h3 class="font-display font-500 text-xl">Chrome Garden</h3>
+          </div>
+          <span class="font-mono text-[10px] text-dim">2024</span>
+        </div>
+      </article>
+
+      <article class="tilt group relative rounded-2xl border border-white/8 bg-panel/60 overflow-hidden" data-reveal data-hover>
+        <div class="glare rounded-2xl"></div>
+        <div class="work-visual relative h-64 overflow-hidden">
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_110%,rgba(212,245,60,.4),transparent_55%),linear-gradient(180deg,#08081a,#070907)]"></div>
+          <svg viewBox="0 0 200 200" class="absolute inset-0 w-full h-full p-10 opacity-80"><g fill="none" stroke="#ff6b2b" stroke-width="0.8" opacity="0.7"><path d="M30 140 Q70 60 100 110 T170 90"/><path d="M30 120 Q70 40 100 90 T170 70" opacity="0.5"/><path d="M30 160 Q70 80 100 130 T170 110" opacity="0.3"/><circle cx="100" cy="110" r="4" fill="#ff6b2b"/></g></svg>
+        </div>
+        <div class="relative p-6 flex items-end justify-between">
+          <div>
+            <div class="font-mono text-[10px] tracking-[0.3em] uppercase text-pulse mb-2">Audio-reactive / Installation</div>
+            <h3 class="font-display font-500 text-xl">Signal//Lost</h3>
+          </div>
+          <span class="font-mono text-[10px] text-dim">2024</span>
+        </div>
+      </article>
+
+      <article class="tilt group relative rounded-2xl border border-white/8 bg-panel/60 overflow-hidden" data-reveal data-hover>
+        <div class="glare rounded-2xl"></div>
+        <div class="work-visual relative h-64 overflow-hidden">
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(255,107,43,.28),transparent_50%),radial-gradient(circle_at_85%_60%,rgba(212,245,60,.3),transparent_45%),linear-gradient(140deg,#0c0618,#070907)]"></div>
+          <svg viewBox="0 0 200 200" class="absolute inset-0 w-full h-full p-10 opacity-80"><g fill="none" stroke="#d4f53c" stroke-width="0.8" opacity="0.7"><ellipse cx="100" cy="100" rx="70" ry="26"/><ellipse cx="100" cy="100" rx="70" ry="26" transform="rotate(60 100 100)"/><ellipse cx="100" cy="100" rx="70" ry="26" transform="rotate(120 100 100)"/><circle cx="100" cy="100" r="10"/></g></svg>
+        </div>
+        <div class="relative p-6 flex items-end justify-between">
+          <div>
+            <div class="font-mono text-[10px] tracking-[0.3em] uppercase text-neon mb-2">Title Sequence</div>
+            <h3 class="font-display font-500 text-xl">Orbital Decay</h3>
+          </div>
+          <span class="font-mono text-[10px] text-dim">2023</span>
+        </div>
+      </article>
+
+      <article class="tilt group relative rounded-2xl border border-white/8 bg-panel/60 overflow-hidden" data-reveal data-hover>
+        <div class="glare rounded-2xl"></div>
+        <div class="work-visual relative h-64 overflow-hidden">
+          <div class="absolute inset-0 bg-[linear-gradient(115deg,rgba(212,245,60,.18)_0%,transparent_40%,rgba(255,107,43,.16)_75%,transparent),linear-gradient(200deg,#0a0c1e,#070907)]"></div>
+          <svg viewBox="0 0 200 200" class="absolute inset-0 w-full h-full p-10 opacity-80"><g fill="none" stroke="#ff6b2b" stroke-width="0.8" opacity="0.7"><path d="M60 150 V70 L100 45 L140 70 V150"/><path d="M60 70 L100 95 L140 70 M100 95 V150" /><rect x="86" y="120" width="28" height="30"/></g></svg>
+        </div>
+        <div class="relative p-6 flex items-end justify-between">
+          <div>
+            <div class="font-mono text-[10px] tracking-[0.3em] uppercase text-pulse mb-2">Architectural / Film</div>
+            <h3 class="font-display font-500 text-xl">Glass Empire</h3>
+          </div>
+          <span class="font-mono text-[10px] text-dim">2023</span>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===================== HORIZONTAL GALLERY ===================== -->
+<section id="gallery" class="relative overflow-hidden">
+  <div id="h-pin" class="h-screen flex flex-col justify-center">
+    <div class="px-6 md:px-12 mb-10 max-w-7xl mx-auto w-full">
+      <div class="font-mono text-[11px] tracking-[0.5em] uppercase text-neon mb-4">03 — Fragments</div>
+      <h2 class="font-display font-700 text-3xl md:text-5xl">Scroll to <span class="text-stroke">travel sideways</span></h2>
+    </div>
+
+    <div id="h-track" class="flex gap-8 pl-6 md:pl-12 will-change-transform">
+
+      <div class="h-panel shrink-0 w-[78vw] md:w-[46vw] lg:w-[36vw]">
+        <div class="h-panel-visual relative h-[46vh] md:h-[52vh] rounded-2xl overflow-hidden border border-neon/20">
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_40%_30%,rgba(212,245,60,.4),transparent_55%),linear-gradient(150deg,#0b0b20,#070907)]"></div>
+          <svg viewBox="0 0 200 200" class="absolute inset-0 w-full h-full p-14"><g fill="none" stroke="#d4f53c" stroke-width="0.7"><path d="M100 30 L165 65 V135 L100 170 L35 135 V65 Z"/><path d="M100 30 V100 M100 100 L165 65 M100 100 L35 65 M100 100 V170" opacity="0.6"/><circle cx="100" cy="100" r="6"/></g></svg>
+          <div class="absolute bottom-5 left-5 font-mono text-[10px] tracking-[0.3em] uppercase text-neon">FRAG.01 — Crystal Study</div>
+        </div>
+      </div>
+
+      <div class="h-panel shrink-0 w-[78vw] md:w-[46vw] lg:w-[36vw]">
+        <div class="h-panel-visual relative h-[46vh] md:h-[52vh] rounded-2xl overflow-hidden border border-pulse/20">
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_65%_40%,rgba(255,107,43,.42),transparent_55%),linear-gradient(210deg,#160722,#070907)]"></div>
+          <svg viewBox="0 0 200 200" class="absolute inset-0 w-full h-full p-14"><g fill="none" stroke="#ff6b2b" stroke-width="0.7"><circle cx="100" cy="100" r="62"/><path d="M100 38 a62 62 0 0 1 0 124 a31 62 0 0 1 0-124 a31 62 0 0 0 0 124" /><path d="M38 100 h124" opacity="0.6"/></g></svg>
+          <div class="absolute bottom-5 left-5 font-mono text-[10px] tracking-[0.3em] uppercase text-pulse">FRAG.02 — Sphere Logic</div>
+        </div>
+      </div>
+
+      <div class="h-panel shrink-0 w-[78vw] md:w-[46vw] lg:w-[36vw]">
+        <div class="h-panel-visual relative h-[46vh] md:h-[52vh] rounded-2xl overflow-hidden border border-neon/20">
+          <div class="absolute inset-0 bg-[conic-gradient(from_120deg_at_60%_40%,rgba(212,245,60,.3),transparent_35%,rgba(255,107,43,.25)_70%,transparent),linear-gradient(120deg,#0a0a1c,#070907)]"></div>
+          <svg viewBox="0 0 200 200" class="absolute inset-0 w-full h-full p-14"><g fill="none" stroke="#d4f53c" stroke-width="0.7"><path d="M40 150 C60 90 80 130 100 80 S150 110 165 50"/><path d="M40 130 C60 70 80 110 100 60 S150 90 165 30" opacity="0.5"/><path d="M40 170 C60 110 80 150 100 100 S150 130 165 70" opacity="0.3"/></g></svg>
+          <div class="absolute bottom-5 left-5 font-mono text-[10px] tracking-[0.3em] uppercase text-neon">FRAG.03 — Flow Field</div>
+        </div>
+      </div>
+
+      <div class="h-panel shrink-0 w-[78vw] md:w-[46vw] lg:w-[36vw]">
+        <div class="h-panel-visual relative h-[46vh] md:h-[52vh] rounded-2xl overflow-hidden border border-pulse/20">
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_75%,rgba(255,107,43,.35),transparent_50%),radial-gradient(circle_at_80%_20%,rgba(212,245,60,.25),transparent_45%),linear-gradient(180deg,#120820,#070907)]"></div>
+          <svg viewBox="0 0 200 200" class="absolute inset-0 w-full h-full p-14"><g fill="none" stroke="#ff6b2b" stroke-width="0.7"><rect x="50" y="50" width="100" height="100" transform="rotate(15 100 100)"/><rect x="50" y="50" width="100" height="100" transform="rotate(45 100 100)" opacity="0.6"/><rect x="50" y="50" width="100" height="100" transform="rotate(75 100 100)" opacity="0.3"/></g></svg>
+          <div class="absolute bottom-5 left-5 font-mono text-[10px] tracking-[0.3em] uppercase text-pulse">FRAG.04 — Rotation Suite</div>
+        </div>
+      </div>
+
+      <div class="h-panel shrink-0 w-[78vw] md:w-[46vw] lg:w-[36vw]">
+        <div class="h-panel-visual relative h-[46vh] md:h-[52vh] rounded-2xl overflow-hidden border border-neon/20">
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(212,245,60,.32),transparent_55%),linear-gradient(160deg,#0a0a1e,#070907)]"></div>
+          <svg viewBox="0 0 200 200" class="absolute inset-0 w-full h-full p-14"><g fill="none" stroke="#d4f53c" stroke-width="0.7"><path d="M100 40 L155 130 H45 Z"/><path d="M100 70 L130 120 H70 Z" opacity="0.6"/><circle cx="100" cy="103" r="70" stroke-dasharray="3 8" opacity="0.5"/></g></svg>
+          <div class="absolute bottom-5 left-5 font-mono text-[10px] tracking-[0.3em] uppercase text-neon">FRAG.05 — Prism Drift</div>
+        </div>
+      </div>
+
+      <div class="h-panel shrink-0 w-[70vw] md:w-[34vw] flex items-center">
+        <a href="#contact" data-hover class="group inline-flex flex-col gap-4">
+          <span class="font-display font-700 text-3xl md:text-5xl leading-tight text-dim group-hover:text-ghost transition-colors">Your world<br>could be <span class="text-neon">next</span></span>
+          <span class="font-mono text-xs tracking-[0.3em] uppercase text-neon">Start a project →</span>
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PROCESS ===================== -->
+<section id="process" class="relative py-32 md:py-44 px-6 md:px-12">
+  <div class="absolute top-1/3 -left-40 w-[480px] h-[480px] rounded-full bg-neon/8 blur-[140px] pointer-events-none"></div>
+
+  <div class="max-w-4xl mx-auto">
+    <div class="font-mono text-[11px] tracking-[0.5em] uppercase text-neon mb-6" data-reveal>04 — Creative Process</div>
+    <h2 class="font-display font-700 text-4xl md:text-6xl leading-tight mb-20" data-reveal>How worlds get <span class="text-stroke">built</span></h2>
+
+    <div class="relative">
+      <div class="timeline-line absolute left-[25px] md:left-1/2 md:-translate-x-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-neon via-pulse to-neon"></div>
+
+      <!-- step -->
+      <div class="process-step relative grid md:grid-cols-2 gap-8 md:gap-16 mb-24 items-center" data-reveal>
+        <div class="md:text-right md:pr-16 pl-20 md:pl-0">
+          <div class="font-mono text-[11px] tracking-[0.3em] text-neon uppercase mb-3">Phase 01</div>
+          <h3 class="font-display font-500 text-2xl mb-3">Listen &amp; Decode</h3>
+          <p class="text-dim leading-relaxed">Every world starts with a feeling. We dig into the brand, the audience and the single emotion the film must leave behind.</p>
+        </div>
+        <div class="cube-wrap absolute left-0 md:left-1/2 md:-translate-x-1/2 top-0 w-[52px] h-[52px]">
+          <div class="cube"><div class="face f"></div><div class="face b"></div><div class="face r"></div><div class="face l"></div><div class="face t"></div><div class="face bt"></div></div>
+        </div>
+        <div class="hidden md:block"></div>
+      </div>
+
+      <div class="process-step relative grid md:grid-cols-2 gap-8 md:gap-16 mb-24 items-center" data-reveal>
+        <div class="hidden md:block"></div>
+        <div class="cube-wrap absolute left-0 md:left-1/2 md:-translate-x-1/2 top-0 w-[52px] h-[52px]">
+          <div class="cube pink alt"><div class="face f"></div><div class="face b"></div><div class="face r"></div><div class="face l"></div><div class="face t"></div><div class="face bt"></div></div>
+        </div>
+        <div class="md:pl-16 pl-20">
+          <div class="font-mono text-[11px] tracking-[0.3em] text-pulse uppercase mb-3">Phase 02</div>
+          <h3 class="font-display font-500 text-2xl mb-3">Sketch in Space</h3>
+          <p class="text-dim leading-relaxed">Styleframes, animatics and rough geometry. Composition is decided in 3D from day one — never retrofitted in post.</p>
+        </div>
+      </div>
+
+      <div class="process-step relative grid md:grid-cols-2 gap-8 md:gap-16 mb-24 items-center" data-reveal>
+        <div class="md:text-right md:pr-16 pl-20 md:pl-0">
+          <div class="font-mono text-[11px] tracking-[0.3em] text-neon uppercase mb-3">Phase 03</div>
+          <h3 class="font-display font-500 text-2xl mb-3">Motion Sculpting</h3>
+          <p class="text-dim leading-relaxed">Simulations, camera choreography, light. This is where the piece learns to breathe — every easing curve tuned by hand.</p>
+        </div>
+        <div class="cube-wrap absolute left-0 md:left-1/2 md:-translate-x-1/2 top-0 w-[52px] h-[52px]">
+          <div class="cube"><div class="face f"></div><div class="face b"></div><div class="face r"></div><div class="face l"></div><div class="face t"></div><div class="face bt"></div></div>
+        </div>
+        <div class="hidden md:block"></div>
+      </div>
+
+      <div class="process-step relative grid md:grid-cols-2 gap-8 md:gap-16 items-center" data-reveal>
+        <div class="hidden md:block"></div>
+        <div class="cube-wrap absolute left-0 md:left-1/2 md:-translate-x-1/2 top-0 w-[52px] h-[52px]">
+          <div class="cube pink alt"><div class="face f"></div><div class="face b"></div><div class="face r"></div><div class="face l"></div><div class="face t"></div><div class="face bt"></div></div>
+        </div>
+        <div class="md:pl-16 pl-20">
+          <div class="font-mono text-[11px] tracking-[0.3em] text-pulse uppercase mb-3">Phase 04</div>
+          <h3 class="font-display font-500 text-2xl mb-3">Ship the World</h3>
+          <p class="text-dim leading-relaxed">Final grade, master renders and delivery in every ratio. The world leaves the studio — and starts living on its own.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CONTACT ===================== -->
+<section id="contact" class="relative py-32 md:py-44 px-6 md:px-12 overflow-hidden">
+  <div class="absolute -bottom-40 right-0 w-[600px] h-[600px] rounded-full bg-neon/8 blur-[160px] pointer-events-none"></div>
+
+  <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 lg:gap-24">
+    <div>
+      <div class="font-mono text-[11px] tracking-[0.5em] uppercase text-neon mb-6" data-reveal>05 — Contact</div>
+      <h2 class="font-display font-700 text-4xl md:text-6xl leading-tight mb-8" data-reveal>
+        Let's build<br>your <span class="text-neon neon-glow">world</span>
+      </h2>
+      <p class="text-dim text-lg leading-relaxed max-w-md mb-12" data-reveal>
+        Tell me about the launch, the film, the impossible thing you're imagining. I reply within two working days.
+      </p>
+      <div class="space-y-5 font-mono text-sm" data-reveal>
+        <div class="flex items-center gap-4">
+          <span class="w-8 h-px bg-neon/50"></span>
+          <a href="mailto:hello@alexrivera.studio" data-hover class="text-ghost hover:text-neon transition-colors">hello@alexrivera.studio</a>
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="w-8 h-px bg-pulse/50"></span>
+          <span class="text-dim">Tokyo — working worldwide</span>
+        </div>
+        <div class="flex items-center gap-4 pt-4">
+          <a href="#" data-hover class="text-dim hover:text-neon transition-colors text-xs tracking-[0.25em] uppercase">Behance</a>
+          <a href="#" data-hover class="text-dim hover:text-neon transition-colors text-xs tracking-[0.25em] uppercase">Vimeo</a>
+          <a href="#" data-hover class="text-dim hover:text-neon transition-colors text-xs tracking-[0.25em] uppercase">Instagram</a>
+        </div>
+      </div>
+    </div>
+
+    <form id="contact-form" class="space-y-5" data-reveal novalidate>
+      <div class="grid md:grid-cols-2 gap-5">
+        <label class="field block rounded-xl px-5 py-4">
+          <span class="block font-mono text-[10px] tracking-[0.3em] uppercase text-dim mb-2">Name</span>
+          <input type="text" name="name" placeholder="Ada Wong" required>
+        </label>
+        <label class="field block rounded-xl px-5 py-4">
+          <span class="block font-mono text-[10px] tracking-[0.3em] uppercase text-dim mb-2">Email</span>
+          <input type="email" name="email" placeholder="ada@studio.com" required>
+        </label>
+      </div>
+      <label class="field block rounded-xl px-5 py-4">
+        <span class="block font-mono text-[10px] tracking-[0.3em] uppercase text-dim mb-2">Project type</span>
+        <input type="text" name="type" placeholder="Launch film, installation, identity…">
+      </label>
+      <label class="field block rounded-xl px-5 py-4">
+        <span class="block font-mono text-[10px] tracking-[0.3em] uppercase text-dim mb-2">The world you're imagining</span>
+        <textarea name="message" rows="5" placeholder="Chrome oceans, a city that folds itself, fabric made of light…" required></textarea>
+      </label>
+      <button type="submit" data-hover class="btn-3d w-full bg-neon text-void font-mono text-xs tracking-[0.25em] uppercase font-medium py-5 rounded-xl">
+        <span id="submit-label">Transmit brief</span>
+      </button>
+      <p id="form-status" class="font-mono text-xs tracking-[0.2em] text-neon h-4"></p>
+    </form>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="border-t border-white/5 py-10 px-6 md:px-12">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-[10px] tracking-[0.3em] uppercase text-dim">
+    <span>© 2026 Alex Rivera Studio</span>
+    <span class="text-neon/70">Crafted in three dimensions</span>
+    <a href="#hero" data-hover class="hover:text-ghost transition-colors">Back to top ↑</a>
+  </div>
+</footer>
+
+<!-- ===================== SCRIPTS ===================== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+
+<script>
+(function () {
+  'use strict';
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const coarse = window.matchMedia('(pointer: coarse)').matches;
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* ============ smooth scroll ============ */
+  let lenis = null;
+  if (!reduced && typeof Lenis !== 'undefined') {
+    lenis = new Lenis({ lerp: 0.09 });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((t) => lenis.raf(t * 1000));
+    gsap.ticker.lagSmoothing(0);
+    document.querySelectorAll('a[href^="#"]').forEach((a) => {
+      a.addEventListener('click', (e) => {
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) { e.preventDefault(); lenis.scrollTo(target, { offset: -20 }); }
+      });
+    });
+  }
+
+  /* ============ THREE.JS HERO SCULPTURE ============ */
+  const canvas = document.getElementById('hero-canvas');
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x070907, 0.045);
+
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 0, 7.5);
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  // glow sprite texture
+  function glowTexture(hex) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 256;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+    g.addColorStop(0, hex + 'e6');
+    g.addColorStop(0.25, hex + '55');
+    g.addColorStop(1, hex + '00');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 256, 256);
+    return new THREE.CanvasTexture(c);
+  }
+
+  const sculpture = new THREE.Group();
+
+  const outer = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(2.6, 1),
+    new THREE.MeshBasicMaterial({ color: 0xd4f53c, wireframe: true, transparent: true, opacity: 0.32 })
+  );
+  const outerShell = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(2.6, 1),
+    new THREE.MeshBasicMaterial({ color: 0xd4f53c, transparent: true, opacity: 0.04, blending: THREE.AdditiveBlending, depthWrite: false })
+  );
+  const knot = new THREE.Mesh(
+    new THREE.TorusKnotGeometry(1.25, 0.3, 180, 24),
+    new THREE.MeshBasicMaterial({ color: 0xff6b2b, wireframe: true, transparent: true, opacity: 0.26 })
+  );
+  const core = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(0.62, 2),
+    new THREE.MeshBasicMaterial({ color: 0xf0ffc2, wireframe: true, transparent: true, opacity: 0.85 })
+  );
+
+  const glowCyan = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTexture('#d4f53c'), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.8
+  }));
+  glowCyan.scale.set(7, 7, 1);
+  const glowPink = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTexture('#ff6b2b'), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.45
+  }));
+  glowPink.scale.set(4.5, 4.5, 1);
+
+  sculpture.add(outer, outerShell, knot, core, glowCyan, glowPink);
+  scene.add(sculpture);
+
+  // particles
+  function makeParticles(count, hex, size, spread) {
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      pos[i * 3]     = (Math.random() - 0.5) * spread;
+      pos[i * 3 + 1] = (Math.random() - 0.5) * spread;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * spread;
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    return new THREE.Points(geo, new THREE.PointsMaterial({
+      color: hex, size, transparent: true, opacity: 0.65,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+  }
+  const particlesA = makeParticles(900, 0xd4f53c, 0.022, 22);
+  const particlesB = makeParticles(500, 0xff6b2b, 0.028, 26);
+  scene.add(particlesA, particlesB);
+
+  // mouse interaction
+  let mouseX = 0, mouseY = 0, targetRX = 0, targetRY = 0;
+  if (!coarse) {
+    window.addEventListener('mousemove', (e) => {
+      mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+      mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+    });
+  }
+
+  // scroll-driven values
+  let scrollProg = 0;
+  ScrollTrigger.create({
+    trigger: '#hero',
+    start: 'top top',
+    end: 'bottom top',
+    scrub: true,
+    onUpdate: (self) => { scrollProg = self.progress; }
+  });
+
+  const clock = new THREE.Clock();
+  function tick() {
+    const t = clock.getElapsedTime();
+
+    targetRY += ((mouseX * 0.55) - targetRY) * 0.045;
+    targetRX += ((mouseY * 0.4) - targetRX) * 0.045;
+
+    sculpture.rotation.y = t * 0.16 + targetRY;
+    sculpture.rotation.x = Math.sin(t * 0.22) * 0.12 + targetRX + scrollProg * 1.2;
+    sculpture.position.y = Math.sin(t * 0.5) * 0.15 + scrollProg * 2.5;
+    sculpture.scale.setScalar(1 - scrollProg * 0.35);
+
+    knot.rotation.x = t * 0.3;
+    knot.rotation.z = -t * 0.18;
+    core.rotation.y = -t * 0.5;
+    core.scale.setScalar(1 + Math.sin(t * 2.2) * 0.08);
+
+    glowCyan.material.opacity = 0.65 + Math.sin(t * 1.6) * 0.15;
+    glowPink.material.opacity = 0.38 + Math.cos(t * 1.3) * 0.12;
+
+    particlesA.rotation.y = t * 0.02;
+    particlesA.rotation.x = t * 0.008;
+    particlesB.rotation.y = -t * 0.015;
+
+    camera.position.x += (mouseX * 0.6 - camera.position.x) * 0.03;
+    camera.position.y += (-mouseY * 0.4 - camera.position.y) * 0.03;
+    camera.lookAt(0, 0, 0);
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(tick);
+  }
+  tick();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  /* ============ CURSOR ============ */
+  if (!coarse) {
+    const dot = document.getElementById('cursor-dot');
+    const ring = document.getElementById('cursor-ring');
+    let cx = -100, cy = -100, rx = -100, ry = -100;
+    window.addEventListener('mousemove', (e) => { cx = e.clientX; cy = e.clientY; });
+    gsap.ticker.add(() => {
+      rx += (cx - rx) * 0.16; ry += (cy - ry) * 0.16;
+      dot.style.transform = `translate(${cx}px,${cy}px) translate(-50%,-50%)`;
+      ring.style.transform = `translate(${rx}px,${ry}px) translate(-50%,-50%)`;
+    });
+    document.querySelectorAll('[data-hover]').forEach((el) => {
+      el.addEventListener('mouseenter', () => ring.classList.add('is-hover'));
+      el.addEventListener('mouseleave', () => ring.classList.remove('is-hover'));
+    });
+  }
+
+  /* ============ PRELOADER + HERO REVEAL ============ */
+  const countEl = document.getElementById('preloader-count');
+  const fillEl = document.getElementById('preloader-fill');
+  const counter = { v: 0 };
+
+  const introTL = gsap.timeline({ paused: true });
+  introTL
+    .to('#hero-kicker', { opacity: 1, duration: 0.8, ease: 'power2.out' })
+    .to('.hero-word > span', {
+      y: 0, rotate: 0, filter: 'blur(0px)',
+      duration: 1.15, stagger: 0.09, ease: 'power4.out'
+    }, '-=0.4')
+    .to('#hero-sub', { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' }, '-=0.6')
+    .to('#hero-cta', { opacity: 1, duration: 0.9, ease: 'power3.out' }, '-=0.5')
+    .to('#scroll-hint', { opacity: 1, duration: 0.8 }, '-=0.4');
+
+  if (reduced) {
+    gsap.set('#preloader', { display: 'none' });
+    gsap.set(['#hero-kicker', '#hero-sub', '#hero-cta', '#scroll-hint'], { opacity: 1 });
+    gsap.set('.hero-word > span', { y: 0, rotate: 0, filter: 'blur(0px)' });
+  } else {
+    gsap.set(['#hero-sub', '#hero-cta'], { y: 24 });
+    gsap.to(counter, {
+      v: 100, duration: 1.6, ease: 'power2.inOut',
+      onUpdate: () => {
+        countEl.textContent = String(Math.round(counter.v)).padStart(3, '0');
+        fillEl.style.transform = `scaleX(${counter.v / 100})`;
+      },
+      onComplete: () => {
+        gsap.to('#preloader', {
+          clipPath: 'inset(0 0 100% 0)', duration: 0.9, ease: 'power4.inOut',
+          onComplete: () => gsap.set('#preloader', { display: 'none' })
+        });
+        introTL.play();
+      }
+    });
+  }
+
+  /* ============ NAV SOLID ON SCROLL ============ */
+  const nav = document.getElementById('nav');
+  ScrollTrigger.create({
+    start: 60,
+    onEnter: () => nav.classList.add('scrolled'),
+    onLeaveBack: () => nav.classList.remove('scrolled')
+  });
+
+  /* ============ SCROLL PROGRESS ============ */
+  gsap.to('#scroll-progress', {
+    scaleX: 1, ease: 'none',
+    scrollTrigger: { start: 0, end: 'max', scrub: 0.3 }
+  });
+
+  /* ============ GENERIC REVEALS ============ */
+  gsap.utils.toArray('[data-reveal]').forEach((el) => {
+    gsap.fromTo(el,
+      { opacity: 0, y: 44 },
+      {
+        opacity: 1, y: 0, duration: 1, ease: 'power3.out',
+        scrollTrigger: { trigger: el, start: 'top 88%', once: true }
+      }
+    );
+  });
+
+  /* ============ COUNTERS ============ */
+  document.querySelectorAll('[data-count]').forEach((el) => {
+    const target = parseInt(el.dataset.count, 10);
+    const obj = { v: 0 };
+    ScrollTrigger.create({
+      trigger: el, start: 'top 90%', once: true,
+      onEnter: () => gsap.to(obj, {
+        v: target, duration: 1.8, ease: 'power2.out',
+        onUpdate: () => { el.textContent = Math.round(obj.v); }
+      })
+    });
+  });
+
+  /* ============ ABOUT PORTRAIT PARALLAX ============ */
+  const stage = document.querySelector('.portrait-stage');
+  if (stage && !coarse) {
+    const layers = stage.querySelectorAll('[data-depth]');
+    stage.addEventListener('mousemove', (e) => {
+      const r = stage.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      layers.forEach((l) => {
+        const d = parseFloat(l.dataset.depth);
+        gsap.to(l, { x: px * 60 * d, y: py * 60 * d, duration: 0.6, ease: 'power2.out' });
+      });
+    });
+    stage.addEventListener('mouseleave', () => {
+      layers.forEach((l) => gsap.to(l, { x: 0, y: 0, duration: 0.8, ease: 'elastic.out(1,0.5)' }));
+    });
+  }
+  // scroll parallax on the whole portrait
+  gsap.to('.portrait', {
+    y: -60, ease: 'none',
+    scrollTrigger: { trigger: '#about', start: 'top bottom', end: 'bottom top', scrub: 1 }
+  });
+
+  /* ============ TILT CARDS ============ */
+  if (!coarse) {
+    document.querySelectorAll('.tilt').forEach((card) => {
+      card.addEventListener('mousemove', (e) => {
+        const r = card.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width - 0.5;
+        const py = (e.clientY - r.top) / r.height - 0.5;
+        card.style.setProperty('--ry', (px * 14).toFixed(2) + 'deg');
+        card.style.setProperty('--rx', (-py * 14).toFixed(2) + 'deg');
+        card.style.setProperty('--gx', (e.clientX - r.left) + 'px');
+        card.style.setProperty('--gy', (e.clientY - r.top) + 'px');
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.setProperty('--rx', '0deg');
+        card.style.setProperty('--ry', '0deg');
+      });
+    });
+  }
+
+  /* ============ HORIZONTAL GALLERY ============ */
+  const track = document.getElementById('h-track');
+  const getScroll = () => track.scrollWidth - window.innerWidth;
+  gsap.to(track, {
+    x: () => -getScroll(),
+    ease: 'none',
+    scrollTrigger: {
+      trigger: '#h-pin',
+      start: 'top top',
+      end: () => '+=' + getScroll(),
+      pin: true,
+      scrub: 1,
+      anticipatePin: 1,
+      invalidateOnRefresh: true
+    }
+  });
+
+  /* ============ TIMELINE LINE DRAW ============ */
+  gsap.to('.timeline-line', {
+    scaleY: 1, ease: 'none',
+    scrollTrigger: { trigger: '#process', start: 'top 60%', end: 'bottom 70%', scrub: 0.6 }
+  });
+
+  /* ============ CONTACT FORM ============ */
+  const form = document.getElementById('contact-form');
+  const status = document.getElementById('form-status');
+  const submitLabel = document.getElementById('submit-label');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = form.name.value.trim();
+    const email = form.email.value.trim();
+    const msg = form.message.value.trim();
+    if (!name || !email || !msg) {
+      status.textContent = '// name, email and vision are required';
+      status.style.color = '#ff6b2b';
+      gsap.fromTo(form, { x: -8 }, { x: 0, duration: 0.5, ease: 'elastic.out(1,0.3)' });
+      return;
+    }
+    status.style.color = '#d4f53c';
+    submitLabel.textContent = 'Transmitting…';
+    gsap.to(form, { opacity: 0.6, duration: 0.3 });
+    setTimeout(() => {
+      submitLabel.textContent = 'Brief received';
+      status.textContent = '// transmission complete — I will reply within 2 days';
+      gsap.to(form, { opacity: 1, duration: 0.4 });
+      form.reset();
+      setTimeout(() => { submitLabel.textContent = 'Transmit brief'; }, 3500);
+    }, 1400);
+  });
+
+  /* ============ REFRESH AFTER FONTS ============ */
+  window.addEventListener('load', () => ScrollTrigger.refresh());
+})();
+</script>
+</body>
+</html>
