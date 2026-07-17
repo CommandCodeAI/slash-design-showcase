@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mara Voss — Creative Frontend Developer</title>
+  <meta name="description" content="Mara Voss is a creative frontend developer in Copenhagen crafting immersive, award-winning web experiences at the intersection of design and code.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-loading>
+
+  <!-- Preloader -->
+  <div class="preloader" aria-hidden="true">
+    <div class="preloader-inner">
+      <p class="preloader-name">Mara Voss</p>
+      <p class="preloader-count"><span id="count">0</span></p>
+    </div>
+    <div class="preloader-curtain"></div>
+  </div>
+
+  <!-- Custom cursor -->
+  <div class="cursor" aria-hidden="true">
+    <div class="cursor-dot"></div>
+    <div class="cursor-ring"><span class="cursor-label">View</span></div>
+  </div>
+
+  <!-- Film grain -->
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- Navigation -->
+  <header class="nav">
+    <a class="nav-logo" href="#top" data-scroll>Mara Voss<sup>®</sup></a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#works" data-scroll><span class="nav-num">01</span>Work</a>
+      <a href="#about" data-scroll><span class="nav-num">02</span>About</a>
+      <a href="#process" data-scroll><span class="nav-num">03</span>Process</a>
+      <a href="#contact" data-scroll><span class="nav-num">04</span>Contact</a>
+    </nav>
+    <a class="nav-status" href="#contact" data-scroll>
+      <span class="status-dot"></span>Open for projects
+    </a>
+  </header>
+
+  <main id="top">
+
+    <!-- ============ HERO ============ -->
+    <section class="hero" aria-label="Introduction">
+      <div class="hero-inner">
+        <p class="hero-eyebrow reveal-line"><span class="line-inner">Mara Voss — Portfolio © 2026</span></p>
+
+        <h1 class="hero-title">
+          <span class="line"><span class="line-inner">Creative</span></span>
+          <span class="line line-indent"><span class="line-inner"><em>frontend</em> dev<span class="accent-dot">.</span></span></span>
+        </h1>
+
+        <div class="hero-foot">
+          <p class="hero-bio">I design and engineer immersive digital experiences where <em>typography</em>, motion and code carry equal weight. Currently crafting at <span class="nowrap">Studio Nord</span>, Copenhagen.</p>
+
+          <div class="hero-meta">
+            <div class="hero-meta-item">
+              <span class="meta-label">Location</span>
+              <span class="meta-value">Copenhagen, DK</span>
+            </div>
+            <div class="hero-meta-item">
+              <span class="meta-label">Local time</span>
+              <span class="meta-value js-clock">--:--:--</span>
+            </div>
+            <div class="hero-meta-item hero-scroll">
+              <span class="meta-label">Scroll</span>
+              <span class="scroll-line"><span class="scroll-thumb"></span></span>
+            </div>
+          </div>
+        </div>
+
+        <a class="hero-badge" href="#works" data-scroll aria-label="Scroll to selected works">
+          <svg viewBox="0 0 120 120" class="badge-spin" aria-hidden="true">
+            <defs><path id="circlePath" d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0"/></defs>
+            <text><textPath href="#circlePath">Selected work — scroll down — selected work — </textPath></text>
+          </svg>
+          <svg class="badge-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v14m0 0l-6-6m6 6l6-6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        </a>
+      </div>
+
+      <div class="marquee" aria-hidden="true">
+        <div class="marquee-track">
+          <span>Immersive web<i>✦</i>Motion design<i>✦</i>Creative development<i>✦</i>WebGL &amp; shaders<i>✦</i>Design engineering<i>✦</i></span>
+          <span>Immersive web<i>✦</i>Motion design<i>✦</i>Creative development<i>✦</i>WebGL &amp; shaders<i>✦</i>Design engineering<i>✦</i></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SELECTED WORKS ============ -->
+    <section class="works" id="works" aria-label="Selected works">
+      <header class="section-head">
+        <p class="section-label reveal-line"><span class="line-inner">01 — Selected works</span></p>
+        <h2 class="section-title">
+          <span class="line"><span class="line-inner">Work that</span></span>
+          <span class="line"><span class="line-inner"><em>earned its pixels</em></span></span>
+        </h2>
+        <div class="filters" role="group" aria-label="Filter projects">
+          <button class="filter is-active" data-filter="all">All<sup class="filter-count">5</sup></button>
+          <button class="filter" data-filter="websites">Websites<sup class="filter-count">2</sup></button>
+          <button class="filter" data-filter="interaction">Interaction<sup class="filter-count">2</sup></button>
+          <button class="filter" data-filter="experiments">Experiments<sup class="filter-count">1</sup></button>
+        </div>
+      </header>
+
+      <ul class="work-list">
+        <li class="work" data-category="websites" data-art="art-1">
+          <button class="work-head" aria-expanded="false">
+            <span class="work-index">01</span>
+            <span class="work-name">Lumen Studio</span>
+            <span class="work-tags">Design &amp; development</span>
+            <span class="work-year">2025</span>
+            <span class="work-toggle" aria-hidden="true"></span>
+          </button>
+          <div class="work-body">
+            <div class="work-body-inner">
+              <div class="work-visual art-1" role="img" aria-label="Abstract art direction for Lumen Studio"></div>
+              <div class="work-detail">
+                <p class="work-desc">An atmospheric site for a Copenhagen lighting design studio. Scenes shift from dusk to dawn as you scroll, with light rendered as the actual navigation metaphor. Recognised with an Awwwards Site of the Day.</p>
+                <ul class="work-facts">
+                  <li><span>Role</span><span>Design, development</span></li>
+                  <li><span>Stack</span><span>Next.js, GSAP, WebGL</span></li>
+                  <li><span>Year</span><span>2025</span></li>
+                  <li><span>Recognition</span><span>Awwwards SOTD</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li class="work" data-category="experiments" data-art="art-2">
+          <button class="work-head" aria-expanded="false">
+            <span class="work-index">02</span>
+            <span class="work-name">Kinetic Type Lab</span>
+            <span class="work-tags">Creative coding</span>
+            <span class="work-year">2025</span>
+            <span class="work-toggle" aria-hidden="true"></span>
+          </button>
+          <div class="work-body">
+            <div class="work-body-inner">
+              <div class="work-visual art-2" role="img" aria-label="Abstract art direction for Kinetic Type Lab"></div>
+              <div class="work-detail">
+                <p class="work-desc">A playground where variable fonts respond to cursor velocity, device tilt and sound. Built to explore how far typography can stretch before it stops being legible — and why that edge is interesting.</p>
+                <ul class="work-facts">
+                  <li><span>Role</span><span>Concept, development</span></li>
+                  <li><span>Stack</span><span>Canvas, Web Audio, variable fonts</span></li>
+                  <li><span>Year</span><span>2025</span></li>
+                  <li><span>Recognition</span><span>FWA of the Day</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li class="work" data-category="interaction" data-art="art-3">
+          <button class="work-head" aria-expanded="false">
+            <span class="work-index">03</span>
+            <span class="work-name">Aria Player</span>
+            <span class="work-tags">Product, motion</span>
+            <span class="work-year">2024</span>
+            <span class="work-toggle" aria-hidden="true"></span>
+          </button>
+          <div class="work-body">
+            <div class="work-body-inner">
+              <div class="work-visual art-3" role="img" aria-label="Abstract art direction for Aria Player"></div>
+              <div class="work-detail">
+                <p class="work-desc">A browser-native music player interface where every control is an instrument. Playback state is expressed through a living waveform sculpture instead of a progress bar.</p>
+                <ul class="work-facts">
+                  <li><span>Role</span><span>Interaction design, development</span></li>
+                  <li><span>Stack</span><span>React, Tone.js, Three.js</span></li>
+                  <li><span>Year</span><span>2024</span></li>
+                  <li><span>Recognition</span><span>CSSDA Website of the Day</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li class="work" data-category="websites" data-art="art-4">
+          <button class="work-head" aria-expanded="false">
+            <span class="work-index">04</span>
+            <span class="work-name">Nord Botanica</span>
+            <span class="work-tags">E-commerce</span>
+            <span class="work-year">2024</span>
+            <span class="work-toggle" aria-hidden="true"></span>
+          </button>
+          <div class="work-body">
+            <div class="work-body-inner">
+              <div class="work-visual art-4" role="img" aria-label="Abstract art direction for Nord Botanica"></div>
+              <div class="work-detail">
+                <p class="work-desc">A slow-commerce experience for a rare plant studio. Product pages unfold like botanical plates — measured, quiet, deliberate — while the cart stays one gesture away at all times.</p>
+                <ul class="work-facts">
+                  <li><span>Role</span><span>Design, development</span></li>
+                  <li><span>Stack</span><span>Shopify Hydrogen, Remix</span></li>
+                  <li><span>Year</span><span>2024</span></li>
+                  <li><span>Recognition</span><span>Awwwards Honorable Mention</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li class="work" data-category="interaction" data-art="art-5">
+          <button class="work-head" aria-expanded="false">
+            <span class="work-index">05</span>
+            <span class="work-name">Particle Field</span>
+            <span class="work-tags">WebGL playground</span>
+            <span class="work-year">2023</span>
+            <span class="work-toggle" aria-hidden="true"></span>
+          </button>
+          <div class="work-body">
+            <div class="work-body-inner">
+              <div class="work-visual art-5" role="img" aria-label="Abstract art direction for Particle Field"></div>
+              <div class="work-detail">
+                <p class="work-desc">One hundred thousand particles simulated on the GPU, flocking to the pointer and scattering on click. A study in making raw computation feel alive rather than technical.</p>
+                <ul class="work-facts">
+                  <li><span>Role</span><span>Concept, development</span></li>
+                  <li><span>Stack</span><span>WebGL, GPGPU shaders</span></li>
+                  <li><span>Year</span><span>2023</span></li>
+                  <li><span>Recognition</span><span>Chrome Experiments</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ul>
+
+      <!-- Floating hover preview -->
+      <div class="work-preview" aria-hidden="true"><div class="work-preview-art"></div></div>
+    </section>
+
+    <!-- ============ ABOUT ============ -->
+    <section class="about" id="about" aria-label="About Mara Voss">
+      <div class="about-grid">
+        <div class="about-sticky">
+          <p class="section-label reveal-line"><span class="line-inner">02 — About</span></p>
+          <div class="about-portrait" role="img" aria-label="Abstract portrait of Mara Voss">
+            <span class="portrait-mono">MV</span>
+          </div>
+        </div>
+
+        <div class="about-content">
+          <h2 class="about-lede">
+            <span class="line"><span class="line-inner">I build interfaces the way</span></span>
+            <span class="line"><span class="line-inner">editors build pages — every</span></span>
+            <span class="line"><span class="line-inner">element <em>earning its place</em>.</span></span>
+          </h2>
+
+          <div class="about-cols">
+            <p>For the past seven years I have worked between design studios and engineering teams, which means I speak both dialects fluently. I sketch in Figma and finish in the browser, because the medium has opinions that mockups cannot.</p>
+            <p>My work has been recognised by Awwwards, FWA and CSS Design Awards. I care about the last 4 percent — the easing curve, the focus ring, the 60fps — because that is where trust is built.</p>
+          </div>
+
+          <div class="about-stats">
+            <div class="stat"><span class="stat-num" data-count="7">0</span><span class="stat-label">Years of practice</span></div>
+            <div class="stat"><span class="stat-num" data-count="40">0</span><span class="stat-label">Projects shipped</span></div>
+            <div class="stat"><span class="stat-num" data-count="12">0</span><span class="stat-label">Awards &amp; mentions</span></div>
+          </div>
+
+          <div class="about-lists">
+            <div class="about-list">
+              <h3 class="list-title">Capabilities</h3>
+              <ul>
+                <li>Creative development</li>
+                <li>Interaction &amp; motion design</li>
+                <li>WebGL &amp; shader programming</li>
+                <li>Design systems engineering</li>
+                <li>Performance &amp; accessibility</li>
+              </ul>
+            </div>
+            <div class="about-list">
+              <h3 class="list-title">Recognition</h3>
+              <ul>
+                <li><span>Awwwards</span><span>Site of the Day ×3</span></li>
+                <li><span>FWA</span><span>FWA of the Day ×2</span></li>
+                <li><span>CSSDA</span><span>Website of the Day</span></li>
+                <li><span>The Webby Awards</span><span>Honoree, 2024</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PROCESS ============ -->
+    <section class="process" id="process" aria-label="Process">
+      <div class="process-pin">
+        <header class="process-head">
+          <p class="section-label reveal-line"><span class="line-inner">03 — Process</span></p>
+          <h2 class="section-title">
+            <span class="line"><span class="line-inner">Four moves,</span></span>
+            <span class="line"><span class="line-inner"><em>no theatre</em></span></span>
+          </h2>
+        </header>
+
+        <div class="process-track">
+          <article class="step">
+            <span class="step-num">01</span>
+            <h3 class="step-title">Discover</h3>
+            <p class="step-desc">Every project starts with immersion — your users, your constraints, your ambition. I audit what exists, gather references far outside the industry, and define the single idea the experience must communicate.</p>
+            <ul class="step-meta"><li>Stakeholder interviews</li><li>Content &amp; technical audit</li><li>Creative brief</li></ul>
+          </article>
+          <article class="step">
+            <span class="step-num">02</span>
+            <h3 class="step-title">Design</h3>
+            <p class="step-desc">Art direction first: typography, color, rhythm. Then motion studies — because how a thing moves is part of what it means. I prototype in the browser early so decisions are tested against reality, not against a picture of reality.</p>
+            <ul class="step-meta"><li>Art direction</li><li>Motion studies</li><li>Browser prototypes</li></ul>
+          </article>
+          <article class="step">
+            <span class="step-num">03</span>
+            <h3 class="step-title">Develop</h3>
+            <p class="step-desc">Semantic, accessible, fast. Animation runs on the compositor, layouts hold under the longest German compound noun, and the whole thing ships at a Lighthouse score your competitors will screenshot.</p>
+            <ul class="step-meta"><li>Semantic HTML</li><li>60fps motion</li><li>Performance budget</li></ul>
+          </article>
+          <article class="step">
+            <span class="step-num">04</span>
+            <h3 class="step-title">Deliver</h3>
+            <p class="step-desc">Launch is a beginning, not an ending. I test across real devices, hand over documentation people actually read, and stay through the first iteration cycle to watch real users meet the work.</p>
+            <ul class="step-meta"><li>Device QA</li><li>Documentation</li><li>Post-launch iteration</li></ul>
+          </article>
+          <div class="process-endcap" aria-hidden="true">
+            <a href="#contact" data-scroll class="endcap-link">Ready when<br>you are <span class="endcap-arrow">→</span></a>
+          </div>
+        </div>
+
+        <div class="process-progress" aria-hidden="true"><span class="progress-bar"></span></div>
+      </div>
+    </section>
+
+    <!-- ============ CONTACT ============ -->
+    <section class="contact" id="contact" aria-label="Contact">
+      <p class="section-label reveal-line"><span class="line-inner">04 — Contact</span></p>
+
+      <h2 class="contact-title">
+        <span class="line"><span class="line-inner">Have an idea?</span></span>
+        <span class="line"><span class="line-inner">Let's make it <em>impossible</em></span></span>
+        <span class="line"><span class="line-inner"><em>to scroll past.</em></span></span>
+      </h2>
+
+      <a class="contact-email" href="mailto:hello@maravoss.dev">
+        <span class="roll"><span class="roll-top">hello@maravoss.dev</span><span class="roll-bottom">hello@maravoss.dev</span></span>
+        <span class="email-arrow" aria-hidden="true">↗</span>
+      </a>
+
+      <div class="contact-cta">
+        <a class="btn-magnetic" href="mailto:hello@maravoss.dev?subject=Project%20inquiry">
+          <span class="btn-fill" aria-hidden="true"></span>
+          <span class="btn-label">Start a project</span>
+        </a>
+        <p class="contact-note">Currently booking for <em>Q3 2026</em>. Replies within 48 hours.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <span class="footer-label">Sitemap</span>
+        <a href="#works" data-scroll>Work</a>
+        <a href="#about" data-scroll>About</a>
+        <a href="#process" data-scroll>Process</a>
+        <a href="#contact" data-scroll>Contact</a>
+      </div>
+      <div class="footer-col">
+        <span class="footer-label">Elsewhere</span>
+        <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://dribbble.com" target="_blank" rel="noopener">Dribbble</a>
+        <a href="https://www.linkedin.com" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://x.com" target="_blank" rel="noopener">X / Twitter</a>
+      </div>
+      <div class="footer-col footer-col-right">
+        <span class="footer-label">Copenhagen, Denmark</span>
+        <span class="footer-time js-clock">--:--:--</span>
+        <button class="to-top" data-scroll-to-top>Back to top <span aria-hidden="true">↑</span></button>
+      </div>
+    </div>
+    <div class="footer-base">
+      <span>© 2026 Mara Voss. All rights reserved.</span>
+      <span class="footer-credit">Designed &amp; built with unreasonable attention to detail.</span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
