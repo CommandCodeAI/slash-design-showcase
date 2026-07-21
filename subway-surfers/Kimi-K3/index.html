@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Metro Dash 3D</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(120% 100% at 50% 0%, #241242 0%, #10081f 75%);
+    overflow: hidden;
+    font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+    -webkit-user-select: none; user-select: none;
+    padding:40px;
+  }
+  #stage {
+    position: relative;
+    width: min(100vw, 520px);
+    height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 0 90px rgba(120,60,180,.35);
+    touch-action: none;
+    cursor: pointer;
+  }
+  canvas { display: block; }
+  .pill {
+    position: absolute; top: 14px; z-index: 5;
+    background: rgba(18,9,36,.55);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 14px;
+    padding: 8px 14px;
+    color: #fff;
+    pointer-events: none;
+  }
+  #score-pill { left: 14px; }
+  #score-pill .num { font-size: 26px; font-weight: 900; letter-spacing: 1px; line-height: 1; }
+  #score-pill .sub { font-size: 10px; font-weight: 700; opacity: .7; letter-spacing: 1px; margin-top: 3px; }
+  #coin-pill { right: 14px; display: flex; align-items: center; gap: 8px; }
+  #coin-pill .dot {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #ffe98a, #f5a623 70%);
+    box-shadow: 0 0 8px rgba(255,210,63,.8);
+  }
+  #coin-pill .num { font-size: 22px; font-weight: 900; }
+  .overlay {
+    position: absolute; inset: 0; z-index: 10;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: rgba(14,7,30,.66);
+    backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
+    text-align: center;
+    transition: opacity .35s ease;
+  }
+  .overlay.hidden { opacity: 0; pointer-events: none; }
+  .logo {
+    font-size: 64px; font-weight: 900; line-height: .95; letter-spacing: 2px;
+    background: linear-gradient(180deg, #ffd23f 20%, #ff8c5a 80%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 4px 18px rgba(255,150,60,.45));
+  }
+  .logo span {
+    display: block;
+    background: linear-gradient(180deg, #5ff2df, #2ec4b6);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .tagline { color: rgba(255,255,255,.9); font-weight: 700; font-size: 16px; margin-top: 18px; }
+  .controls { color: rgba(255,255,255,.6); font-weight: 600; font-size: 12.5px; line-height: 1.9; margin-top: 10px; }
+  .hint {
+    margin-top: 34px; color: #ffd23f; font-weight: 900; font-size: 17px; letter-spacing: 1px;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+  .panel {
+    background: rgba(28,15,52,.92);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 22px;
+    padding: 34px 46px 30px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.5);
+  }
+  .wipeout { color: #ff4757; font-size: 42px; font-weight: 900; letter-spacing: 2px; }
+  .badge {
+    display: inline-block; margin-top: 12px; padding: 4px 16px;
+    background: #2ec4b6; color: #06302b; font-weight: 900; font-size: 12px;
+    border-radius: 999px; letter-spacing: 1px;
+  }
+  .badge.hidden { display: none; }
+  .final { color: #fff; font-size: 52px; font-weight: 900; margin-top: 10px; }
+  .stats { color: rgba(255,255,255,.6); font-weight: 700; font-size: 13px; margin-top: 6px; letter-spacing: 1px; }
+  #again {
+    margin-top: 24px; padding: 14px 44px;
+    font: 900 18px "Trebuchet MS", sans-serif; letter-spacing: 1px;
+    color: #3a2405; background: linear-gradient(180deg, #ffd23f, #ffb03a);
+    border: 0; border-radius: 999px; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(255,178,58,.4);
+    transition: transform .12s ease;
+  }
+  #again:hover { transform: translateY(-2px) scale(1.03); }
+  .or { color: rgba(255,255,255,.45); font-weight: 600; font-size: 12px; margin-top: 12px; }
+  #flash {
+    position: absolute; inset: 0; z-index: 8; pointer-events: none;
+    background: radial-gradient(ellipse at center, rgba(255,60,60,.45), rgba(180,0,30,.7));
+    opacity: 0; transition: opacity .5s ease;
+  }
+  #flash.on { opacity: 1; transition: opacity .05s ease; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="score-pill" class="pill" style="visibility:hidden">
+    <div class="num" id="score">000000</div>
+    <div class="sub">SCORE · BEST <span id="best">0</span></div>
+  </div>
+  <div id="coin-pill" class="pill" style="visibility:hidden">
+    <div class="dot"></div><div class="num">×<span id="coins">0</span></div>
+  </div>
+  <div id="flash"></div>
+
+  <div id="title" class="overlay">
+    <div class="logo">METRO<span>DASH</span></div>
+    <div class="tagline">Dodge the trains. Grab the coins.</div>
+    <div class="controls">
+      ↑ / swipe up — jump &nbsp;·&nbsp; ↓ / swipe down — slide<br>
+      ← → / swipe — switch lane
+    </div>
+    <div class="hint">TAP OR PRESS SPACE TO RUN</div>
+  </div>
+
+  <div id="over" class="overlay hidden">
+    <div class="panel">
+      <div class="wipeout">WIPEOUT</div>
+      <div><span id="newbest" class="badge hidden">NEW BEST</span></div>
+      <div class="final" id="final">0</div>
+      <div class="stats" id="stats">BEST 0 · 0 COINS</div>
+      <button id="again">RUN AGAIN</button>
+      <div class="or">or press space</div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+let THREE;
+try {
+  THREE = await import("https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js");
+} catch (e) {
+  THREE = await import("https://unpkg.com/three@0.160.0/build/three.module.js");
+}
+
+const stage = document.getElementById("stage");
+const ui = {
+  score: document.getElementById("score"), best: document.getElementById("best"),
+  coins: document.getElementById("coins"), title: document.getElementById("title"),
+  over: document.getElementById("over"), final: document.getElementById("final"),
+  stats: document.getElementById("stats"), newbest: document.getElementById("newbest"),
+  again: document.getElementById("again"), flash: document.getElementById("flash"),
+  scorePill: document.getElementById("score-pill"), coinPill: document.getElementById("coin-pill")
+};
+
+const LANE_X = 2.4, SPAWN_Z = -150;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+function canvasTex(w, h, draw, srgb = true) {
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  draw(c.getContext("2d"), w, h);
+  const t = new THREE.CanvasTexture(c);
+  if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+
+const skyTex = canvasTex(512, 512, (g, w, h) => {
+  const grad = g.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, "#1e0d42");
+  grad.addColorStop(0.42, "#6d2585");
+  grad.addColorStop(0.68, "#c94f7c");
+  grad.addColorStop(0.86, "#ff9558");
+  grad.addColorStop(1, "#ffb47a");
+  g.fillStyle = grad; g.fillRect(0, 0, w, h);
+  const sun = g.createRadialGradient(w * 0.68, h * 0.72, 6, w * 0.68, h * 0.72, 165);
+  sun.addColorStop(0, "rgba(255,240,190,1)");
+  sun.addColorStop(0.25, "rgba(255,205,120,0.85)");
+  sun.addColorStop(1, "rgba(255,170,90,0)");
+  g.fillStyle = sun; g.fillRect(0, 0, w, h);
+  g.fillStyle = "#fff3cf";
+  g.beginPath(); g.arc(w * 0.68, h * 0.72, 26, 0, 7); g.fill();
+});
+skyTex.wrapS = skyTex.wrapT = THREE.ClampToEdgeWrapping;
+
+const glowTex = canvasTex(64, 64, (g) => {
+  const r = g.createRadialGradient(32, 32, 2, 32, 32, 31);
+  r.addColorStop(0, "rgba(255,230,170,1)");
+  r.addColorStop(0.4, "rgba(255,210,130,0.5)");
+  r.addColorStop(1, "rgba(255,200,110,0)");
+  g.fillStyle = r; g.fillRect(0, 0, 64, 64);
+}, false);
+
+const roadTex = canvasTex(256, 512, (g, w, h) => {
+  g.fillStyle = "#2f2b45"; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 900; i++) {
+    g.fillStyle = `rgba(${Math.random() > 0.5 ? "255,255,255" : "0,0,0"},${rnd(0.02, 0.07)})`;
+    g.fillRect(rnd(0, w), rnd(0, h), 2, 2);
+  }
+  g.fillStyle = "rgba(255,217,123,0.85)";
+  g.fillRect(6, 0, 5, h); g.fillRect(w - 11, 0, 5, h);
+  g.fillStyle = "rgba(205,198,230,0.85)";
+  for (let y = 0; y < h; y += 128) {
+    g.fillRect(w / 3 - 4, y, 8, 58);
+    g.fillRect(2 * w / 3 - 4, y, 8, 58);
+  }
+});
+roadTex.repeat.set(1, 6);
+
+const walkTex = canvasTex(128, 512, (g, w, h) => {
+  g.fillStyle = "#46416a"; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 500; i++) {
+    g.fillStyle = `rgba(0,0,0,${rnd(0.02, 0.08)})`;
+    g.fillRect(rnd(0, w), rnd(0, h), 2, 2);
+  }
+  g.fillStyle = "rgba(0,0,0,0.28)";
+  for (let y = 0; y < h; y += 86) g.fillRect(0, y, w, 3);
+});
+walkTex.repeat.set(1, 24);
+
+function buildingTexSet(base) {
+  const cols = 6, rows = 12;
+  const map = canvasTex(256, 512, (g, w, h) => {
+    g.fillStyle = base; g.fillRect(0, 0, w, h);
+    const v = g.createLinearGradient(0, 0, w, 0);
+    v.addColorStop(0, "rgba(0,0,0,0.35)"); v.addColorStop(0.5, "rgba(255,255,255,0.06)"); v.addColorStop(1, "rgba(0,0,0,0.35)");
+    g.fillStyle = v; g.fillRect(0, 0, w, h);
+    const cw = w / cols, ch = h / rows;
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      g.fillStyle = "#1c1630";
+      g.fillRect(c * cw + cw * 0.22, r * ch + ch * 0.2, cw * 0.56, ch * 0.52);
+    }
+  });
+  const emissive = canvasTex(256, 512, (g, w, h) => {
+    g.fillStyle = "#000"; g.fillRect(0, 0, w, h);
+    const cw = w / cols, ch = h / rows;
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      if (Math.random() < 0.34) {
+        g.fillStyle = pick(["#ffcf7a", "#ffdca0", "#ffb85e", "#cfe8ff"]);
+        g.globalAlpha = rnd(0.5, 1);
+        g.fillRect(c * cw + cw * 0.22, r * ch + ch * 0.2, cw * 0.56, ch * 0.52);
+      }
+    }
+    g.globalAlpha = 1;
+  });
+  return { map, emissive };
+}
+
+const stripeTex = canvasTex(128, 64, (g, w, h) => {
+  g.fillStyle = "#f4f4f8"; g.fillRect(0, 0, w, h);
+  g.fillStyle = "#ff6b35";
+  for (let i = -1; i < 5; i++) {
+    g.beginPath();
+    g.moveTo(i * 42, h); g.lineTo(i * 42 + 22, h);
+    g.lineTo(i * 42 + 22 + h, 0); g.lineTo(i * 42 + h, 0);
+    g.closePath(); g.fill();
+  }
+});
+
+const chevTex = canvasTex(256, 96, (g, w, h) => {
+  g.fillStyle = "#ffd23f"; g.fillRect(0, 0, w, h);
+  g.fillStyle = "#23203a";
+  for (let i = 0; i < 5; i++) {
+    const x = i * 56;
+    g.beginPath();
+    g.moveTo(x, h * 0.18); g.lineTo(x + 28, h * 0.82); g.lineTo(x + 56, h * 0.18);
+    g.lineTo(x + 56, h * 0.42); g.lineTo(x + 28, h * 1.02); g.lineTo(x, h * 0.42);
+    g.closePath(); g.fill();
+  }
+});
+
+const silTex = canvasTex(1024, 160, (g, w, h) => {
+  g.clearRect(0, 0, w, h);
+  let x = 0;
+  while (x < w) {
+    const bw = rnd(30, 80), bh = rnd(40, 150);
+    g.fillStyle = pick(["#35205c", "#2c1a4e", "#3d2568"]);
+    g.fillRect(x, h - bh, bw, bh);
+    g.fillStyle = "rgba(255,207,122,0.75)";
+    for (let i = 0; i < bw * bh / 260; i++)
+      if (Math.random() < 0.4) g.fillRect(x + rnd(4, bw - 6), h - bh + rnd(4, bh - 8), 3, 4);
+    x += bw + rnd(4, 18);
+  }
+});
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(stage.clientWidth, stage.clientHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+stage.insertBefore(renderer.domElement, stage.firstChild);
+
+const scene = new THREE.Scene();
+scene.background = skyTex;
+scene.fog = new THREE.Fog(0x7a3d6e, 55, 165);
+
+const camera = new THREE.PerspectiveCamera(62, stage.clientWidth / stage.clientHeight, 0.1, 400);
+camera.position.set(0, 4.7, 7.6);
+
+scene.add(new THREE.HemisphereLight(0x9a5fb0, 0x241d38, 1.05));
+scene.add(new THREE.AmbientLight(0x403060, 0.55));
+const sun = new THREE.DirectionalLight(0xffb066, 1.9);
+sun.position.set(9, 13, 5);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.camera.left = -14; sun.shadow.camera.right = 14;
+sun.shadow.camera.top = 16; sun.shadow.camera.bottom = -26;
+sun.shadow.camera.far = 50;
+sun.shadow.bias = -0.002;
+const sunTarget = new THREE.Object3D();
+sunTarget.position.set(0, 0, -8);
+scene.add(sunTarget);
+sun.target = sunTarget;
+scene.add(sun);
+
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(500, 500),
+  new THREE.MeshStandardMaterial({ color: 0x262040, roughness: 1 })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.position.set(0, -0.02, -120);
+ground.receiveShadow = true;
+scene.add(ground);
+
+const road = new THREE.Mesh(
+  new THREE.PlaneGeometry(7.2, 320),
+  new THREE.MeshStandardMaterial({ map: roadTex, roughness: 0.95 })
+);
+road.rotation.x = -Math.PI / 2;
+road.position.set(0, 0, -130);
+road.receiveShadow = true;
+scene.add(road);
+
+for (const side of [-1, 1]) {
+  const walk = new THREE.Mesh(
+    new THREE.PlaneGeometry(2.4, 320),
+    new THREE.MeshStandardMaterial({ map: walkTex.clone(), roughness: 1 })
+  );
+  walk.material.map.needsUpdate = true;
+  walk.rotation.x = -Math.PI / 2;
+  walk.position.set(side * 4.8, 0.05, -130);
+  walk.receiveShadow = true;
+  scene.add(walk);
+}
+
+const ring = new THREE.Mesh(
+  new THREE.CylinderGeometry(130, 130, 40, 64, 1, true),
+  new THREE.MeshBasicMaterial({ map: silTex, transparent: true, side: THREE.BackSide, fog: false, depthWrite: false })
+);
+ring.position.y = 11;
+scene.add(ring);
+
+const clouds = [];
+for (let i = 0; i < 5; i++) {
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffc9e0, transparent: true, opacity: 0.35, fog: false, depthWrite: false }));
+  sp.position.set(rnd(-90, 90), rnd(22, 46), rnd(-140, -60));
+  sp.scale.set(rnd(24, 46), rnd(7, 12), 1);
+  clouds.push(sp); scene.add(sp);
+}
+
+const bldMats = ["#4a2d7a", "#5b3a8c", "#3b2566"].map(c => {
+  const t = buildingTexSet(c);
+  return new THREE.MeshStandardMaterial({
+    map: t.map, emissiveMap: t.emissive, emissive: 0xffc06a,
+    emissiveIntensity: 0.9, roughness: 0.9
+  });
+});
+const bldGeo = new THREE.BoxGeometry(1, 1, 1);
+bldGeo.translate(0, 0.5, 0);
+const buildings = [];
+for (let i = 0; i < 30; i++) {
+  const side = i % 2 ? 1 : -1;
+  const m = new THREE.Mesh(bldGeo, pick(bldMats));
+  m.scale.set(rnd(3, 5.5), rnd(5, 15), rnd(3, 5.5));
+  m.position.set(side * rnd(7.6, 14), 0, -160 + i * 11 + rnd(-4, 4));
+  scene.add(m);
+  buildings.push(m);
+}
+
+const lampHeadMat = new THREE.MeshStandardMaterial({ color: 0xffd9a0, emissive: 0xffc477, emissiveIntensity: 2.2 });
+const lampPoleMat = new THREE.MeshStandardMaterial({ color: 0x241d3a, roughness: 0.7, metalness: 0.4 });
+const lamps = [];
+for (let i = 0; i < 12; i++) {
+  const side = i % 2 ? 1 : -1;
+  const g = new THREE.Group();
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 3.4, 8), lampPoleMat);
+  pole.position.y = 1.7; pole.castShadow = true; g.add(pole);
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.07, 0.07), lampPoleMat);
+  arm.position.set(-side * 0.45, 3.4, 0); g.add(arm);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 10), lampHeadMat);
+  head.position.set(-side * 0.9, 3.36, 0); g.add(head);
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffd9a0, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }));
+  glow.position.copy(head.position);
+  glow.scale.set(1.7, 1.7, 1);
+  g.add(glow);
+  g.position.set(side * 3.9, 0, -165 + i * 15);
+  scene.add(g);
+  lamps.push(g);
+}
+
+const goldMat = new THREE.MeshStandardMaterial({ color: 0xffd23f, metalness: 0.85, roughness: 0.28, emissive: 0x553300, emissiveIntensity: 0.5 });
+const coinGeo = new THREE.CylinderGeometry(0.34, 0.34, 0.09, 26);
+coinGeo.rotateX(Math.PI / 2);
+const coinInnerGeo = new THREE.CylinderGeometry(0.22, 0.22, 0.1, 22);
+coinInnerGeo.rotateX(Math.PI / 2);
+const goldInner = new THREE.MeshStandardMaterial({ color: 0xffe98a, metalness: 0.8, roughness: 0.35, emissive: 0x664400, emissiveIntensity: 0.5 });
+
+function makeCoin(y) {
+  const g = new THREE.Group();
+  const outer = new THREE.Mesh(coinGeo, goldMat);
+  const inner = new THREE.Mesh(coinInnerGeo, goldInner);
+  outer.castShadow = true;
+  g.add(outer, inner);
+  g.position.y = y;
+  return g;
+}
+
+const legMat = new THREE.MeshStandardMaterial({ color: 0x2b2d42, roughness: 0.8 });
+const boardMat = new THREE.MeshStandardMaterial({ map: stripeTex, roughness: 0.7 });
+const blinkMat = new THREE.MeshStandardMaterial({ color: 0xff6b35, emissive: 0xff4400, emissiveIntensity: 2 });
+function makeBarrier() {
+  const g = new THREE.Group();
+  for (const s of [-1, 1]) {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.52, 0.14), legMat);
+    leg.position.set(s * 0.8, 0.26, 0);
+    leg.castShadow = true;
+    g.add(leg);
+  }
+  const board = new THREE.Mesh(new THREE.BoxGeometry(1.95, 0.46, 0.12), boardMat);
+  board.position.y = 0.62;
+  board.castShadow = true;
+  g.add(board);
+  const blinker = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), blinkMat.clone());
+  blinker.position.set(0, 0.92, 0);
+  g.add(blinker);
+  g.userData.blinker = blinker;
+  return g;
+}
+
+const poleMat = new THREE.MeshStandardMaterial({ color: 0x55506e, roughness: 0.6, metalness: 0.5 });
+const signMat = new THREE.MeshStandardMaterial({ map: chevTex, roughness: 0.7, emissive: 0x332200, emissiveIntensity: 0.4 });
+function makeSign() {
+  const g = new THREE.Group();
+  for (const s of [-1, 1]) {
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.1, 8), poleMat);
+    pole.position.set(s * 1.2, 1.05, 0);
+    pole.castShadow = true;
+    g.add(pole);
+  }
+  const board = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.8, 0.09), signMat);
+  board.position.y = 1.45;
+  board.castShadow = true;
+  g.add(board);
+  return g;
+}
+
+const windshieldMat = new THREE.MeshStandardMaterial({ color: 0x9fd8ff, emissive: 0x7fc4f0, emissiveIntensity: 0.7, roughness: 0.2, metalness: 0.3 });
+const headlightMat = new THREE.MeshStandardMaterial({ color: 0xfff2b0, emissive: 0xffe88a, emissiveIntensity: 3 });
+const trainDark = new THREE.MeshStandardMaterial({ color: 0x23203a, roughness: 0.8 });
+const TRAIN_COLORS = [0x2ec4b6, 0xe71d36, 0xff9f1c, 0x7b5ea7];
+function makeTrain(len, color) {
+  const g = new THREE.Group();
+  const bodyMat = new THREE.MeshStandardMaterial({ color, roughness: 0.45, metalness: 0.25 });
+  const roofMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(color).multiplyScalar(0.55), roughness: 0.7 });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(2.05, 2.35, len), bodyMat);
+  body.position.set(0, 1.32, -len / 2);
+  body.castShadow = true;
+  g.add(body);
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(1.85, 0.22, len * 0.96), roofMat);
+  roof.position.set(0, 2.6, -len / 2);
+  roof.castShadow = true;
+  g.add(roof);
+  for (const bz of [-len * 0.18, -len * 0.82]) {
+    const bogie = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.45, len * 0.18), trainDark);
+    bogie.position.set(0, 0.32, bz);
+    g.add(bogie);
+  }
+  const shield = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.8, 0.06), windshieldMat);
+  shield.position.set(0, 1.85, 0.04);
+  g.add(shield);
+  const stripe = new THREE.Mesh(new THREE.BoxGeometry(2.07, 0.2, 0.05), new THREE.MeshStandardMaterial({ color: 0xf4f4f8, roughness: 0.5 }));
+  stripe.position.set(0, 0.95, 0.03);
+  g.add(stripe);
+  for (const s of [-1, 1]) {
+    const light = new THREE.Mesh(new THREE.CircleGeometry(0.13, 12), headlightMat);
+    light.position.set(s * 0.62, 0.55, 0.06);
+    g.add(light);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xfff2b0, transparent: true, opacity: 0.7, depthWrite: false, blending: THREE.AdditiveBlending }));
+    glow.position.set(s * 0.62, 0.55, 0.15);
+    glow.scale.set(0.9, 0.9, 1);
+    g.add(glow);
+  }
+  const bumper = new THREE.Mesh(new THREE.BoxGeometry(2.08, 0.3, 0.12), trainDark);
+  bumper.position.set(0, 0.22, 0.02);
+  g.add(bumper);
+  return g;
+}
+
+function makePlayer() {
+  const root = new THREE.Group();
+  const body = new THREE.Group();
+  root.add(body);
+  const skin = new THREE.MeshStandardMaterial({ color: 0xf4a261, roughness: 0.75 });
+  const hoodie = new THREE.MeshStandardMaterial({ color: 0xffd23f, roughness: 0.85, emissive: 0x553a00, emissiveIntensity: 0.4 });
+  const hoodieDark = new THREE.MeshStandardMaterial({ color: 0xe0a829, roughness: 0.85 });
+  const pants = new THREE.MeshStandardMaterial({ color: 0x2b2d42, roughness: 0.85 });
+  const shoe = new THREE.MeshStandardMaterial({ color: 0xf4f4f8, roughness: 0.6 });
+  const capM = new THREE.MeshStandardMaterial({ color: 0x2ec4b6, roughness: 0.7 });
+  const pack = new THREE.MeshStandardMaterial({ color: 0xe71d36, roughness: 0.8 });
+
+  const mk = (geo, mat, x, y, z, parent) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x, y, z);
+    m.castShadow = true;
+    (parent || body).add(m);
+    return m;
+  };
+
+  const torso = mk(new THREE.BoxGeometry(0.6, 0.62, 0.4), hoodie, 0, 1.18, 0);
+  mk(new THREE.BoxGeometry(0.34, 0.2, 0.06), hoodieDark, 0, 1.05, 0.21);
+  mk(new THREE.BoxGeometry(0.42, 0.52, 0.22), pack, 0, 1.22, -0.31);
+  mk(new THREE.BoxGeometry(0.09, 0.4, 0.05), pack, -0.18, 1.32, 0.2);
+  mk(new THREE.BoxGeometry(0.09, 0.4, 0.05), pack, 0.18, 1.32, 0.2);
+
+  const head = mk(new THREE.SphereGeometry(0.27, 20, 16), skin, 0, 1.66, 0);
+  const cap = mk(new THREE.SphereGeometry(0.285, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), capM, 0, 1.7, 0);
+  mk(new THREE.BoxGeometry(0.34, 0.05, 0.24), capM, 0, 1.72, 0.3);
+
+  const legL = new THREE.Group(); legL.position.set(-0.16, 0.92, 0); body.add(legL);
+  const legR = new THREE.Group(); legR.position.set(0.16, 0.92, 0); body.add(legR);
+  mk(new THREE.BoxGeometry(0.2, 0.52, 0.22), pants, 0, -0.26, 0, legL);
+  mk(new THREE.BoxGeometry(0.2, 0.52, 0.22), pants, 0, -0.26, 0, legR);
+  mk(new THREE.BoxGeometry(0.22, 0.12, 0.32), shoe, 0, -0.5, 0.05, legL);
+  mk(new THREE.BoxGeometry(0.22, 0.12, 0.32), shoe, 0, -0.5, 0.05, legR);
+
+  const armL = new THREE.Group(); armL.position.set(-0.37, 1.42, 0); body.add(armL);
+  const armR = new THREE.Group(); armR.position.set(0.37, 1.42, 0); body.add(armR);
+  mk(new THREE.BoxGeometry(0.16, 0.3, 0.18), hoodie, 0, -0.13, 0, armL);
+  mk(new THREE.BoxGeometry(0.16, 0.3, 0.18), hoodie, 0, -0.13, 0, armR);
+  mk(new THREE.BoxGeometry(0.14, 0.22, 0.15), skin, 0, -0.38, 0, armL);
+  mk(new THREE.BoxGeometry(0.14, 0.22, 0.15), skin, 0, -0.38, 0, armR);
+
+  return { root, body, legL, legR, armL, armR };
+}
+
+const player3d = makePlayer();
+scene.add(player3d.root);
+
+let state, dist, coinCount, speed, spawnAcc, tailPad, shakeT, deadT, runPhase, time;
+let player, ents, best = +(localStorage.getItem("metroDash3dBest") || 0), newBest;
+ui.best.textContent = best;
+
+function reset(toTitle) {
+  for (const e of ents) scene.remove(e.mesh);
+  ents = [];
+  player = { x: 0, lane: 0, y: 0, vy: 0, grounded: true, sliding: 0 };
+  player3d.root.position.set(0, 0, 0);
+  player3d.root.rotation.set(0, 0, 0);
+  player3d.body.rotation.set(0, 0, 0);
+  player3d.body.position.set(0, 0, 0);
+  dist = 0; coinCount = 0; speed = 30; spawnAcc = 0; tailPad = 0;
+  shakeT = 0; deadT = 0; runPhase = 0; newBest = false;
+  ui.score.textContent = "000000";
+  ui.coins.textContent = "0";
+  state = toTitle ? "title" : "play";
+  ui.title.classList.toggle("hidden", !toTitle);
+  ui.over.classList.add("hidden");
+  ui.scorePill.style.visibility = toTitle ? "hidden" : "visible";
+  ui.coinPill.style.visibility = toTitle ? "hidden" : "visible";
+}
+
+function spawnCoinLine(lane, n, z0, y) {
+  for (let i = 0; i < n; i++) {
+    const mesh = makeCoin(y);
+    mesh.position.x = lane * LANE_X;
+    scene.add(mesh);
+    ents.push({ kind: "coin", lane, z: z0 - i * 2.6, y, mesh, ph: rnd(0, 6) });
+  }
+}
+
+function spawnPattern() {
+  const z0 = SPAWN_Z - tailPad;
+  tailPad = 0;
+  const r = Math.random();
+  const a = pick([-1, 0, 1]);
+  const others = [-1, 0, 1].filter(l => l !== a);
+  const diff = (speed - 30) / 50;
+
+  if (r < 0.26) {
+    spawnCoinLine(a, 6 + (Math.random() * 4 | 0), z0, 0.55);
+  } else if (r < 0.5) {
+    addEnt("barrier", a, z0);
+    if (Math.random() < 0.35 + diff * 0.45) addEnt("barrier", pick(others), z0);
+    if (Math.random() < 0.5) spawnCoinLine(a, 3, z0 + 2.4, 1.55);
+  } else if (r < 0.68) {
+    addEnt("sign", a, z0);
+    if (Math.random() < 0.3 + diff * 0.4) addEnt("sign", pick(others), z0);
+    if (Math.random() < 0.6) spawnCoinLine(pick(others), 4, z0 - 3, 0.55);
+  } else {
+    const len = rnd(8, 14 + diff * 6);
+    addEnt("train", a, z0, len);
+    if (Math.random() < 0.25 + diff * 0.55) addEnt("train", pick(others), z0 - rnd(-2, 3), len * rnd(0.7, 1.1));
+    const free = [-1, 0, 1].find(l => !ents.some(e => e.kind === "train" && e.lane === l && Math.abs(e.z - z0) < 6));
+    if (free !== undefined && Math.random() < 0.7) spawnCoinLine(free, 5, z0 - 2, 0.55);
+    tailPad = len + 6;
+  }
+}
+
+function addEnt(kind, lane, z, len) {
+  let mesh;
+  if (kind === "barrier") mesh = makeBarrier();
+  else if (kind === "sign") mesh = makeSign();
+  else mesh = makeTrain(len, pick(TRAIN_COLORS));
+  mesh.position.set(lane * LANE_X, 0, z);
+  scene.add(mesh);
+  ents.push({ kind, lane, z, len: len || 0, mesh });
+}
+
+function crash() {
+  if (state !== "play") return;
+  state = "dying";
+  deadT = 0; shakeT = 0.6;
+  ui.flash.classList.add("on");
+  setTimeout(() => ui.flash.classList.remove("on"), 120);
+  const s = Math.floor(dist) + coinCount * 10;
+  if (s > best) {
+    best = s;
+    localStorage.setItem("metroDash3dBest", best);
+    newBest = true;
+  }
+  ui.final.textContent = s;
+  ui.stats.textContent = `BEST ${best} · ${coinCount} COINS`;
+  ui.newbest.classList.toggle("hidden", !newBest);
+}
+
+function jump() {
+  if (state === "title") { startGame(); return; }
+  if (state === "over") { reset(false); return; }
+  if (state !== "play") return;
+  if (player.grounded) { player.vy = 14.2; player.grounded = false; player.sliding = 0; }
+}
+
+function slide() {
+  if (state !== "play") return;
+  if (!player.grounded) player.vy = Math.min(player.vy, -9);
+  player.sliding = 0.62;
+}
+
+function moveLane(d) {
+  if (state !== "play") return;
+  player.lane = clamp(player.lane + d, -1, 1);
+}
+
+function startGame() {
+  state = "play";
+  ui.title.classList.add("hidden");
+  ui.scorePill.style.visibility = "visible";
+  ui.coinPill.style.visibility = "visible";
+}
+
+document.addEventListener("keydown", e => {
+  if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
+  if (e.code === "Space" || e.code === "ArrowUp" || e.code === "KeyW") jump();
+  else if (e.code === "ArrowDown" || e.code === "KeyS") slide();
+  else if (e.code === "ArrowLeft" || e.code === "KeyA") moveLane(-1);
+  else if (e.code === "ArrowRight" || e.code === "KeyD") moveLane(1);
+  else if (e.code === "Enter" && state === "over") reset(false);
+});
+
+let ts = null;
+stage.addEventListener("touchstart", e => {
+  e.preventDefault();
+  ts = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+}, { passive: false });
+stage.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
+stage.addEventListener("touchend", e => {
+  e.preventDefault();
+  if (!ts) return;
+  const dx = e.changedTouches[0].clientX - ts.x;
+  const dy = e.changedTouches[0].clientY - ts.y;
+  ts = null;
+  if (state === "title") { startGame(); return; }
+  if (state === "over") return;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) { jump(); return; }
+  if (Math.abs(dy) > Math.abs(dx)) dy < 0 ? jump() : slide();
+  else moveLane(dx > 0 ? 1 : -1);
+}, { passive: false });
+
+stage.addEventListener("click", e => {
+  if (e.target !== renderer.domElement) return;
+  if (state === "title") startGame();
+  else if (state === "play") jump();
+});
+ui.again.addEventListener("click", e => { e.stopPropagation(); reset(false); });
+ui.over.addEventListener("click", e => { if (e.target === ui.over) reset(false); });
+
+function update(dt) {
+  time += dt;
+  if (shakeT > 0) shakeT -= dt;
+
+  if (state === "dying") {
+    deadT += dt;
+    speed = Math.max(0, speed - dt * 90);
+    if (deadT > 0.85) {
+      state = "over";
+      ui.over.classList.remove("hidden");
+    }
+  }
+
+  const playing = state === "play";
+  if (playing) {
+    dist += speed * dt;
+    speed = 30 + Math.min(50, dist * 0.0062);
+    runPhase += dt * (6 + speed * 0.14);
+  }
+
+  const scroll = speed * dt;
+  roadTex.offset.y = (roadTex.offset.y + scroll / 53.3) % 1;
+  ring.rotation.y += dt * 0.004;
+  for (const c of clouds) {
+    c.position.x -= dt * 1.2;
+    if (c.position.x < -110) c.position.x = 110;
+  }
+
+  for (const b of buildings) {
+    b.position.z += scroll;
+    if (b.position.z > 16) {
+      b.position.z -= 340;
+      b.scale.set(rnd(3, 5.5), rnd(5, 15), rnd(3, 5.5));
+      b.position.x = Math.sign(b.position.x) * rnd(7.6, 14);
+      b.material = pick(bldMats);
+    }
+  }
+  for (const l of lamps) {
+    l.position.z += scroll;
+    if (l.position.z > 12) l.position.z -= 180;
+  }
+
+  if (playing && (spawnAcc += scroll) > Math.max(24, 44 - (speed - 30) * 0.28)) {
+    spawnAcc = 0;
+    spawnPattern();
+  }
+
+  player.x += (player.lane * LANE_X - player.x) * Math.min(1, dt * 10);
+  if (!player.grounded) {
+    player.y += player.vy * dt;
+    player.vy -= 60 * dt;
+    if (player.y <= 0) { player.y = 0; player.vy = 0; player.grounded = true; }
+  }
+  if (player.sliding > 0) player.sliding -= dt;
+
+  const p3 = player3d;
+  p3.root.position.x = player.x;
+  p3.root.position.y = player.y;
+  const slideK = player.sliding > 0 ? 1 : 0;
+  p3.body.rotation.x += ((slideK ? -1.08 : 0) - p3.body.rotation.x) * Math.min(1, dt * 13);
+  p3.body.position.y += ((slideK ? -0.58 : 0) - p3.body.position.y) * Math.min(1, dt * 13);
+  p3.body.position.z += ((slideK ? 0.3 : 0) - p3.body.position.z) * Math.min(1, dt * 13);
+
+  if (playing) {
+    if (!player.grounded) {
+      p3.legL.rotation.x += (0.55 - p3.legL.rotation.x) * dt * 8;
+      p3.legR.rotation.x += (-0.4 - p3.legR.rotation.x) * dt * 8;
+      p3.armL.rotation.x += (-0.9 - p3.armL.rotation.x) * dt * 8;
+      p3.armR.rotation.x += (-0.9 - p3.armR.rotation.x) * dt * 8;
+    } else if (player.sliding > 0) {
+      p3.legL.rotation.x = p3.legR.rotation.x = 0.2;
+      p3.armL.rotation.x = p3.armR.rotation.x = -0.5;
+    } else {
+      const s = Math.sin(runPhase);
+      p3.legL.rotation.x = s * 0.85;
+      p3.legR.rotation.x = -s * 0.85;
+      p3.armL.rotation.x = -s * 0.7;
+      p3.armR.rotation.x = s * 0.7;
+      p3.body.position.y = Math.abs(Math.cos(runPhase)) * 0.05;
+    }
+  }
+
+  for (let i = ents.length - 1; i >= 0; i--) {
+    const e = ents[i];
+    e.z += scroll;
+    e.mesh.position.z = e.z;
+    if (e.kind === "coin") {
+      e.mesh.rotation.y += dt * 4.5;
+      e.mesh.position.y = e.y + Math.sin(time * 3 + e.ph) * 0.07;
+    } else if (e.kind === "barrier" && e.mesh.userData.blinker) {
+      e.mesh.userData.blinker.material.emissiveIntensity = 1.2 + Math.sin(time * 8) * 1.1;
+    }
+    if (e.z - (e.len || 0) > 12) {
+      scene.remove(e.mesh);
+      ents.splice(i, 1);
+      continue;
+    }
+    if (!playing) continue;
+
+    const nearLane = Math.abs(player.x - e.lane * LANE_X) < 1.05;
+    if (e.kind === "coin") {
+      if (Math.abs(player.x - e.lane * LANE_X) < 1.35 && Math.abs(e.z) < 0.75 && Math.abs(player.y + 0.9 - e.y) < 0.95) {
+        coinCount++;
+        ui.coins.textContent = coinCount;
+        scene.remove(e.mesh);
+        ents.splice(i, 1);
+      }
+    } else if (e.kind === "barrier") {
+      if (nearLane && e.z > -0.55 && e.z < 0.65 && player.y < 0.72) crash();
+    } else if (e.kind === "sign") {
+      if (nearLane && e.z > -0.55 && e.z < 0.65 && player.sliding <= 0 && player.y < 1.2) crash();
+    } else if (e.kind === "train") {
+      if (nearLane && e.z > -0.6 && e.z - e.len < 0.6) crash();
+    }
+  }
+
+  if (playing || state === "dying") {
+    ui.score.textContent = String(Math.floor(dist) + coinCount * 10).padStart(6, "0");
+  }
+}
+
+function updateCamera(dt) {
+  const px = player ? player.x : 0;
+  camera.position.x += (px * 0.55 - camera.position.x) * Math.min(1, dt * 6);
+  camera.position.y += (4.7 + (player ? player.y * 0.25 : 0) - camera.position.y) * Math.min(1, dt * 6);
+  if (shakeT > 0) {
+    camera.position.x += rnd(-1, 1) * shakeT * 0.5;
+    camera.position.y += rnd(-1, 1) * shakeT * 0.4;
+  }
+  camera.lookAt(px * 0.75, 1.35, -8);
+  const targetFov = 62 + (speed - 30) * 0.09;
+  if (Math.abs(camera.fov - targetFov) > 0.1) {
+    camera.fov += (targetFov - camera.fov) * dt * 2;
+    camera.updateProjectionMatrix();
+  }
+}
+
+const clock = new THREE.Clock();
+function loop() {
+  requestAnimationFrame(loop);
+  const dt = Math.min(0.033, clock.getDelta());
+  update(dt);
+  updateCamera(dt);
+  renderer.render(scene, camera);
+}
+
+addEventListener("resize", () => {
+  renderer.setSize(stage.clientWidth, stage.clientHeight);
+  camera.aspect = stage.clientWidth / stage.clientHeight;
+  camera.updateProjectionMatrix();
+});
+
+time = 0; ents = [];
+reset(true);
+loop();
+</script>
+</body>
+</html>

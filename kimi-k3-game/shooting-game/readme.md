@@ -30,6 +30,8 @@ Polish: Muzzle flashes, bullet impacts, simple lighting, background music, and s
 
 Keep the code clean and modular. Focus on making shooting and movement feel great first. Add win/lose screens, high score saving, and pause menu. Provide full code + instructions to run it.
 
+https://commandcode.ai/share/db311126
+
 ## Benchmark
 
 | Metric | Kimi K3 |

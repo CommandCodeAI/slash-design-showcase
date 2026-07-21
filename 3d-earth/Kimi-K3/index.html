@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Global Weather Live — Orbital Weather Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css">
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    if (!window.__booted) {
+      const s = document.getElementById('load-status');
+      if (s) { s.textContent = 'DOWNLINK DEGRADED — RETRYING'; s.classList.add('warn'); }
+    }
+  }, 12000);
+});
+</script>
+</head>
+<body>
+
+<div id="loading" aria-live="polite">
+  <div class="load-core">
+    <div class="load-ring"><span></span></div>
+    <div class="load-title">Global Weather Live</div>
+    <div class="load-track"><div class="load-bar" id="load-bar"></div></div>
+    <div class="load-status" id="load-status">ACQUIRING SATELLITE DOWNLINK</div>
+  </div>
+</div>
+
+<header class="app-header">
+  <div class="brand">
+    <span class="pulse-dot" aria-hidden="true"></span>
+    <div class="brand-text">
+      <h1>Global Weather Live</h1>
+      <span class="brand-sub">ORBITAL FEED · NIGHT SIDE</span>
+    </div>
+  </div>
+
+  <div class="search" role="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="search-input" type="text" placeholder="Search stations — press /" autocomplete="off" spellcheck="false" aria-label="Search weather stations" aria-expanded="false" aria-controls="search-list">
+    <kbd>/</kbd>
+    <ul id="search-list" class="search-list" role="listbox" hidden></ul>
+  </div>
+
+  <button id="panel-toggle" class="icon-btn panel-toggle" aria-label="Toggle detail panel">
+    <svg viewBox="0 0 32 32" fill="none"><rect x="2" y="6" width="28" height="20" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="6" y="9" width="8" height="6" rx="1.5" fill="currentColor" opacity="0.3"/><path d="M20 6V26" stroke="currentColor" stroke-width="1.8"/></svg>
+  </button>
+
+  <div class="clock">
+    <div class="clock-time" id="clock-time">--:--:--</div>
+    <div class="clock-meta"><span id="clock-date">—</span><span class="clock-utc">UTC</span></div>
+  </div>
+</header>
+
+<main class="stage" id="stage">
+  <canvas id="globe-canvas" aria-label="Interactive 3D Earth showing global weather at night"></canvas>
+  <div id="markers" class="markers"></div>
+
+  <div class="stage-hud hud-frame">
+    <div class="hud-row">
+      <span class="hud-label">CENTER</span>
+      <span class="hud-value" id="hud-coords">0.0°N · 0.0°E</span>
+    </div>
+    <div class="hud-row">
+      <span class="hud-label">ZOOM</span>
+      <span class="hud-value" id="hud-zoom">0%</span>
+    </div>
+    <div class="hud-legend">
+      <span class="chip"><i class="dot dot-rain"></i>Rain band</span>
+      <span class="chip"><i class="dot dot-snow"></i>Snow</span>
+      <span class="chip"><i class="dot dot-heat"></i>Heat index</span>
+    </div>
+  </div>
+</main>
+
+<aside class="sidebar hud-frame" id="sidebar" aria-label="Selected region weather detail">
+  <section class="side-head">
+    <div>
+      <div class="side-eyebrow">SELECTED STATION</div>
+      <h2 id="city-name">—</h2>
+      <div class="side-meta"><span id="city-country">—</span><span class="sep">·</span><span id="city-coords" class="mono">—</span></div>
+    </div>
+    <div class="side-local">
+      <span class="side-local-time mono" id="city-local">--:--</span>
+      <span class="side-local-label">LOCAL</span>
+    </div>
+  </section>
+
+  <section class="side-now">
+    <div class="now-icon" id="now-icon"></div>
+    <div class="now-temp"><span id="now-temp">—</span><span class="deg">°</span></div>
+    <div class="now-cond">
+      <span id="now-cond">—</span>
+      <span class="now-feels">Feels <span id="now-feels" class="mono">—</span>°</span>
+    </div>
+  </section>
+
+  <section class="side-stats">
+    <div class="stat">
+      <div class="stat-top">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 3c3.5 4.2 6 7.3 6 10.2A6 6 0 0 1 6 13.2C6 10.3 8.5 7.2 12 3Z"/></svg>
+        <span>Humidity</span>
+      </div>
+      <div class="stat-val mono" id="stat-hum">—</div>
+      <div class="meter"><i id="meter-hum"></i></div>
+    </div>
+    <div class="stat">
+      <div class="stat-top">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 8h9a3 3 0 1 0-3-3M3 12h13a3 3 0 1 1-3 3M3 16h6"/></svg>
+        <span>Wind</span>
+      </div>
+      <div class="stat-val mono" id="stat-wind">—</div>
+      <div class="meter"><i id="meter-wind"></i></div>
+    </div>
+    <div class="stat">
+      <div class="stat-top">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 21a9 9 0 1 1 9-9"/><path d="M12 12l4-3"/><path d="M18 18h3"/></svg>
+        <span>Pressure</span>
+      </div>
+      <div class="stat-val mono" id="stat-press">—</div>
+      <div class="meter"><i id="meter-press"></i></div>
+    </div>
+    <div class="stat">
+      <div class="stat-top">
+        <svg viewBox="0 0 32 32" fill="none"><ellipse cx="16" cy="16" rx="7" ry="5.5" stroke="currentColor" stroke-width="1.8"/><circle cx="16" cy="16" r="3" stroke="currentColor" stroke-width="1.8"/><g stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.5"><line x1="16" y1="4" x2="16" y2="5"/><line x1="9" y1="7" x2="10" y2="8"/><line x1="23" y1="7" x2="22" y2="8"/><line x1="6" y1="13" x2="7" y2="13"/><line x1="26" y1="13" x2="25" y2="13"/></g></svg>
+        <span>Visibility</span>
+      </div>
+      <div class="stat-val mono" id="stat-vis">—</div>
+      <div class="meter"><i id="meter-vis"></i></div>
+    </div>
+  </section>
+
+  <section class="side-forecast">
+    <div class="sec-title">5-DAY FORECAST</div>
+    <ul id="forecast-list"></ul>
+  </section>
+
+  <section class="side-overlays">
+    <div class="sec-title">ACTIVE REGIONAL OVERLAYS</div>
+    <ul class="overlay-list">
+      <li><i class="dot dot-rain live"></i><div><span>Rain band</span><em>Amazon basin · S America</em></div></li>
+      <li><i class="dot dot-snow live"></i><div><span>Snowfall</span><em>Scandinavia · N Europe</em></div></li>
+      <li><i class="dot dot-clear"></i><div><span>Clear skies</span><em>Australian interior</em></div></li>
+    </ul>
+  </section>
+</aside>
+
+<footer class="timeline-bar">
+  <div class="tl-head">
+    <div class="tl-title">24H FORECAST</div>
+    <div class="tl-city" id="tl-city">—</div>
+  </div>
+  <div class="tl-scroll">
+    <svg id="tl-chart" preserveAspectRatio="none" role="img" aria-label="Hourly temperature forecast"></svg>
+    <div class="tl-tooltip mono" id="tl-tooltip" hidden></div>
+  </div>
+  <div class="tl-controls">
+    <button class="icon-btn" id="zoom-out" aria-label="Zoom out">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg>
+    </button>
+    <button class="icon-btn" id="zoom-in" aria-label="Zoom in">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+    <span class="tl-divider"></span>
+    <button class="icon-btn active" id="rotate-toggle" aria-label="Toggle auto rotation" aria-pressed="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.6-6.3"/><path d="M21 3v5h-5"/></svg>
+    </button>
+    <button class="icon-btn" id="reset-view" aria-label="Reset view">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+    </button>
+  </div>
+</footer>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>
+ke-width="2" stroke-linecap="round"/><line x1="2" y1="16" x2="5" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="27" y1="16" x2="30" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</footer>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>

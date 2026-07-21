@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emberwing: Pixel Cave</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #03040a;
+      font-family: "Courier New", monospace;
+    }
+    body { display: grid; place-items: center; }
+    canvas {
+      width: min(100vw, 1200px);
+      height: auto;
+      max-height: 100vh;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      background: #02030a;
+      border: 2px solid #273054;
+      box-shadow: 0 0 0 4px #0b1022, 0 0 32px rgba(55, 112, 255, 0.28);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="960" height="540"></canvas>
+  <script>
+    (() => {
+      "use strict";
+
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+      ctx.imageSmoothingEnabled = false;
+
+      const WIDTH = canvas.width;
+      const HEIGHT = canvas.height;
+      const keys = Object.create(null);
+
+      const COLORS = {
+        black: "#02030a",
+        caveDark: "#11142b",
+        caveMid: "#20284c",
+        caveLight: "#39456d",
+        caveEdge: "#626f9c",
+        orange: "#ff9f2f",
+        brightOrange: "#ffd166",
+        red: "#ff4f4f",
+        blue: "#40cfff",
+        lightBlue: "#b8f5ff",
+        white: "#f6fbff",
+        purple: "#aa6cff"
+      };
+
+      let gameState = "start";
+      let score = 0;
+      let highScore = Number(localStorage.getItem("emberwingHighScore") || 0);
+      let lives = 3;
+      let elapsed = 0;
+      let difficulty = 1;
+      let shake = 0;
+      let flash = 0;
+      let gemTimer = 0;
+      let enemyTimer = 0;
+      let caveScroll = 0;
+      let lastTime = performance.now();
+
+      const stars = [];
+      const bullets = [];
+      const enemies = [];
+      const gems = [];
+      const particles = [];
+      const caveSegments = [];
+
+      const player = {
+        x: 145,
+        y: HEIGHT / 2,
+        width: 30,
+        height: 18,
+        vx: 0,
+        vy: 0,
+        speed: 640,
+        acceleration: 1250,
+        friction: 0.91,
+        fireCooldown: 0,
+        invulnerable: 0,
+        thrusterFrame: 0
+      };
+
+      function random(min, max) { return Math.random() * (max - min) + min; }
+      function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+
+      function pixelRect(x, y, w, h, color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+      }
+
+      function rectsOverlap(a, b) {
+        return a.x < b.x + b.width &&
+          a.x + a.width > b.x &&
+          a.y < b.y + b.height &&
+          a.y + a.height > b.y;
+      }
+
+      function createStars() {
+        stars.length = 0;
+        for (let i = 0; i < 120; i++) {
+          stars.push({
+            x: Math.random() * WIDTH,
+            y: Math.random() * HEIGHT,
+            size: Math.random() < 0.8 ? 1 : 2,
+            speed: random(20, 110),
+            brightness: random(0.35, 1),
+            layer: random(0.4, 1.3)
+          });
+        }
+      }
+
+      function createCave() {
+        caveSegments.length = 0;
+        const segmentWidth = 32;
+        const count = Math.ceil(WIDTH / segmentWidth) + 5;
+        let top = 84;
+        let bottom = HEIGHT - 84;
+
+        for (let i = 0; i < count; i++) {
+          top = clamp(top + random(-18, 18), 58, 170);
+          bottom = clamp(bottom + random(-18, 18), HEIGHT - 170, HEIGHT - 58);
+          if (bottom - top < 235) {
+            const middle = (top + bottom) / 2;
+            top = middle - 118;
+            bottom = middle + 118;
+          }
+          caveSegments.push({ x: i * segmentWidth, top, bottom });
+        }
+      }
+
+      function resetGame() {
+        score = 0;
+        lives = 3;
+        elapsed = 0;
+        difficulty = 1;
+        shake = 0;
+        flash = 0;
+        gemTimer = 0;
+        enemyTimer = 0;
+        caveScroll = 0;
+
+        bullets.length = 0;
+        enemies.length = 0;
+        gems.length = 0;
+        particles.length = 0;
+
+        player.x = 145;
+        player.y = HEIGHT / 2;
+        player.vx = 0;
+        player.vy = 0;
+        player.fireCooldown = 0;
+        player.invulnerable = 1.4;
+
+        createStars();
+        createCave();
+      }
+
+      function startGame() {
+        resetGame();
+        gameState = "playing";
+      }
+
+      function spawnBullet() {
+        bullets.push({
+          x: player.x + player.width - 2,
+          y: player.y + player.height / 2 - 2,
+          width: 12,
+          height: 4,
+          vx: 690
+        });
+        createParticles(player.x + player.width, player.y + player.height / 2, 4, COLORS.brightOrange, -80, 80);
+      }
+
+      function spawnGem() {
+        const safe = getSafeVerticalRange(WIDTH + 60);
+        gems.push({
+          x: WIDTH + 30,
+          y: random(safe.top + 20, safe.bottom - 20),
+          width: 13,
+          height: 13,
+          phase: random(0, Math.PI * 2),
+          value: 25
+        });
+      }
+
+      function spawnEnemy() {
+        const safe = getSafeVerticalRange(WIDTH + 70);
+        const typeRoll = Math.random();
+
+        if (typeRoll < 0.5) {
+          const enemy = {
+            type: "drone",
+            x: WIDTH + 40,
+            y: random(safe.top + 18, safe.bottom - 42),
+            width: 30,
+            height: 22,
+            vx: random(180, 245) + difficulty * 10,
+            hp: 2,
+            phase: random(0, Math.PI * 2),
+            baseY: 0,
+            score: 100
+          };
+          enemy.baseY = enemy.y;
+          enemies.push(enemy);
+        } else if (typeRoll < 0.82) {
+          enemies.push({
+            type: "mine",
+            x: WIDTH + 40,
+            y: random(safe.top + 20, safe.bottom - 40),
+            width: 24,
+            height: 24,
+            vx: random(145, 205) + difficulty * 8,
+            hp: 1,
+            rotation: 0,
+            score: 75
+          });
+        } else {
+          enemies.push({
+            type: "rock",
+            x: WIDTH + 40,
+            y: random(safe.top + 20, safe.bottom - 45),
+            width: 34,
+            height: 32,
+            vx: random(165, 225) + difficulty * 9,
+            hp: 3,
+            rotation: 0,
+            score: 150
+          });
+        }
+      }
+
+      function createParticles(x, y, count, color, minSpeed = 30, maxSpeed = 160) {
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = random(minSpeed, maxSpeed);
+          const life = random(0.2, 0.7);
+          particles.push({
+            x, y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life,
+            maxLife: life,
+            size: Math.random() < 0.65 ? 2 : 3,
+            color
+          });
+        }
+      }
+
+      function getSafeVerticalRange(x) {
+        const segment = getCaveSegmentAt(x);
+        return { top: segment.top + 10, bottom: segment.bottom - 10 };
+      }
+
+      function getCaveSegmentAt(x) {
+        if (caveSegments.length === 0) return { top: 80, bottom: HEIGHT - 80 };
+        const localX = x + caveScroll;
+        const segmentWidth = 32;
+        const index = Math.floor(localX / segmentWidth) % caveSegments.length;
+        return caveSegments[(index + caveSegments.length) % caveSegments.length];
+      }
+
+      function updateCave(dt) {
+        const speed = 150 + difficulty * 10;
+        caveScroll += speed * dt;
+        const segmentWidth = 32;
+
+        while (caveScroll >= segmentWidth) {
+          caveScroll -= segmentWidth;
+          const last = caveSegments[caveSegments.length - 1];
+          let top = clamp(last.top + random(-22, 22), 55, 175);
+          let bottom = clamp(last.bottom + random(-22, 22), HEIGHT - 175, HEIGHT - 55);
+          const minimumGap = Math.max(205, 255 - difficulty * 3);
+
+          if (bottom - top < minimumGap) {
+            const center = (top + bottom) / 2;
+            top = center - minimumGap / 2;
+            bottom = center + minimumGap / 2;
+          }
+
+          caveSegments.shift();
+          caveSegments.push({ x: last.x + segmentWidth, top, bottom });
+        }
+      }
+
+      function updatePlayer(dt) {
+        let inputX = 0;
+        let inputY = 0;
+
+        if (keys.ArrowLeft || keys.KeyA) inputX -= 1;
+        if (keys.ArrowRight || keys.KeyD) inputX += 1;
+        if (keys.ArrowUp || keys.KeyW) inputY -= 1;
+        if (keys.ArrowDown || keys.KeyS) inputY += 1;
+
+        if (inputX !== 0 && inputY !== 0) {
+          inputX *= 0.7071;
+          inputY *= 0.7071;
+        }
+
+        player.vx += inputX * player.acceleration * dt;
+        player.vy += inputY * player.acceleration * dt;
+        player.vx *= Math.pow(player.friction, dt * 60);
+        player.vy *= Math.pow(player.friction, dt * 60);
+        player.vx = clamp(player.vx, -player.speed, player.speed);
+        player.vy = clamp(player.vy, -player.speed, player.speed);
+        player.x += player.vx * dt;
+        player.y += player.vy * dt;
+        player.x = clamp(player.x, 20, WIDTH - player.width - 20);
+        player.y = clamp(player.y, 18, HEIGHT - player.height - 18);
+
+        player.fireCooldown -= dt;
+        player.invulnerable -= dt;
+        player.thrusterFrame += dt * 18;
+
+        if (keys.Space && player.fireCooldown <= 0) {
+          spawnBullet();
+          player.fireCooldown = 0.16;
+        }
+
+        const cave = getCaveSegmentAt(player.x + player.width / 2);
+        const playerTop = player.y + 3;
+        const playerBottom = player.y + player.height - 3;
+        if (playerTop < cave.top || playerBottom > cave.bottom) damagePlayer();
+
+        if (Math.random() < 0.75) {
+          particles.push({
+            x: player.x - 3,
+            y: player.y + player.height / 2 + random(-3, 3),
+            vx: random(-175, -80),
+            vy: random(-18, 18),
+            life: random(0.12, 0.3),
+            maxLife: 0.3,
+            size: Math.random() < 0.6 ? 2 : 3,
+            color: Math.random() < 0.5 ? COLORS.orange : COLORS.blue
+          });
+        }
+      }
+
+      function updateBullets(dt) {
+        for (let i = bullets.length - 1; i >= 0; i--) {
+          const bullet = bullets[i];
+          bullet.x += bullet.vx * dt;
+          if (bullet.x > WIDTH + 30) {
+            bullets.splice(i, 1);
+            continue;
+          }
+
+          let hit = false;
+          for (let j = enemies.length - 1; j >= 0; j--) {
+            const enemy = enemies[j];
+            if (rectsOverlap(bullet, enemy)) {
+              enemy.hp -= 1;
+              hit = true;
+              createParticles(bullet.x, bullet.y, 5, COLORS.brightOrange, 40, 140);
+
+              if (enemy.hp <= 0) {
+                score += enemy.score;
+                explodeEnemy(enemy);
+                enemies.splice(j, 1);
+              }
+              break;
+            }
+          }
+          if (hit) bullets.splice(i, 1);
+        }
+      }
+
+      function updateEnemies(dt) {
+        for (let i = enemies.length - 1; i >= 0; i--) {
+          const enemy = enemies[i];
+          enemy.x -= enemy.vx * dt;
+
+          if (enemy.type === "drone") {
+            enemy.phase += dt * 3.2;
+            enemy.y = enemy.baseY + Math.sin(enemy.phase) * 22;
+          } else {
+            enemy.rotation += dt * 3;
+          }
+
+          if (enemy.x + enemy.width < -40) {
+            enemies.splice(i, 1);
+            continue;
+          }
+
+          if (rectsOverlap(player, enemy)) {
+            explodeEnemy(enemy);
+            enemies.splice(i, 1);
+            damagePlayer();
+          }
+        }
+      }
+
+      function updateGems(dt) {
+        const scrollSpeed = 165 + difficulty * 10;
+        for (let i = gems.length - 1; i >= 0; i--) {
+          const gem = gems[i];
+          gem.x -= scrollSpeed * dt;
+          gem.phase += dt * 5;
+
+          if (gem.x + gem.width < -20) {
+            gems.splice(i, 1);
+            continue;
+          }
+
+          if (rectsOverlap(player, gem)) {
+            score += gem.value;
+            createParticles(gem.x + gem.width / 2, gem.y + gem.height / 2, 14, COLORS.blue, 45, 190);
+            gems.splice(i, 1);
+          }
+        }
+      }
+
+      function updateParticles(dt) {
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const particle = particles[i];
+          particle.x += particle.vx * dt;
+          particle.y += particle.vy * dt;
+          particle.vx *= Math.pow(0.97, dt * 60);
+          particle.vy *= Math.pow(0.97, dt * 60);
+          particle.life -= dt;
+          if (particle.life <= 0) particles.splice(i, 1);
+        }
+      }
+
+      function updateStars(dt) {
+        for (const star of stars) {
+          star.x -= star.speed * star.layer * dt;
+          if (star.x < -3) {
+            star.x = WIDTH + random(0, 30);
+            star.y = random(0, HEIGHT);
+          }
+        }
+      }
+
+      function damagePlayer() {
+        if (player.invulnerable > 0 || gameState !== "playing") return;
+
+        lives -= 1;
+        player.invulnerable = 1.7;
+        shake = 12;
+        flash = 0.18;
+
+        createParticles(player.x + player.width / 2, player.y + player.height / 2, 30, COLORS.orange, 70, 280);
+        createParticles(player.x + player.width / 2, player.y + player.height / 2, 18, COLORS.blue, 60, 220);
+
+        player.x = 130;
+        player.y = HEIGHT / 2;
+        player.vx = 0;
+        player.vy = 0;
+
+        if (lives <= 0) {
+          gameState = "gameover";
+          highScore = Math.max(highScore, Math.floor(score));
+          localStorage.setItem("emberwingHighScore", String(highScore));
+        }
+      }
+
+      function explodeEnemy(enemy) {
+        shake = Math.max(shake, 4);
+        createParticles(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, 20, enemy.type === "drone" ? COLORS.red : COLORS.purple, 50, 250);
+        createParticles(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, 10, COLORS.orange, 40, 200);
+      }
+
+      function update(dt) {
+        updateStars(dt);
+        updateParticles(dt);
+        if (gameState !== "playing") return;
+
+        elapsed += dt;
+        difficulty = 1 + Math.floor(elapsed / 14) * 0.22;
+        score += dt * 4;
+
+        updateCave(dt);
+        updatePlayer(dt);
+        updateBullets(dt);
+        updateEnemies(dt);
+        updateGems(dt);
+
+        gemTimer -= dt;
+        enemyTimer -= dt;
+
+        if (gemTimer <= 0) {
+          spawnGem();
+          gemTimer = random(1.2, 2.6);
+        }
+
+        if (enemyTimer <= 0) {
+          spawnEnemy();
+          enemyTimer = Math.max(0.55, random(1.1, 2.2) - difficulty * 0.08);
+        }
+
+        if (shake > 0) shake = Math.max(0, shake - dt * 45);
+        if (flash > 0) flash = Math.max(0, flash - dt);
+      }
+
+      function drawBackground() {
+        ctx.fillStyle = COLORS.black;
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+        const gradient = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+        gradient.addColorStop(0, "rgba(16, 20, 50, 0.45)");
+        gradient.addColorStop(0.5, "rgba(2, 3, 10, 0)");
+        gradient.addColorStop(1, "rgba(16, 20, 50, 0.45)");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+        for (const star of stars) {
+          ctx.globalAlpha = star.brightness;
+          pixelRect(star.x, star.y, star.size, star.size, COLORS.white);
+          if (star.size === 2 && star.brightness > 0.75) {
+            ctx.globalAlpha = star.brightness * 0.35;
+            pixelRect(star.x - 2, star.y, 6, 1, COLORS.blue);
+            pixelRect(star.x, star.y - 2, 1, 6, COLORS.blue);
+          }
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      function drawCave() {
+        const segmentWidth = 32;
+        const offset = -caveScroll;
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        for (let i = 0; i < caveSegments.length; i++) {
+          const x = offset + i * segmentWidth;
+          ctx.lineTo(x, caveSegments[i].top);
+        }
+        ctx.lineTo(WIDTH + segmentWidth, 0);
+        ctx.closePath();
+
+        const topGradient = ctx.createLinearGradient(0, 0, 0, 185);
+        topGradient.addColorStop(0, COLORS.caveDark);
+        topGradient.addColorStop(0.55, COLORS.caveMid);
+        topGradient.addColorStop(1, COLORS.caveLight);
+        ctx.fillStyle = topGradient;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(0, HEIGHT);
+        for (let i = 0; i < caveSegments.length; i++) {
+          const x = offset + i * segmentWidth;
+          ctx.lineTo(x, caveSegments[i].bottom);
+        }
+        ctx.lineTo(WIDTH + segmentWidth, HEIGHT);
+        ctx.closePath();
+
+        const bottomGradient = ctx.createLinearGradient(0, HEIGHT - 185, 0, HEIGHT);
+        bottomGradient.addColorStop(0, COLORS.caveLight);
+        bottomGradient.addColorStop(0.45, COLORS.caveMid);
+        bottomGradient.addColorStop(1, COLORS.caveDark);
+        ctx.fillStyle = bottomGradient;
+        ctx.fill();
+
+        for (let i = 0; i < caveSegments.length - 1; i++) {
+          const x = offset + i * segmentWidth;
+          const segment = caveSegments[i];
+          pixelRect(x, segment.top - 2, segmentWidth + 1, 3, COLORS.caveEdge);
+          pixelRect(x, segment.bottom - 1, segmentWidth + 1, 3, COLORS.caveEdge);
+
+          if (i % 2 === 0) {
+            pixelRect(x + 5, segment.top - 14, 10, 5, COLORS.caveMid);
+            pixelRect(x + 17, segment.bottom + 9, 8, 5, COLORS.caveMid);
+          }
+          if (i % 4 === 0) {
+            pixelRect(x + 7, segment.top - 6, 4, 4, COLORS.purple);
+            pixelRect(x + 21, segment.bottom + 3, 4, 4, COLORS.blue);
+          }
+        }
+      }
+
+      function drawPlayer() {
+        if (player.invulnerable > 0 && Math.floor(player.invulnerable * 12) % 2 === 0) return;
+
+        const x = Math.round(player.x);
+        const y = Math.round(player.y);
+        const flameLength = 7 + Math.floor(Math.sin(player.thrusterFrame) * 3);
+
+        ctx.save();
+        ctx.shadowColor = COLORS.orange;
+        ctx.shadowBlur = 14;
+        pixelRect(x - flameLength, y + 7, flameLength, 4, COLORS.orange);
+        pixelRect(x - flameLength + 3, y + 8, flameLength - 2, 2, COLORS.brightOrange);
+        ctx.shadowBlur = 0;
+
+        pixelRect(x + 3, y + 3, 21, 12, "#c75d26");
+        pixelRect(x + 8, y, 12, 3, COLORS.orange);
+        pixelRect(x + 8, y + 15, 12, 3, COLORS.orange);
+        pixelRect(x + 20, y + 5, 7, 8, COLORS.brightOrange);
+        pixelRect(x + 27, y + 7, 4, 4, COLORS.white);
+        pixelRect(x + 9, y + 5, 8, 6, "#7a301e");
+        pixelRect(x + 11, y + 5, 6, 3, COLORS.blue);
+        pixelRect(x + 2, y + 5, 5, 8, "#83361f");
+        pixelRect(x + 6, y + 1, 4, 3, COLORS.brightOrange);
+        pixelRect(x + 6, y + 14, 4, 3, COLORS.brightOrange);
+        ctx.restore();
+      }
+
+      function drawBullets() {
+        ctx.save();
+        ctx.shadowColor = COLORS.brightOrange;
+        ctx.shadowBlur = 10;
+        for (const bullet of bullets) {
+          pixelRect(bullet.x, bullet.y, bullet.width, bullet.height, COLORS.brightOrange);
+          pixelRect(bullet.x + 4, bullet.y + 1, bullet.width - 2, 2, COLORS.white);
+        }
+        ctx.restore();
+      }
+
+      function drawGem(gem) {
+        const pulse = 1 + Math.sin(gem.phase) * 0.15;
+        const size = gem.width * pulse;
+        const x = gem.x + gem.width / 2 - size / 2;
+        const y = gem.y + gem.height / 2 - size / 2;
+
+        ctx.save();
+        ctx.shadowColor = COLORS.blue;
+        ctx.shadowBlur = 18 + Math.sin(gem.phase) * 4;
+        pixelRect(x + 4, y, size - 8, 3, COLORS.lightBlue);
+        pixelRect(x + 2, y + 3, size - 4, size - 6, COLORS.blue);
+        pixelRect(x + 4, y + size - 3, size - 8, 3, "#1677c8");
+        pixelRect(x, y + 5, 3, size - 10, "#1688d8");
+        pixelRect(x + size - 3, y + 5, 3, size - 10, COLORS.lightBlue);
+        pixelRect(x + 5, y + 4, 3, 3, COLORS.white);
+        ctx.restore();
+      }
+
+      function drawEnemies() {
+        for (const enemy of enemies) {
+          const x = Math.round(enemy.x);
+          const y = Math.round(enemy.y);
+
+          if (enemy.type === "drone") {
+            ctx.save();
+            ctx.shadowColor = COLORS.red;
+            ctx.shadowBlur = 10;
+            pixelRect(x + 3, y + 5, 23, 12, "#661f3d");
+            pixelRect(x + 8, y + 2, 13, 18, COLORS.red);
+            pixelRect(x + 22, y + 7, 8, 8, "#bb3151");
+            pixelRect(x, y + 8, 8, 6, "#3d1832");
+            pixelRect(x + 11, y + 7, 7, 6, COLORS.white);
+            pixelRect(x + 13, y + 8, 5, 4, COLORS.purple);
+            ctx.restore();
+          } else if (enemy.type === "mine") {
+            ctx.save();
+            ctx.translate(x + enemy.width / 2, y + enemy.height / 2);
+            ctx.rotate(enemy.rotation);
+            ctx.shadowColor = COLORS.purple;
+            ctx.shadowBlur = 10;
+            pixelRect(-4, -15, 8, 30, COLORS.purple);
+            pixelRect(-15, -4, 30, 8, COLORS.purple);
+            pixelRect(-10, -10, 20, 20, "#4b2b67");
+            pixelRect(-6, -6, 12, 12, COLORS.red);
+            pixelRect(-2, -2, 4, 4, COLORS.white);
+            ctx.restore();
+          } else {
+            ctx.save();
+            ctx.shadowColor = "#8a6fae";
+            ctx.shadowBlur = 6;
+            pixelRect(x + 3, y, 22, 4, "#655777");
+            pixelRect(x, y + 5, 31, 20, "#493f5e");
+            pixelRect(x + 5, y + 25, 22, 6, "#332c48");
+            pixelRect(x + 7, y + 7, 8, 5, "#837397");
+            pixelRect(x + 20, y + 15, 7, 5, "#251f36");
+            pixelRect(x + 4, y + 19, 5, 4, COLORS.purple);
+            ctx.restore();
+          }
+        }
+      }
+
+      function drawParticles() {
+        for (const particle of particles) {
+          ctx.globalAlpha = clamp(particle.life / particle.maxLife, 0, 1);
+          pixelRect(particle.x, particle.y, particle.size, particle.size, particle.color);
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      function drawHud() {
+        ctx.save();
+        ctx.textBaseline = "top";
+        ctx.font = "bold 22px Courier New";
+        ctx.fillStyle = "rgba(5, 8, 20, 0.82)";
+        ctx.fillRect(14, 14, 248, 66);
+        ctx.strokeStyle = "#33416c";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(14, 14, 248, 66);
+
+        ctx.fillStyle = COLORS.white;
+        ctx.fillText(`SCORE ${String(Math.floor(score)).padStart(6, "0")}`, 28, 26);
+        ctx.font = "bold 17px Courier New";
+        ctx.fillStyle = COLORS.blue;
+        ctx.fillText(`HIGH  ${String(highScore).padStart(6, "0")}`, 28, 53);
+
+        ctx.fillStyle = "rgba(5, 8, 20, 0.82)";
+        ctx.fillRect(WIDTH - 176, 14, 162, 48);
+        ctx.strokeStyle = "#33416c";
+        ctx.strokeRect(WIDTH - 176, 14, 162, 48);
+        ctx.fillStyle = COLORS.white;
+        ctx.fillText("LIVES", WIDTH - 161, 29);
+
+        for (let i = 0; i < 3; i++) {
+          const x = WIDTH - 92 + i * 25;
+          const y = 31;
+          const active = i < lives;
+          pixelRect(x + 3, y, 11, 3, active ? COLORS.orange : "#3b3d4c");
+          pixelRect(x, y + 3, 17, 6, active ? COLORS.red : "#292b38");
+          pixelRect(x + 4, y + 9, 9, 4, active ? COLORS.orange : "#3b3d4c");
+        }
+        ctx.restore();
+      }
+
+      function drawStartScreen() {
+        ctx.fillStyle = "rgba(2, 3, 10, 0.7)";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        ctx.shadowColor = COLORS.orange;
+        ctx.shadowBlur = 18;
+        ctx.fillStyle = COLORS.brightOrange;
+        ctx.font = "bold 58px Courier New";
+        ctx.fillText("EMBERWING", WIDTH / 2, 155);
+
+        ctx.shadowColor = COLORS.blue;
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = COLORS.blue;
+        ctx.font = "bold 24px Courier New";
+        ctx.fillText("PIXEL CAVE RUN", WIDTH / 2, 207);
+
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "rgba(7, 11, 28, 0.92)";
+        ctx.fillRect(WIDTH / 2 - 250, 250, 500, 160);
+        ctx.strokeStyle = "#3d4e80";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(WIDTH / 2 - 250, 250, 500, 160);
+
+        ctx.fillStyle = COLORS.white;
+        ctx.font = "bold 20px Courier New";
+        ctx.fillText("MOVE: ARROWS / WASD", WIDTH / 2, 286);
+        ctx.fillText("FIRE: SPACEBAR", WIDTH / 2, 320);
+        ctx.fillText("COLLECT BLUE GEMS • AVOID THE CAVE", WIDTH / 2, 354);
+
+        ctx.fillStyle = COLORS.brightOrange;
+        ctx.font = "bold 22px Courier New";
+        ctx.fillText("PRESS ENTER OR SPACE TO START", WIDTH / 2, 449);
+
+        ctx.textAlign = "left";
+        ctx.textBaseline = "alphabetic";
+      }
+
+      function drawGameOver() {
+        ctx.fillStyle = "rgba(2, 3, 10, 0.78)";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        ctx.shadowColor = COLORS.red;
+        ctx.shadowBlur = 18;
+        ctx.fillStyle = COLORS.red;
+        ctx.font = "bold 58px Courier New";
+        ctx.fillText("SHIP DESTROYED", WIDTH / 2, 175);
+
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "rgba(7, 11, 28, 0.94)";
+        ctx.fillRect(WIDTH / 2 - 220, 240, 440, 154);
+        ctx.strokeStyle = "#563754";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(WIDTH / 2 - 220, 240, 440, 154);
+
+        ctx.fillStyle = COLORS.white;
+        ctx.font = "bold 24px Courier New";
+        ctx.fillText(`FINAL SCORE  ${String(Math.floor(score)).padStart(6, "0")}`, WIDTH / 2, 279);
+
+        ctx.fillStyle = COLORS.blue;
+        ctx.fillText(`HIGH SCORE   ${String(highScore).padStart(6, "0")}`, WIDTH / 2, 320);
+
+        ctx.fillStyle = COLORS.brightOrange;
+        ctx.font = "bold 21px Courier New";
+        ctx.fillText("PRESS ENTER OR SPACE TO RETRY", WIDTH / 2, 360);
+
+        ctx.textAlign = "left";
+        ctx.textBaseline = "alphabetic";
+      }
+
+      function drawScanlines() {
+        ctx.save();
+        ctx.globalAlpha = 0.075;
+        ctx.fillStyle = "#ffffff";
+        for (let y = 0; y < HEIGHT; y += 4) ctx.fillRect(0, y, WIDTH, 1);
+        ctx.restore();
+      }
+
+      function draw() {
+        ctx.save();
+        if (shake > 0) ctx.translate(random(-shake, shake), random(-shake, shake));
+
+        drawBackground();
+        drawCave();
+        for (const gem of gems) drawGem(gem);
+        drawEnemies();
+        drawBullets();
+        drawPlayer();
+        drawParticles();
+        ctx.restore();
+
+        if (gameState === "playing") drawHud();
+        else if (gameState === "start") drawStartScreen();
+        else if (gameState === "gameover") {
+          drawHud();
+          drawGameOver();
+        }
+
+        if (flash > 0) {
+          ctx.fillStyle = `rgba(255, 100, 60, ${flash * 1.8})`;
+          ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        }
+
+        drawScanlines();
+      }
+
+      function loop(time) {
+        const dt = Math.min((time - lastTime) / 1000, 0.033);
+        lastTime = time;
+        update(dt);
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      window.addEventListener("keydown", event => {
+        keys[event.code] = true;
+        if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(event.code)) {
+          event.preventDefault();
+        }
+        if ((event.code === "Enter" || event.code === "Space") && gameState !== "playing") {
+          startGame();
+        }
+      });
+
+      window.addEventListener("keyup", event => { keys[event.code] = false; });
+      window.addEventListener("blur", () => {
+        for (const code in keys) keys[code] = false;
+      });
+
+      createStars();
+      createCave();
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>
