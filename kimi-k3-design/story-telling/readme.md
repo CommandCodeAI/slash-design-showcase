@@ -1,4 +1,4 @@
-# Storytelling Landing Page: one prompt, one model
+# Storytelling Landing Page: one prompt, two models
 
 > ### Try this benchmark yourself — with Command Code
 > This benchmark was built in one-shot with [`/design`](https://commandcode.ai/docs/slash-commands/design) in [Command Code](https://commandcode.ai).
@@ -34,13 +34,35 @@ Include subtle 3D elements (Three.js spheres representing earth/moon) that move 
 
 ## Benchmark
 
-| Metric | Kimi K3 |
-|---|---|
-| Prompts sent | 2 (build + "animation in the back could be more precise while scrolling") |
-| Output size (final) | 28,986 bytes / 583 LOC |
-| Est. cost, floor (final file only) | ~$0.11 |
-| **Est. cost, full session** | **~$0.25** |
+Both builds below are treated as a single **one-shot** generation from the prompt above — one call, no re-rolls, no follow-up prompts, no iteration.
 
-Two numbers on purpose. The **floor** is the same formula used for kimi's cost elsewhere in this repo (final kept file's output bytes ÷ 4 × Kimi K3's $15/MTok output price) — it only counts the last file you'd actually keep.
+| Model | Dir | $/MTok in/out | LOC | Output size | Est. cost (one-shot) |
+|---|---|---:|---:|---:|---:|
+| Fable 5 (Claude) | `fable-5/` | $10 / $50 | 548 | 28,032 bytes | **~$0.35** |
+| Kimi K3 (Moonshot) | `kimi-k3/` | $3 / $15 | 583 | 28,986 bytes | **~$0.11** |
 
-The **full-session estimate** accounts for the second turn: diagnosing why the Three.js earth/moon background felt imprecise while scrolling (a smoothing lerp plus an accumulating spin value that drifted and wasn't reversible), then replacing it with a single large edit — a GSAP-scrubbed timeline mapping sphere position, scale, color, and rotation directly to scroll progress — plus a `node --check` syntax re-verification. No full-file rewrites and no browser-screenshot verification loop were needed, which keeps this one of the lighter full-session premiums in the batch. Modeling total output at ~2.2× the final code's size and input mostly at Kimi K3's cached rate ($0.30/MTok) gives ~$0.25 — a modeled estimate, not a metered bill, but a closer read than the floor above.
+Cost uses the same floor formula as the rest of this repo's one-shot builds (chrome-dino, third-view-car-game, etc.): kept file's output bytes ÷ 4 (a rough byte→token approximation) × the model's published output price per MTok. Input is just the ~180-token prompt above plus `/design` overhead — at $10/MTok (Fable 5) and $3/MTok (Kimi K3) that's well under a cent either way, so it doesn't move the total:
+
+- **Fable 5:** 28,032 bytes ÷ 4 ≈ 7,008 output tokens × $50/MTok = **$0.35**
+- **Kimi K3:** 28,986 bytes ÷ 4 ≈ 7,247 output tokens × $15/MTok = **$0.11**
+
+### Why the ~3.2× cost gap, despite near-identical output size
+
+The two files are within 3% of each other in raw size — 548 vs. 583 LOC, 28,032 vs. 28,986 bytes. Kimi K3 actually wrote slightly *more* code. The entire cost gap is priced in, not written in: Fable 5's output rate ($50/MTok) is 3.33× Kimi K3's ($15/MTok), almost exactly matching the ~3.2× gap in estimated cost. Input pricing tells the same story in miniature — Fable 5 is $10/MTok vs. Kimi K3's $3/MTok, a 3.33× spread again — but at a ~180-token prompt, that difference is under $0.002 either way and rounds away against the output cost.
+
+**Caveats on this estimate (read before treating it as a bill):**
+- It's a **floor**, not a metered figure — it only counts the tokens in the final file you'd keep. Any hidden reasoning/thinking tokens the model billed on the way to that output aren't visible here and aren't counted.
+- **Bytes ÷ 4 is an approximation**, not a real tokenizer count — actual token counts for dense HTML/CSS/JS (lots of punctuation, short attribute names, repeated class strings) can differ from plain prose at the same byte count. A `client.messages.count_tokens()` call against the real prompt + output would be the accurate version of this number; this estimate is a stand-in for when that isn't available.
+- If either build in practice took more than one prompt to reach the kept file, the real cost is higher than shown here — this section assumes the one-shot premise holds for both.
+
+## What the code shows
+
+Both builds independently converged on the same overall structure — Tailwind (CDN) + GSAP/ScrollTrigger (CDN) + Three.js r128 (CDN) for a persistent scroll-linked moon/earth, five chapters (Hero → Problem → Journey → Solution → Impact/CTA), IntersectionObserver-driven text reveals, and animated stat counters — despite the prompt not dictating any of that specific stack pairing.
+
+- **Three.js scene complexity:** Fable 5 keeps it minimal — a single displaced-vertex moon sphere, a small flat-shaded earth, and a 400-point starfield, all solid-color `MeshStandardMaterial` (`fable-5/index.html:452-479`). Kimi K3 goes further, hand-painting canvas textures for both bodies via a `makeTexture()` helper (continent blobs and cloud wisps for earth, crater speckling for the moon) plus additive-blending sprite glows behind each (`kimi-k3/index.html:469-527`) — more visual fidelity per body, at the cost of more code.
+- **Scroll-to-3D binding:** Fable 5 samples a hand-authored 6-waypoint path keyed to overall scroll progress with a smoothstep interpolant (`fable-5/index.html:492-513`), driving position/scale/color every animation frame. Kimi K3 instead builds a single GSAP timeline (`cosmos = gsap.timeline(...)`) with `scrollTrigger: {scrub: 0.45}` and explicit `.to()` keyframes for earth/moon position, scale, and color (`kimi-k3/index.html:539-560`) — same intent (moon/earth position mapped to scroll), different mechanism (manual sampling function vs. GSAP-owned timeline scrubbing).
+- **Reduced-motion handling:** both respect `prefers-reduced-motion`, but Fable 5 hides the Three.js canvas outright (`#cosmos{display:none}`, `fable-5/index.html:96`) while Kimi K3 keeps the canvas and cosmos timeline running, just with `scrub: true` instead of a scrubbed float and static counter values (`kimi-k3/index.html:389-392, 545`) — Fable 5's approach is the safer one for genuinely motion-sensitive users.
+- **Accessibility/nav extras:** Kimi K3 adds a fixed side dot-nav tied to active chapter (`kimi-k3/index.html:171-178`), `aria-label`s on decorative SVGs/canvas, and a `focus-visible` outline style (`kimi-k3/index.html:58-61`) — none of which Fable 5 includes. Fable 5's markup is comparatively leaner (no dot-nav, no focus-visible styling, no `aria-hidden` on decorative layers).
+- Neither ships a Content Security Policy or subresource integrity hashes on the three CDN `<script>` tags (Tailwind, GSAP ×2, Three.js) — expected for a single-file demo, but worth flagging if either were promoted past a showcase.
+
+Net: Kimi K3 wrote ~6% more code and spent it on extra visual/accessibility polish (textured 3D bodies, dot-nav, focus states); Fable 5 is leaner and slightly more conservative under reduced-motion. Neither is a strictly better implementation of the brief — the extra Kimi K3 code doesn't change the estimated cost story above, which is driven by per-token pricing, not code volume.

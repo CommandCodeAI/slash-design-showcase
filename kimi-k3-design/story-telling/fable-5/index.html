@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LUNAR — Eco-luxury, grown by night</title>
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Outfit:wght@200;300;400;500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+
+<!-- GSAP + ScrollTrigger -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<!-- Three.js (r128 UMD build) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        pine:      '#07100B',   /* midnight pine — base of the forest floor      */
+        moss:      '#1D3327',   /* moss — deep living green                      */
+        fern:      '#7FA986',   /* fern — soft foliage accent                    */
+        moonstone: '#E9EFE7',   /* moonstone — the light of the page             */
+        lichen:    '#93A796',   /* lichen — muted secondary text                 */
+        ember:     '#B4602F',   /* ember — the wound (Problem chapter only)      */
+        ash:       '#15120E',   /* ash — polluted-world background               */
+        nightsky:  '#0A1120'    /* upper night sky the moon lives in             */
+      },
+      fontFamily: {
+        display: ['"Cormorant Garamond"', 'serif'],
+        body:    ['Outfit', 'sans-serif'],
+        data:    ['"IBM Plex Mono"', 'monospace']
+      }
+    }
+  }
+}
+</script>
+
+<style>
+  html { background:#07100B; }
+  body { overflow-x:hidden; }
+
+  ::selection { background:#7FA986; color:#07100B; }
+
+  /* ---------- film grain over everything ---------- */
+  .grain::after{
+    content:""; position:fixed; inset:-50%; z-index:60; pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity:.045; animation:grain 7s steps(10) infinite;
+  }
+  @keyframes grain{
+    0%,100%{transform:translate(0,0)} 20%{transform:translate(-4%,3%)}
+    40%{transform:translate(3%,-5%)} 60%{transform:translate(-2%,4%)} 80%{transform:translate(4%,2%)}
+  }
+
+  /* ---------- reveals (driven by IntersectionObserver) ---------- */
+  .reveal{ opacity:0; transform:translateY(42px); transition:opacity 1.1s cubic-bezier(.19,1,.22,1), transform 1.1s cubic-bezier(.19,1,.22,1); }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+  .reveal-line{ opacity:0; transform:translateY(100%); transition:opacity .9s ease, transform 1.2s cubic-bezier(.19,1,.22,1); }
+  .in .reveal-line{ opacity:1; transform:translateY(0); }
+  .d1{transition-delay:.12s} .d2{transition-delay:.26s} .d3{transition-delay:.42s} .d4{transition-delay:.6s}
+
+  /* ---------- typography helpers ---------- */
+  .display-xl{ font-size:clamp(3rem, 9vw, 8.5rem); line-height:.98; letter-spacing:-0.015em; }
+  .display-lg{ font-size:clamp(2.4rem, 6vw, 5.2rem); line-height:1.02; letter-spacing:-0.01em; }
+  .eyebrow{ letter-spacing:.42em; font-size:.68rem; text-transform:uppercase; }
+
+  /* ---------- hero parallax layers ---------- */
+  .layer{ position:absolute; left:-5%; width:110%; bottom:0; pointer-events:none; }
+
+  /* ---------- smog drift in Problem chapter ---------- */
+  .smog{ position:absolute; border-radius:9999px; filter:blur(70px); opacity:.22; }
+  @keyframes drift { from{transform:translateX(-8%)} to{transform:translateX(8%)} }
+  .smog-a{ animation:drift 16s ease-in-out infinite alternate; }
+  .smog-b{ animation:drift 22s ease-in-out infinite alternate-reverse; }
+
+  /* ---------- orbit rings in Solution chapter ---------- */
+  .ring{ position:absolute; border:1px solid rgba(233,239,231,.12); border-radius:9999px; }
+
+  /* ---------- CTA moon glow ---------- */
+  .moonglow{ box-shadow:0 0 120px 30px rgba(233,239,231,.16), inset -18px -14px 40px rgba(7,16,11,.55); }
+
+  /* ---------- reduced motion ---------- */
+  @media (prefers-reduced-motion: reduce){
+    .reveal, .reveal-line{ opacity:1 !important; transform:none !important; transition:none !important; }
+    .smog-a,.smog-b{ animation:none; }
+    .grain::after{ animation:none; }
+    #cosmos{ display:none; }
+  }
+</style>
+</head>
+
+<body class="grain bg-pine text-moonstone font-body antialiased selection:bg-fern">
+
+<!-- ══════════════ persistent Three.js cosmos (moon + earth follow the scroll) ══════════════ -->
+<canvas id="cosmos" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
+
+<!-- ══════════════ nav ══════════════ -->
+<header class="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-6 md:px-12 py-6 mix-blend-difference">
+  <a href="#top" class="font-display text-2xl tracking-[.28em]">LUNAR</a>
+  <a href="#cta" class="eyebrow border border-moonstone/40 rounded-full px-5 py-2.5 hover:bg-moonstone hover:text-pine transition-colors duration-500">Begin</a>
+</header>
+
+<main id="top" class="relative z-10">
+
+<!-- ══════════════════════════════════════════════
+     HERO — forest to moon
+══════════════════════════════════════════════ -->
+<section id="hero" class="relative h-[130vh]">
+  <div class="sticky top-0 h-screen overflow-hidden">
+
+    <!-- sky gradient: forest air below, night sky above -->
+    <div class="absolute inset-0 bg-gradient-to-b from-nightsky via-[#0B1A12] to-pine"></div>
+
+    <!-- distant ridge -->
+    <svg class="layer opacity-40" data-speed="12" viewBox="0 0 1440 320" preserveAspectRatio="none" style="height:44vh">
+      <path fill="#0E1D14" d="M0,240 C180,180 300,220 480,190 C660,160 760,210 940,180 C1120,150 1260,200 1440,170 L1440,320 L0,320 Z"/>
+    </svg>
+
+    <!-- mid treeline -->
+    <svg class="layer opacity-70" data-speed="26" viewBox="0 0 1440 320" preserveAspectRatio="none" style="height:38vh">
+      <path fill="#0B1710" d="M0,260 L40,250 L60,200 L80,252 L120,244 L150,180 L180,248 L240,240 L270,190 L300,246 L360,238 L400,170 L440,244 L500,236 L540,196 L580,246 L640,238 L690,175 L730,246 L800,240 L840,188 L880,248 L950,240 L1000,168 L1040,246 L1100,238 L1150,192 L1190,248 L1260,240 L1300,178 L1340,246 L1440,238 L1440,320 L0,320 Z"/>
+    </svg>
+
+    <!-- near forest silhouette -->
+    <svg class="layer" data-speed="48" viewBox="0 0 1440 320" preserveAspectRatio="none" style="height:34vh">
+      <path fill="#050B07" d="M0,300 L30,290 L55,210 L80,292 L130,284 L160,170 L195,288 L260,280 L300,150 L340,286 L410,278 L460,160 L505,288 L570,280 L620,140 L665,286 L740,278 L790,155 L835,288 L900,280 L950,145 L995,286 L1060,278 L1110,165 L1155,288 L1230,280 L1280,150 L1325,286 L1400,280 L1440,240 L1440,320 L0,320 Z"/>
+    </svg>
+
+    <!-- headline -->
+    <div class="relative h-full flex flex-col items-center justify-center text-center px-6" id="hero-copy">
+      <p class="eyebrow text-lichen mb-8">Eco-luxury · grown by night</p>
+      <h1 class="font-display display-xl max-w-5xl">
+        The forest sleeps.<br/>
+        <span class="italic font-normal text-fern">The moon keeps watch.</span>
+      </h1>
+      <p class="mt-10 max-w-md text-lichen font-light leading-relaxed">
+        Skincare distilled from wild botanicals, harvested under moonlight, returned to the earth in full.
+      </p>
+      <div class="mt-16 flex flex-col items-center gap-3 text-lichen/70">
+        <span class="eyebrow">Scroll to descend</span>
+        <span class="block w-px h-16 bg-gradient-to-b from-lichen/70 to-transparent"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     CHAPTER I — THE PROBLEM
+══════════════════════════════════════════════ -->
+<section id="problem" data-theme="ash" class="relative bg-ash py-40 md:py-56 overflow-hidden">
+  <!-- drifting smog -->
+  <div class="smog smog-a bg-ember/50 w-[46rem] h-[46rem] -top-40 -left-52"></div>
+  <div class="smog smog-b bg-[#4A4038] w-[38rem] h-[38rem] bottom-0 -right-40"></div>
+
+  <div class="relative max-w-6xl mx-auto px-6 md:px-12">
+    <div class="reveal">
+      <p class="eyebrow text-ember">Chapter I</p>
+      <h2 class="font-display display-lg mt-6 max-w-3xl">
+        <span class="block overflow-hidden"><span class="reveal-line block">What we took</span></span>
+        <span class="block overflow-hidden"><span class="reveal-line d1 block italic text-lichen">never came back.</span></span>
+      </h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-16 mt-24">
+      <p class="reveal d1 text-lichen font-light text-lg leading-loose">
+        Every year the beauty industry pours <span class="text-moonstone">120 billion units of packaging</span> into
+        the world. Most of it outlives the person who bought it. Forests are cleared for ingredients that are
+        stripped, not stewarded. The night sky over the places we harvest from grows a little more orange,
+        a little less black.
+      </p>
+      <div class="reveal d2 space-y-10">
+        <div class="border-l border-ember/50 pl-6">
+          <p class="font-data text-3xl text-moonstone">95<span class="text-ember">%</span></p>
+          <p class="text-lichen text-sm mt-2 font-light">of cosmetic packaging is discarded after a single use.</p>
+        </div>
+        <div class="border-l border-ember/50 pl-6">
+          <p class="font-data text-3xl text-moonstone">1 <span class="text-ember">in</span> 3</p>
+          <p class="text-lichen text-sm mt-2 font-light">wild-sourced botanical species is harvested faster than it can regrow.</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="reveal d3 mt-28 font-display italic text-2xl md:text-3xl text-lichen max-w-2xl">
+      “We looked up one night and realised the moon was the only thing we hadn't managed to dim.”
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     CHAPTER II — THE JOURNEY (scroll-scrubbed transformation)
+══════════════════════════════════════════════ -->
+<section id="journey" class="relative">
+  <div id="journey-pin" class="h-screen overflow-hidden flex items-center"
+       style="background:linear-gradient(#15120E,#15120E)">
+    <div class="max-w-6xl mx-auto px-6 md:px-12 w-full">
+      <p class="eyebrow text-fern">Chapter II · The long way back</p>
+
+      <div class="relative mt-10 h-[46vh] md:h-[40vh]">
+        <!-- three phases cross-fade as the user scrolls through the pin -->
+        <div class="journey-phase absolute inset-0" data-phase="0">
+          <h3 class="font-display display-lg">Gather<span class="italic text-fern"> gently.</span></h3>
+          <p class="mt-8 max-w-xl text-lichen font-light text-lg leading-loose">
+            Our botanists harvest by hand, by moonlight, when essential oils crest in the leaf.
+            Never more than one stem in ten. The forest doesn't notice we were there.
+          </p>
+        </div>
+        <div class="journey-phase absolute inset-0" data-phase="1">
+          <h3 class="font-display display-lg">Distill<span class="italic text-fern"> cold.</span></h3>
+          <p class="mt-8 max-w-xl text-lichen font-light text-lg leading-loose">
+            No heat, no solvents, no hurry. Lunar-cycle maceration draws out what fire would destroy —
+            powered entirely by the night wind and the sun it borrows from.
+          </p>
+        </div>
+        <div class="journey-phase absolute inset-0" data-phase="2">
+          <h3 class="font-display display-lg">Return<span class="italic text-fern"> everything.</span></h3>
+          <p class="mt-8 max-w-xl text-lichen font-light text-lg leading-loose">
+            Every vessel comes home to be refilled. Every hectare we touch, we replant threefold.
+            The ledger with the forest always closes in its favour.
+          </p>
+        </div>
+      </div>
+
+      <!-- progress thread -->
+      <div class="mt-6 w-full max-w-xl h-px bg-moonstone/10 relative">
+        <div id="journey-thread" class="absolute left-0 top-0 h-px bg-fern" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     CHAPTER III — THE SOLUTION (product ecosystem)
+══════════════════════════════════════════════ -->
+<section id="solution" data-theme="pine" class="relative bg-pine py-40 md:py-56 overflow-hidden">
+  <div class="max-w-6xl mx-auto px-6 md:px-12">
+    <div class="reveal text-center">
+      <p class="eyebrow text-fern">Chapter III</p>
+      <h2 class="font-display display-lg mt-6">A living <span class="italic text-fern">system,</span><br/>not a product line.</h2>
+    </div>
+
+    <!-- ecosystem: orbit rings + three nodes -->
+    <div id="ecosystem" class="relative mt-32 h-[34rem] flex items-center justify-center">
+      <div class="ring w-[22rem] h-[22rem] md:w-[30rem] md:h-[30rem]"></div>
+      <div class="ring w-[34rem] h-[34rem] md:w-[46rem] md:h-[46rem]"></div>
+
+      <!-- center: the vessel -->
+      <div class="reveal relative z-10 text-center">
+        <div class="mx-auto w-28 h-40 rounded-t-full rounded-b-3xl bg-gradient-to-b from-moss to-pine border border-fern/40 flex items-end justify-center pb-4 moonglow">
+          <span class="font-display italic text-fern text-sm tracking-widest">Lunar Nº1</span>
+        </div>
+        <p class="eyebrow text-lichen mt-6">The Vessel</p>
+        <p class="text-sm text-lichen/80 font-light mt-2 max-w-[16rem] mx-auto">Hand-blown glass, refilled for life. Yours, then your daughter's.</p>
+      </div>
+
+      <!-- orbiting nodes -->
+      <div class="orbit-node absolute z-10 text-center w-52" data-angle="20">
+        <p class="font-display text-2xl">The Elixir</p>
+        <p class="text-xs text-lichen font-light mt-2">Nine wild botanicals, one lunar month in the making.</p>
+      </div>
+      <div class="orbit-node absolute z-10 text-center w-52" data-angle="150">
+        <p class="font-display text-2xl">The Refill</p>
+        <p class="text-xs text-lichen font-light mt-2">Posted in mycelium, dissolved in your garden.</p>
+      </div>
+      <div class="orbit-node absolute z-10 text-center w-52" data-angle="270">
+        <p class="font-display text-2xl">The Return</p>
+        <p class="text-xs text-lichen font-light mt-2">Send any empty back — ours or anyone's. We give it a next life.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     CHAPTER IV — IMPACT
+══════════════════════════════════════════════ -->
+<section id="impact" data-theme="pine" class="relative bg-gradient-to-b from-pine to-nightsky py-40 md:py-56">
+  <div class="max-w-6xl mx-auto px-6 md:px-12">
+    <div class="reveal">
+      <p class="eyebrow text-fern">Chapter IV</p>
+      <h2 class="font-display display-lg mt-6 max-w-3xl">What the ledger says<br/><span class="italic text-lichen">after four years.</span></h2>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-20 mt-28">
+      <div class="stat reveal">
+        <p class="font-data text-5xl md:text-6xl text-moonstone"><span class="count" data-to="1200000" data-fmt="compact">0</span></p>
+        <p class="eyebrow text-fern mt-4">Vessels refilled</p>
+        <p class="text-sm text-lichen font-light mt-3">Each one a bottle that was never made.</p>
+      </div>
+      <div class="stat reveal d1">
+        <p class="font-data text-5xl md:text-6xl text-moonstone"><span class="count" data-to="486" data-fmt="plain">0</span><span class="text-fern text-3xl"> t</span></p>
+        <p class="eyebrow text-fern mt-4">Plastic avoided</p>
+        <p class="text-sm text-lichen font-light mt-3">Roughly the weight of three blue whales.</p>
+      </div>
+      <div class="stat reveal d2">
+        <p class="font-data text-5xl md:text-6xl text-moonstone"><span class="count" data-to="217000" data-fmt="compact">0</span></p>
+        <p class="eyebrow text-fern mt-4">Trees planted</p>
+        <p class="text-sm text-lichen font-light mt-3">Three for every one we ever ask anything of.</p>
+      </div>
+      <div class="stat reveal d3">
+        <p class="font-data text-5xl md:text-6xl text-moonstone"><span class="count" data-to="12" data-fmt="plain">0</span></p>
+        <p class="eyebrow text-fern mt-4">Forests protected</p>
+        <p class="text-sm text-lichen font-light mt-3">Under legal guardianship, in perpetuity.</p>
+      </div>
+    </div>
+
+    <p class="reveal d4 mt-32 font-display italic text-2xl md:text-3xl text-lichen max-w-2xl">
+      Audited annually. Published fully. The forest reads our books.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     CTA — full moon
+══════════════════════════════════════════════ -->
+<section id="cta" data-theme="night" class="relative bg-nightsky min-h-screen flex items-center justify-center overflow-hidden py-40">
+  <!-- full moon disc -->
+  <div class="absolute w-[26rem] h-[26rem] md:w-[34rem] md:h-[34rem] rounded-full bg-gradient-to-br from-moonstone to-[#B9C4B6] moonglow opacity-90" id="cta-moon"></div>
+
+  <div class="relative z-10 text-center px-6">
+    <p class="reveal eyebrow text-pine/70">The night is long. Begin anyway.</p>
+    <h2 class="reveal d1 font-display display-xl text-pine mt-8">Join the<br/><span class="italic">night shift</span><br/>of nature.</h2>
+    <a href="#" class="reveal d2 inline-block mt-14 bg-pine text-moonstone rounded-full px-12 py-5 eyebrow hover:bg-moss transition-colors duration-500">
+      Begin your ritual
+    </a>
+    <p class="reveal d3 mt-8 text-pine/60 text-sm font-light">Refill for life · Carbon-negative since day one</p>
+  </div>
+</section>
+
+<footer class="relative z-10 bg-nightsky border-t border-moonstone/10 py-10 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-4 text-lichen/60 text-xs">
+  <span class="font-display text-lg tracking-[.28em] text-moonstone/70">LUNAR</span>
+  <span class="font-light">© 2026 Lunar Botanics · Grown by night, given back by day.</span>
+</footer>
+
+</main>
+
+<!-- ══════════════════════════════════════════════ scripts ══════════════════════════════════════════════ -->
+<script>
+(function(){
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------------- Intersection Observer: chapter reveals ---------------- */
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{ threshold:0.18, rootMargin:'0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  if (reduced) return;                    // static, dignified experience for reduced motion
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* ---------------- Hero: layered forest parallax + copy fade ---------------- */
+  document.querySelectorAll('#hero .layer').forEach(layer=>{
+    gsap.to(layer,{
+      yPercent: parseFloat(layer.dataset.speed),
+      ease:'none',
+      scrollTrigger:{ trigger:'#hero', start:'top top', end:'bottom top', scrub:true }
+    });
+  });
+  gsap.to('#hero-copy',{
+    opacity:0, y:-90, ease:'none',
+    scrollTrigger:{ trigger:'#hero', start:'top top', end:'55% top', scrub:true }
+  });
+
+  /* ---------------- Chapter II: pinned transforming phases ---------------- */
+  const phases = gsap.utils.toArray('.journey-phase');
+  gsap.set(phases,{ autoAlpha:0, y:40 });
+  gsap.set(phases[0],{ autoAlpha:1, y:0 });
+
+  const journeyTl = gsap.timeline({
+    scrollTrigger:{
+      trigger:'#journey-pin', start:'top top', end:'+=2400',
+      pin:true, scrub:0.6,
+      onUpdate(self){
+        document.getElementById('journey-thread').style.width = (self.progress*100)+'%';
+        // background heals from ash to moss as the journey progresses
+        const c = gsap.utils.interpolate('#15120E', '#122A1C', self.progress);
+        document.getElementById('journey-pin').style.background = c;
+      }
+    }
+  });
+  journeyTl
+    .to(phases[0],{ autoAlpha:0, y:-40, duration:1 }, 1)
+    .to(phases[1],{ autoAlpha:1, y:0,  duration:1 }, 1.4)
+    .to(phases[1],{ autoAlpha:0, y:-40, duration:1 }, 3)
+    .to(phases[2],{ autoAlpha:1, y:0,  duration:1 }, 3.4)
+    .to({},{ duration:0.8 });
+
+  /* ---------------- Chapter III: orbiting ecosystem nodes ---------------- */
+  const eco = document.getElementById('ecosystem');
+  const nodes = gsap.utils.toArray('.orbit-node');
+  function placeNodes(extra){
+    const r = Math.min(eco.clientWidth, 760)/2 * 0.92;
+    nodes.forEach(n=>{
+      const a = (parseFloat(n.dataset.angle) + extra) * Math.PI/180;
+      n.style.transform = `translate(${Math.cos(a)*r}px, ${Math.sin(a)*r*0.55}px)`;
+    });
+  }
+  placeNodes(0);
+  ScrollTrigger.create({
+    trigger:'#solution', start:'top bottom', end:'bottom top', scrub:true,
+    onUpdate(self){ placeNodes(self.progress * 120); }
+  });
+  window.addEventListener('resize', ()=>placeNodes(0));
+
+  /* ---------------- Chapter IV: numbers flying in ---------------- */
+  const fmt = {
+    compact: v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? Math.round(v/1e3)+'K' : Math.round(v),
+    plain:   v => Math.round(v).toLocaleString()
+  };
+  gsap.utils.toArray('.count').forEach(el=>{
+    const target = parseFloat(el.dataset.to), f = fmt[el.dataset.fmt] || fmt.plain;
+    const obj = { v:0 };
+    gsap.to(obj,{
+      v:target, duration:2.2, ease:'power3.out',
+      scrollTrigger:{ trigger:el, start:'top 85%' },
+      onUpdate:()=>{ el.textContent = f(obj.v); }
+    });
+    gsap.from(el.closest('.stat'),{
+      y:70, opacity:0, duration:1.1, ease:'power3.out',
+      scrollTrigger:{ trigger:el, start:'top 88%' }
+    });
+  });
+
+  /* ---------------- CTA moon swell ---------------- */
+  gsap.from('#cta-moon',{
+    scale:0.55, opacity:0.25, ease:'none',
+    scrollTrigger:{ trigger:'#cta', start:'top bottom', end:'center center', scrub:true }
+  });
+
+  /* ════════════════ THREE.JS — moon & earth that travel with the scroll ════════════════ */
+  const canvas = document.getElementById('cosmos');
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 100);
+  camera.position.z = 10;
+
+  scene.add(new THREE.AmbientLight(0x8fa996, 0.5));
+  const key = new THREE.DirectionalLight(0xffffff, 1.0);
+  key.position.set(-4, 3, 6);
+  scene.add(key);
+
+  // MOON — softly cratered sphere
+  const moonGeo = new THREE.SphereGeometry(1.6, 48, 48);
+  const pos = moonGeo.attributes.position;
+  for (let i=0;i<pos.count;i++){
+    const v = new THREE.Vector3().fromBufferAttribute(pos,i);
+    const n = 0.045*Math.sin(v.x*7.3)*Math.cos(v.y*6.1)*Math.sin(v.z*5.7);
+    v.multiplyScalar(1+n); pos.setXYZ(i,v.x,v.y,v.z);
+  }
+  moonGeo.computeVertexNormals();
+  const moonMat = new THREE.MeshStandardMaterial({ color:0xe9efe7, roughness:0.95, metalness:0 });
+  const moon = new THREE.Mesh(moonGeo, moonMat);
+  scene.add(moon);
+
+  // EARTH — small green-blue companion
+  const earthMat = new THREE.MeshStandardMaterial({ color:0x2f6b52, roughness:0.7, metalness:0.05 });
+  const earth = new THREE.Mesh(new THREE.SphereGeometry(0.55, 40, 40), earthMat);
+  scene.add(earth);
+
+  // STARS
+  const starGeo = new THREE.BufferGeometry();
+  const starPos = new Float32Array(400*3);
+  for (let i=0;i<400;i++){
+    starPos[i*3]   = (Math.random()-0.5)*40;
+    starPos[i*3+1] = (Math.random()-0.5)*24;
+    starPos[i*3+2] = -6 - Math.random()*10;
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos,3));
+  const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color:0xe9efe7, size:0.045, transparent:true, opacity:0.7 }));
+  scene.add(stars);
+
+  function resize(){
+    renderer.setSize(innerWidth, innerHeight, false);
+    camera.aspect = innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+  }
+  resize(); window.addEventListener('resize', resize);
+
+  // The moon's voyage across the page, keyed to overall scroll progress.
+  // Each waypoint: [progress, x, y, scale, tint]
+  const smog   = new THREE.Color(0x6b5c4d);
+  const silver = new THREE.Color(0xe9efe7);
+  const path = [
+    { p:0.00, x: 2.8, y: 2.1, s:1.00, t:1.0 },   // hero — rising over the treeline
+    { p:0.16, x:-3.2, y: 1.4, s:0.72, t:0.15 },  // problem — dimmed by smog
+    { p:0.38, x: 3.4, y:-0.2, s:0.80, t:0.55 },  // journey — beginning to clear
+    { p:0.60, x:-3.6, y: 0.6, s:0.66, t:0.95 },  // solution — bright again
+    { p:0.80, x: 3.0, y: 1.8, s:0.60, t:1.0 },   // impact — high and clean
+    { p:1.00, x: 0.0, y: 9.0, s:0.40, t:1.0 }    // cta — hands the sky to the CSS full moon
+  ];
+  function sample(p){
+    let a = path[0], b = path[path.length-1];
+    for (let i=0;i<path.length-1;i++){
+      if (p >= path[i].p && p <= path[i+1].p){ a = path[i]; b = path[i+1]; break; }
+    }
+    const t = (p - a.p) / Math.max(b.p - a.p, 1e-6);
+    const e = t*t*(3-2*t); // smoothstep
+    return {
+      x: a.x + (b.x-a.x)*e,
+      y: a.y + (b.y-a.y)*e,
+      s: a.s + (b.s-a.s)*e,
+      t: a.t + (b.t-a.t)*e
+    };
+  }
+
+  let progress = 0;
+  ScrollTrigger.create({
+    trigger: document.body, start:'top top', end:'bottom bottom', scrub:true,
+    onUpdate(self){ progress = self.progress; }
+  });
+
+  const tmp = new THREE.Color();
+  let raf;
+  function tick(time){
+    const w = sample(progress);
+    moon.position.set(w.x, w.y, 0);
+    moon.scale.setScalar(w.s);
+    moon.rotation.y = time*0.00006;
+    tmp.copy(smog).lerp(silver, w.t);
+    moonMat.color.copy(tmp);
+
+    // earth trails the moon in a slow ellipse
+    const a = time*0.00025 + progress*Math.PI*2;
+    earth.position.set(w.x + Math.cos(a)*2.6, w.y + Math.sin(a)*1.1 - 0.4, -1.5);
+    earth.rotation.y = time*0.0001;
+
+    stars.rotation.z = progress*0.25;
+    stars.material.opacity = 0.35 + 0.45*w.t;
+
+    renderer.render(scene, camera);
+    raf = requestAnimationFrame(tick);
+  }
+  raf = requestAnimationFrame(tick);
+  document.addEventListener('visibilitychange', ()=>{
+    if (document.hidden) cancelAnimationFrame(raf); else raf = requestAnimationFrame(tick);
+  });
+})();
+</script>
+</body>
+</html>
