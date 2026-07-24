@@ -1,0 +1,5 @@
+- Prefers game items to only spawn from their intended source (e.g., coins only from broken bricks), not from continuous or random spawns. Confidence: 0.85
+- Prefers missed or failed interactions to not have unintended side effects on gameplay (e.g., missed coins should not alter ball behavior). Confidence: 0.8
+- Prefers auto-start mechanics where the game or action begins automatically without requiring specific user input to trigger. Confidence: 0.8
+- Prefers smooth, velocity-based keyboard controls in games (steady per-frame movement) over large per-frame jumps, so that the player can reliably catch or interact with moving game elements. Confidence: 0.9
+- Prefers multiple input methods (keyboard + mouse/touch) to coexist and work together in games, with neither overriding the other — e.g., keyboard adjusts a shared movement target that the paddle smoothly interpolates toward. Confidence: 0.75
