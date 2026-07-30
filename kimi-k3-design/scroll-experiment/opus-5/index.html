@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#050311">
+<title>Kael Thorn — Multidisciplinary Artist / Six Dimensions</title>
+<meta name="description" content="Kael Thorn works across kinetic sculpture, generative sound and simulated space. A scroll journey through six dimensions.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          display: ["'Unbounded'", 'sans-serif'],
+          sans: ["'Space Grotesk'", 'sans-serif'],
+          mono: ["'JetBrains Mono'", 'monospace'],
+        },
+        colors: {
+          void: '#050311',
+          voidsoft: '#0b0720',
+          surface: '#120b29',
+          violet: '#6d3bd6',
+          violetdeep: '#1c1040',
+          signal: '#ffb545',
+          cyan: '#55e6d8',
+          magenta: '#ff4fa3',
+          ink: '#f4f1ff',
+          muted: '#948dc0',
+        },
+      },
+    },
+  };
+</script>
+
+<style>
+  :root{
+    --c-void:#050311;
+    --c-void-soft:#0b0720;
+    --c-surface:#120b29;
+    --c-line: rgba(244,241,255,0.09);
+    --c-violet:#6d3bd6;
+    --c-violet-deep:#1c1040;
+    --c-signal:#ffb545;
+    --c-cyan:#55e6d8;
+    --c-magenta:#ff4fa3;
+    --c-ink:#f4f1ff;
+    --c-muted:#948dc0;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{
+    background:var(--c-void);
+    color:var(--c-ink);
+    overscroll-behavior-y:none;
+  }
+  body{
+    font-family:'Space Grotesk',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  body.is-loading{overflow:hidden;height:100vh;}
+
+  ::selection{background:var(--c-signal);color:var(--c-void);}
+
+  h1,h2,h3,.font-display{font-family:'Unbounded',sans-serif;}
+  .font-mono{font-family:'JetBrains Mono',monospace;}
+
+  /* ---------- Loader ---------- */
+  #loader{
+    position:fixed;inset:0;z-index:200;
+    background:var(--c-void);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;
+    transition:opacity 1s cubic-bezier(.6,0,.2,1), visibility 1s;
+  }
+  #loader.is-done{opacity:0;visibility:hidden;pointer-events:none;}
+  #loader-bar-track{width:min(60vw,320px);height:1px;background:var(--c-line);position:relative;overflow:hidden;}
+  #loader-bar-fill{position:absolute;inset:0 auto 0 0;width:0%;background:linear-gradient(90deg,var(--c-violet),var(--c-signal));transition:width .25s ease-out;}
+
+  /* ---------- Custom cursor ---------- */
+  #cursor-ring,#cursor-dot{
+    position:fixed;top:0;left:0;pointer-events:none;z-index:180;
+    border-radius:999px;
+    transform:translate(-50%,-50%);
+    will-change:transform;
+  }
+  #cursor-ring{
+    width:34px;height:34px;border:1px solid rgba(244,241,255,0.55);
+    transition:width .25s ease,height .25s ease,border-color .25s ease,background-color .25s ease;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #cursor-ring span{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;
+    color:var(--c-signal);opacity:0;transition:opacity .2s ease;text-transform:uppercase;white-space:nowrap;
+  }
+  #cursor-dot{width:5px;height:5px;background:var(--c-signal);}
+  html.has-cursor, html.has-cursor a, html.has-cursor button{cursor:none;}
+  #cursor-ring.is-active{width:64px;height:64px;border-color:var(--c-signal);background:rgba(255,181,69,.06);}
+  #cursor-ring.is-active span{opacity:1;}
+
+  /* ---------- Backgrounds ---------- */
+  #bg-canvas{position:fixed;inset:0;z-index:-2;width:100vw;height:100vh;}
+  #grain{
+    position:fixed;inset:0;z-index:90;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  #vignette{position:fixed;inset:0;z-index:80;pointer-events:none;background:radial-gradient(ellipse at center, transparent 40%, rgba(2,1,8,.75) 100%);}
+
+  /* ---------- Chrome: topbar / dot nav / hud ---------- */
+  #topbar{position:fixed;top:0;left:0;right:0;z-index:60;padding:1.25rem clamp(1.25rem,4vw,3rem);display:flex;justify-content:space-between;align-items:center;pointer-events:none;padding-top:calc(1.25rem + env(safe-area-inset-top));}
+  #topbar a{pointer-events:auto;}
+  .kt-mark{width:38px;height:38px;border:1px solid var(--c-line);display:flex;align-items:center;justify-content:center;font-family:'Unbounded',sans-serif;font-weight:800;font-size:11px;letter-spacing:.02em;background:rgba(18,11,41,.4);backdrop-filter:blur(6px);}
+
+  #dot-nav{position:fixed;left:clamp(1rem,3vw,2.25rem);top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:column;gap:1.1rem;}
+  #dot-nav button{all:unset;cursor:pointer;display:flex;align-items:center;gap:.65rem;color:var(--c-muted);}
+  #dot-nav .dn-dot{width:6px;height:6px;border-radius:999px;background:currentColor;opacity:.5;transition:all .35s ease;}
+  #dot-nav .dn-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;opacity:0;transform:translateX(-6px);transition:all .35s ease;white-space:nowrap;}
+  #dot-nav button:hover .dn-label{opacity:.8;transform:translateX(0);}
+  #dot-nav button.is-active{color:var(--c-signal);}
+  #dot-nav button.is-active .dn-dot{opacity:1;transform:scale(1.9);}
+  #dot-nav button.is-active .dn-label{opacity:1;transform:translateX(0);}
+  @media (max-width:767px){#dot-nav{display:none;}}
+
+  #hud{position:fixed;bottom:1.1rem;right:1.25rem;z-index:60;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--c-muted);text-align:right;pointer-events:none;padding-bottom:env(safe-area-inset-bottom);}
+  #hud .hud-pct{color:var(--c-signal);}
+
+  /* ---------- Section scaffolding ---------- */
+  .dim-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--c-signal);}
+  .dim-rule{height:1px;width:2.25rem;background:var(--c-signal);display:inline-block;margin-right:.75rem;vertical-align:middle;}
+
+  /* ---------- Hero ---------- */
+  #s00-hero{height:230vh;}
+  .hero-stage{position:sticky;top:0;height:100svh;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;perspective:1400px;}
+  #hero-particles{position:absolute;inset:0;width:100%;height:100%;}
+  .hero-text-wrap{position:relative;z-index:2;text-align:center;transform-style:preserve-3d;will-change:transform,opacity,filter;}
+  .hero-word{display:block;font-weight:900;font-size:clamp(3.4rem,14.5vw,11.5rem);line-height:.84;letter-spacing:-.02em;}
+  .hero-word--kael{
+    color:var(--c-ink);
+    text-shadow:1px 1px 0 #5b35a8,2px 2px 0 #532f9b,3px 3px 0 #4b298e,4px 4px 0 #432381,
+      5px 5px 0 #3b1d74,6px 6px 0 #331767,7px 7px 0 #2b115a,8px 8px 18px rgba(0,0,0,.55),
+      0 0 70px rgba(109,59,214,.45);
+  }
+  .hero-word--thorn{
+    color:var(--c-signal);
+    text-shadow:1px 1px 0 #d99a3f,2px 2px 0 #cf8f3a,3px 3px 0 #c58435,4px 4px 0 #bb7930,
+      5px 5px 0 #b16e2b,6px 6px 0 #a76326,7px 7px 0 #9d5821,8px 8px 18px rgba(0,0,0,.55),
+      0 0 80px rgba(255,181,69,.5);
+  }
+  .hero-sub{font-family:'Space Grotesk',sans-serif;font-weight:400;color:var(--c-muted);max-width:34ch;margin:1.75rem auto 0;font-size:clamp(.9rem,1.6vw,1.05rem);line-height:1.6;}
+  .scroll-cue{position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.6rem;color:var(--c-muted);z-index:2;}
+  .scroll-cue-line{width:1px;height:34px;background:linear-gradient(var(--c-signal),transparent);animation:cueDrop 1.8s ease-in-out infinite;}
+  @keyframes cueDrop{0%{transform:scaleY(0);transform-origin:top;}50%{transform:scaleY(1);transform-origin:top;}50.01%{transform-origin:bottom;}100%{transform:scaleY(0);transform-origin:bottom;}}
+
+  /* ---------- Fold (2D -> 3D) ---------- */
+  #s01-fold{height:260vh;}
+  .fold-stage{position:sticky;top:0;height:100svh;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6vh 5vw;}
+  #fold-scene{--p:0;perspective:1200px;width:100%;max-width:1100px;position:relative;height:min(58vh,480px);}
+  .fold-grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:2px;transform-style:preserve-3d;}
+  .fold-card{
+    position:relative;transform-style:preserve-3d;overflow:hidden;
+    display:flex;flex-direction:column;justify-content:space-between;padding:1.1rem 1.3rem;
+    border:1px solid var(--c-line);
+    transform:
+      perspective(1200px)
+      translateZ(calc(var(--p) * var(--tz)))
+      translateX(calc(var(--p) * var(--tx)))
+      translateY(calc(var(--p) * var(--ty)))
+      rotateY(calc(var(--p) * var(--ry) * 1deg))
+      rotateX(calc(var(--p) * var(--rx) * 1deg));
+    box-shadow:0 calc(var(--p) * 50px) calc(var(--p) * 90px) rgba(0,0,0,calc(var(--p) * .65));
+  }
+  .fold-num{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.15em;opacity:.7;}
+  .fold-title{font-family:'Unbounded',sans-serif;font-weight:700;font-size:clamp(.95rem,1.6vw,1.3rem);line-height:1.15;}
+  .fold-caption{color:var(--c-void);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;}
+
+  /* ---------- Timeline (warp) ---------- */
+  .tl-floor{position:absolute;inset:0;pointer-events:none;opacity:.35;
+    background-image:linear-gradient(var(--c-line) 1px,transparent 1px),linear-gradient(90deg,var(--c-line) 1px,transparent 1px);
+    background-size:64px 64px;
+    transform:perspective(700px) rotateX(62deg) scale(1.7);
+    transform-origin:center 0%;
+    mask-image:linear-gradient(to bottom, black, transparent 85%);
+  }
+  .tl-wrap{position:relative;}
+  .tl-svg{position:absolute;left:50%;top:0;transform:translateX(-50%);width:40px;height:100%;overflow:visible;}
+  @media (max-width:767px){.tl-svg{left:1.4rem;transform:none;}}
+  .tl-item{transform-style:preserve-3d;}
+  .tl-card{background:linear-gradient(180deg,rgba(18,11,41,.75),rgba(18,11,41,.35));border:1px solid var(--c-line);backdrop-filter:blur(6px);}
+
+  /* ---------- Portfolio (cubes) ---------- */
+  #portfolio-canvas-wrap{position:relative;height:min(72vh,620px);border:1px solid var(--c-line);background:radial-gradient(circle at 30% 20%, rgba(109,59,214,.12), transparent 60%),var(--c-void-soft);touch-action:none;overflow:hidden;}
+  #portfolio-canvas{width:100%;height:100%;display:block;cursor:grab;}
+  #portfolio-canvas:active{cursor:grabbing;}
+  .art-card{border:1px solid var(--c-line);padding:1.1rem 1.2rem;background:rgba(18,11,41,.35);}
+  .art-swatch{width:10px;height:10px;flex:none;}
+
+  /* ---------- Philosophy (fragments) ---------- */
+  #s04-philosophy{position:relative;}
+  .frag-ambient span{position:absolute;font-family:'Unbounded',sans-serif;font-weight:800;color:var(--c-line);font-size:clamp(2rem,7vw,5rem);animation:fragDrift 14s ease-in-out infinite;opacity:.5;}
+  @keyframes fragDrift{0%,100%{transform:translate(0,0) rotate(0deg);}50%{transform:translate(14px,-18px) rotate(3deg);}}
+  .frag-line{font-family:'Unbounded',sans-serif;font-weight:700;font-size:clamp(1.4rem,4vw,2.6rem);line-height:1.35;}
+  .frag-word{display:inline-block;will-change:transform,opacity,filter;}
+
+  /* ---------- Portal ---------- */
+  #s05-portal{height:230vh;}
+  .portal-stage{position:sticky;top:0;height:100svh;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+  #portal-canvas{position:absolute;inset:0;width:100%;height:100%;}
+  .portal-ring{position:absolute;border-radius:999px;top:50%;left:50%;pointer-events:none;}
+  .portal-ring--1{width:min(62vw,560px);height:min(62vw,560px);transform:translate(-50%,-50%);
+    background:conic-gradient(from 0deg, transparent 0deg, rgba(255,181,69,.5) 40deg, transparent 90deg, rgba(85,230,216,.35) 190deg, transparent 260deg, rgba(255,79,163,.35) 320deg, transparent 360deg);
+    filter:blur(2px);animation:portalSpin 18s linear infinite;
+  }
+  .portal-ring--2{width:min(44vw,400px);height:min(44vw,400px);transform:translate(-50%,-50%);border:1px solid rgba(244,241,255,.14);animation:portalSpin 26s linear infinite reverse;}
+  .portal-ring--3{width:min(30vw,270px);height:min(30vw,270px);transform:translate(-50%,-50%);border:1px dashed rgba(255,181,69,.35);animation:portalSpin 12s linear infinite;}
+  @keyframes portalSpin{to{transform:translate(-50%,-50%) rotate(360deg);}}
+  .portal-core{position:absolute;top:50%;left:50%;width:min(20vw,180px);height:min(20vw,180px);transform:translate(-50%,-50%);border-radius:999px;background:radial-gradient(circle, rgba(255,181,69,.55), rgba(109,59,214,.25) 55%, transparent 75%);filter:blur(18px);animation:portalPulse 4.5s ease-in-out infinite;}
+  @keyframes portalPulse{0%,100%{opacity:.55;transform:translate(-50%,-50%) scale(.92);}50%{opacity:.95;transform:translate(-50%,-50%) scale(1.08);}}
+  .portal-link{position:relative;display:inline-block;}
+  .portal-link::after{content:'';position:absolute;left:0;bottom:-3px;width:100%;height:1px;background:var(--c-signal);transform:scaleX(0);transform-origin:left;transition:transform .35s cubic-bezier(.6,0,.2,1);}
+  .portal-link:hover::after{transform:scaleX(1);}
+
+  /* ---------- Reduced motion ---------- */
+  html.reduce-motion .frag-ambient,
+  html.reduce-motion .scroll-cue-line,
+  html.reduce-motion .portal-ring--1,
+  html.reduce-motion .portal-ring--2,
+  html.reduce-motion .portal-ring--3,
+  html.reduce-motion .portal-core{animation:none !important;}
+  html.reduce-motion *{scroll-behavior:auto !important;}
+
+  .noscroll-fallback{display:none;}
+  html.no-webgl .noscroll-fallback{display:block;}
+</style>
+</head>
+
+<body class="is-loading bg-void text-ink">
+
+<!-- ============ Loader ============ -->
+<div id="loader" aria-hidden="true">
+  <div class="font-mono text-[10px] tracking-[0.35em] text-muted uppercase" id="loader-text">Calibrating Dimension 00</div>
+  <div id="loader-bar-track"><div id="loader-bar-fill"></div></div>
+  <div class="font-display font-extrabold text-sm tracking-[0.15em]" style="color:var(--c-signal)">KAEL THORN</div>
+</div>
+
+<!-- ============ Custom cursor ============ -->
+<div id="cursor-ring"><span id="cursor-ring-label"></span></div>
+<div id="cursor-dot"></div>
+
+<!-- ============ Backgrounds ============ -->
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+<div id="grain" aria-hidden="true"></div>
+<div id="vignette" aria-hidden="true"></div>
+
+<!-- ============ Chrome ============ -->
+<header id="topbar">
+  <a href="#s00-hero" class="kt-mark" data-cursor="TOP" aria-label="Back to top">KT</a>
+  <div class="font-mono text-[10px] tracking-[.28em] text-muted uppercase hidden sm:block">Six Dimensions — A Scroll Journey</div>
+</header>
+
+<nav id="dot-nav" aria-label="Dimension navigation">
+  <button data-target="#s00-hero"><span class="dn-dot"></span><span class="dn-label font-mono">00 · ORIGIN</span></button>
+  <button data-target="#s01-fold"><span class="dn-dot"></span><span class="dn-label font-mono">01 · THE FOLD</span></button>
+  <button data-target="#s02-timeline"><span class="dn-dot"></span><span class="dn-label font-mono">02 · THE WARP</span></button>
+  <button data-target="#s03-portfolio"><span class="dn-dot"></span><span class="dn-label font-mono">03 · ARTIFACTS</span></button>
+  <button data-target="#s04-philosophy"><span class="dn-dot"></span><span class="dn-label font-mono">04 · FRAGMENTS</span></button>
+  <button data-target="#s05-portal"><span class="dn-dot"></span><span class="dn-label font-mono">05 · THRESHOLD</span></button>
+</nav>
+
+<div id="hud" class="font-mono">
+  <div>SCROLL <span class="hud-pct" id="hud-pct">000</span>%</div>
+  <div id="hud-dim">DIM 00 / 05</div>
+</div>
+
+<main>
+
+  <!-- ============ DIMENSION 00 — HERO ============ -->
+  <section id="s00-hero" data-dim="00">
+    <div class="hero-stage">
+      <canvas id="hero-particles" aria-hidden="true"></canvas>
+      <div class="dim-label absolute top-[14vh] left-1/2 -translate-x-1/2 whitespace-nowrap"><span class="dim-rule"></span>DIMENSION 00 · ORIGIN</div>
+      <div class="hero-text-wrap" id="hero-text-wrap">
+        <h1>
+          <span class="hero-word hero-word--kael" id="hero-word-1">KAEL</span>
+          <span class="hero-word hero-word--thorn" id="hero-word-2">THORN</span>
+        </h1>
+        <p class="hero-sub">Multidisciplinary artist working across kinetic sculpture, generative sound and simulated space. This page is a body of work rendered as a place — scroll to move through it.</p>
+      </div>
+      <div class="scroll-cue">
+        <span class="font-mono text-[10px] tracking-[.25em] uppercase">Scroll to enter</span>
+        <span class="scroll-cue-line"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DIMENSION 01 — THE FOLD (2D -> 3D) ============ -->
+  <section id="s01-fold" data-dim="01">
+    <div class="fold-stage">
+      <div class="text-center mb-8">
+        <div class="dim-label mb-3"><span class="dim-rule"></span>DIMENSION 01 · THE FOLD</div>
+        <h2 class="font-display font-extrabold text-[clamp(1.6rem,5vw,3.2rem)] leading-[1.05]">Flat becomes deep.</h2>
+        <p class="text-muted max-w-md mx-auto mt-3 text-sm">Six plates of a flat archive, folding out of the page into a room you can almost step into.</p>
+      </div>
+      <div id="fold-scene">
+        <div class="fold-grid">
+          <div class="fold-card" style="--tz:-260;--tx:-140;--ty:-40;--ry:-26;--rx:8;background:#f4f1ff;color:#050311;">
+            <span class="fold-num" style="color:#6d3bd6">01 / SCULPTURE</span>
+            <span class="fold-title" style="color:#050311">Kinetic Form</span>
+            <span class="fold-caption">Steel, magnets, time</span>
+          </div>
+          <div class="fold-card" style="--tz:-420;--tx:0;--ty:-90;--ry:0;--rx:16;background:#120b29;color:#f4f1ff;">
+            <span class="fold-num" style="color:#ffb545">02 / SOUND</span>
+            <span class="fold-title" style="color:#f4f1ff">Generative Field</span>
+            <span class="fold-caption" style="color:#948dc0">Modular synthesis, drift</span>
+          </div>
+          <div class="fold-card" style="--tz:-260;--tx:140;--ty:-40;--ry:26;--rx:8;background:#1c1040;color:#f4f1ff;">
+            <span class="fold-num" style="color:#55e6d8">03 / SPACE</span>
+            <span class="fold-title" style="color:#f4f1ff">Simulated Room</span>
+            <span class="fold-caption" style="color:#948dc0">VR, volumetric light</span>
+          </div>
+          <div class="fold-card" style="--tz:-300;--tx:-160;--ty:60;--ry:-16;--rx:-10;background:#ffb545;color:#050311;">
+            <span class="fold-num" style="color:#1c1040">04 / MATTER</span>
+            <span class="fold-title" style="color:#050311">Bronze & Circuit</span>
+            <span class="fold-caption">Alloy, code, decay</span>
+          </div>
+          <div class="fold-card" style="--tz:-500;--tx:0;--ty:110;--ry:0;--rx:-20;background:#f4f1ff;color:#050311;">
+            <span class="fold-num" style="color:#e0679e">05 / LIGHT</span>
+            <span class="fold-title" style="color:#050311">Projected Memory</span>
+            <span class="fold-caption">Optics, glass, fog</span>
+          </div>
+          <div class="fold-card" style="--tz:-300;--tx:160;--ty:60;--ry:16;--rx:-10;background:#0b0720;color:#f4f1ff;">
+            <span class="fold-num" style="color:#6d3bd6">06 / VOID</span>
+            <span class="fold-title" style="color:#f4f1ff">Negative Space</span>
+            <span class="fold-caption" style="color:#948dc0">What is left out</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DIMENSION 02 — THE WARP (timeline) ============ -->
+  <section id="s02-timeline" data-dim="02" class="relative py-[16vh] px-[5vw]">
+    <div class="tl-floor" aria-hidden="true"></div>
+    <div class="relative max-w-4xl mx-auto">
+      <div class="text-center mb-[10vh]">
+        <div class="dim-label mb-3"><span class="dim-rule"></span>DIMENSION 02 · THE WARP</div>
+        <h2 class="font-display font-extrabold text-[clamp(1.6rem,5vw,3.2rem)] leading-[1.05]">A career bent by gravity.</h2>
+      </div>
+
+      <div class="tl-wrap" id="tl-wrap">
+        <svg class="tl-svg" id="tl-svg" viewBox="0 0 40 100" preserveAspectRatio="none">
+          <path id="tl-path" d="M20,0 L20,100" stroke="url(#tlGrad)" stroke-width="1.2" fill="none" vector-effect="non-scaling-stroke"/>
+          <defs>
+            <linearGradient id="tlGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#6d3bd6"/>
+              <stop offset="50%" stop-color="#ffb545"/>
+              <stop offset="100%" stop-color="#55e6d8"/>
+            </linearGradient>
+          </defs>
+        </svg>
+
+        <div class="flex flex-col gap-[9vh]">
+          <div class="tl-item grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-10 pl-12 md:pl-0" data-side="left">
+            <div class="tl-card p-5 md:justify-self-end md:text-right md:max-w-sm">
+              <div class="font-mono text-xs text-signal mb-1">2018 · LONDON</div>
+              <div class="font-display font-bold text-lg mb-1">Graduate Show, Royal College of Art</div>
+              <p class="text-sm text-muted">First kinetic works exhibited — steel armatures learning to breathe.</p>
+            </div>
+            <div class="hidden md:block"></div>
+          </div>
+
+          <div class="tl-item grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-10 pl-12 md:pl-0" data-side="right">
+            <div class="hidden md:block"></div>
+            <div class="tl-card p-5 md:max-w-sm">
+              <div class="font-mono text-xs text-signal mb-1">2019 · BERLIN</div>
+              <div class="font-display font-bold text-lg mb-1">Residency, Berlin Atonal</div>
+              <p class="text-sm text-muted">Began the generative sound practice that still runs beneath every later piece.</p>
+            </div>
+          </div>
+
+          <div class="tl-item grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-10 pl-12 md:pl-0" data-side="left">
+            <div class="tl-card p-5 md:justify-self-end md:text-right md:max-w-sm">
+              <div class="font-mono text-xs text-signal mb-1">2020 · SEOUL</div>
+              <div class="font-display font-bold text-lg mb-1">Solo Show — Oracle Bone</div>
+              <p class="text-sm text-muted">Bronze cast around live circuitry. The metal reads the current.</p>
+            </div>
+            <div class="hidden md:block"></div>
+          </div>
+
+          <div class="tl-item grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-10 pl-12 md:pl-0" data-side="right">
+            <div class="hidden md:block"></div>
+            <div class="tl-card p-5 md:max-w-sm">
+              <div class="font-mono text-xs text-signal mb-1">2022 · LONDON</div>
+              <div class="font-display font-bold text-lg mb-1">Suture — Somerset House</div>
+              <p class="text-sm text-muted">Steel and light installed across a wound in the courtyard floor.</p>
+            </div>
+          </div>
+
+          <div class="tl-item grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-10 pl-12 md:pl-0" data-side="left">
+            <div class="tl-card p-5 md:justify-self-end md:text-right md:max-w-sm">
+              <div class="font-mono text-xs text-signal mb-1">2023 · TOKYO</div>
+              <div class="font-display font-bold text-lg mb-1">Ghost Frequencies</div>
+              <p class="text-sm text-muted">A generative sound installation that toured four cities without repeating itself once.</p>
+            </div>
+            <div class="hidden md:block"></div>
+          </div>
+
+          <div class="tl-item grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-10 pl-12 md:pl-0" data-side="right">
+            <div class="hidden md:block"></div>
+            <div class="tl-card p-5 md:max-w-sm">
+              <div class="font-mono text-xs text-signal mb-1">2024 · VENICE</div>
+              <div class="font-display font-bold text-lg mb-1">Parallax Memory — Biennale</div>
+              <p class="text-sm text-muted">A VR installation where the room remembers where you have already looked.</p>
+            </div>
+          </div>
+
+          <div class="tl-item grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-10 pl-12 md:pl-0" data-side="left">
+            <div class="tl-card p-5 md:justify-self-end md:text-right md:max-w-sm" style="border-color:rgba(255,181,69,.4)">
+              <div class="font-mono text-xs text-signal mb-1">2026 · NOW</div>
+              <div class="font-display font-bold text-lg mb-1">Entropy Garden — Touring</div>
+              <p class="text-sm text-muted">Current work in progress. New pieces surface irregularly, on purpose.</p>
+            </div>
+            <div class="hidden md:block"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DIMENSION 03 — ARTIFACTS (portfolio cubes) ============ -->
+  <section id="s03-portfolio" data-dim="03" class="relative py-[14vh] px-[5vw]">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-10">
+        <div class="dim-label mb-3"><span class="dim-rule"></span>DIMENSION 03 · ARTIFACTS</div>
+        <h2 class="font-display font-extrabold text-[clamp(1.6rem,5vw,3.2rem)] leading-[1.05]">Six objects, floating.</h2>
+        <p class="text-muted max-w-md mx-auto mt-3 text-sm">Drag any block to spin it. Each one holds a real piece from the studio.</p>
+      </div>
+
+      <div id="portfolio-canvas-wrap" data-cursor="DRAG">
+        <canvas id="portfolio-canvas"></canvas>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4" id="art-caption-grid">
+        <div class="art-card flex items-start gap-3">
+          <span class="art-swatch mt-1" style="background:#ffb545"></span>
+          <div><div class="font-display font-bold text-sm">Entropy Garden</div><div class="font-mono text-xs text-muted mt-1">Kinetic Sculpture · 2024 · Berlin</div></div>
+        </div>
+        <div class="art-card flex items-start gap-3">
+          <span class="art-swatch mt-1" style="background:#55e6d8"></span>
+          <div><div class="font-display font-bold text-sm">Ghost Frequencies</div><div class="font-mono text-xs text-muted mt-1">Generative Sound · 2023 · Tokyo</div></div>
+        </div>
+        <div class="art-card flex items-start gap-3">
+          <span class="art-swatch mt-1" style="background:#6d3bd6"></span>
+          <div><div class="font-display font-bold text-sm">Suture</div><div class="font-mono text-xs text-muted mt-1">Steel &amp; Light · 2022 · London</div></div>
+        </div>
+        <div class="art-card flex items-start gap-3">
+          <span class="art-swatch mt-1" style="background:#ff4fa3"></span>
+          <div><div class="font-display font-bold text-sm">Parallax Memory</div><div class="font-mono text-xs text-muted mt-1">VR Installation · 2024 · Venice</div></div>
+        </div>
+        <div class="art-card flex items-start gap-3">
+          <span class="art-swatch mt-1" style="background:#f4f1ff"></span>
+          <div><div class="font-display font-bold text-sm">The Slow Collapse</div><div class="font-mono text-xs text-muted mt-1">Kinetic / Sound · 2021 · Reykjavik</div></div>
+        </div>
+        <div class="art-card flex items-start gap-3">
+          <span class="art-swatch mt-1" style="background:#9d7bd8"></span>
+          <div><div class="font-display font-bold text-sm">Oracle Bone</div><div class="font-mono text-xs text-muted mt-1">Bronze &amp; Circuitry · 2020 · Seoul</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DIMENSION 04 — FRAGMENTS (philosophy) ============ -->
+  <section id="s04-philosophy" data-dim="04" class="relative py-[20vh] px-[6vw] overflow-hidden">
+    <div class="frag-ambient" aria-hidden="true">
+      <span style="top:8%;left:6%;">FORM</span>
+      <span style="top:64%;left:80%;animation-delay:2s;">SIGNAL</span>
+      <span style="top:20%;left:78%;animation-delay:4s;">DECAY</span>
+      <span style="top:78%;left:12%;animation-delay:6s;">TIME</span>
+      <span style="top:40%;left:46%;animation-delay:3s;">ECHO</span>
+    </div>
+    <div class="relative max-w-3xl mx-auto">
+      <div class="dim-label mb-8 text-center"><span class="dim-rule"></span>DIMENSION 04 · FRAGMENTS</div>
+      <div class="flex flex-col gap-[10vh]">
+        <p class="frag-line" data-frag>I do not build objects. I build thresholds.</p>
+        <p class="frag-line" data-frag>Every material remembers the force that shaped it.</p>
+        <p class="frag-line" data-frag>Entropy is not decay. It is the material's way of speaking.</p>
+        <p class="frag-line" data-frag>Between the physical and the simulated, there is no border — only translation.</p>
+        <p class="frag-line" data-frag style="color:var(--c-signal)">My work ends where your attention begins.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DIMENSION 05 — THRESHOLD (portal / contact) ============ -->
+  <section id="s05-portal" data-dim="05">
+    <div class="portal-stage">
+      <canvas id="portal-canvas" aria-hidden="true"></canvas>
+      <div class="portal-ring portal-ring--1" aria-hidden="true"></div>
+      <div class="portal-ring portal-ring--2" aria-hidden="true"></div>
+      <div class="portal-ring portal-ring--3" aria-hidden="true"></div>
+      <div class="portal-core" aria-hidden="true"></div>
+
+      <div class="relative z-10 text-center px-6">
+        <div class="dim-label mb-5"><span class="dim-rule"></span>DIMENSION 05 · THE THRESHOLD</div>
+        <h2 class="font-display font-black text-[clamp(2.2rem,8vw,5.5rem)] leading-[.95] mb-6">STEP<br/>THROUGH</h2>
+        <p class="text-muted max-w-sm mx-auto mb-8 text-sm">Studio in Berlin. Reachable from anywhere. Reply time bends, but it does resolve.</p>
+        <a href="mailto:hello@kaelthorn.studio" class="portal-link font-display font-bold text-xl md:text-2xl" style="color:var(--c-signal)" data-cursor="EMAIL">hello@kaelthorn.studio</a>
+        <div class="flex items-center justify-center gap-6 mt-8 font-mono text-xs tracking-[.15em] uppercase text-muted">
+          <a href="#" class="portal-link hover:text-ink transition-colors" data-cursor="OPEN">Instagram</a>
+          <a href="#" class="portal-link hover:text-ink transition-colors" data-cursor="OPEN">Are.na</a>
+          <a href="#" class="portal-link hover:text-ink transition-colors" data-cursor="OPEN">Studio Visits</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="relative z-10 px-[6vw] py-10 flex flex-col sm:flex-row gap-3 items-center justify-between font-mono text-[10px] tracking-[.12em] text-muted uppercase">
+  <span>© 2026 Kael Thorn. All matter reserved.</span>
+  <button id="back-to-top" class="portal-link" data-cursor="TOP">Back to origin ↑</button>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<script>
+(function(){
+  "use strict";
+
+  var REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var IS_TOUCH = !window.matchMedia('(pointer: fine)').matches;
+  var HAS_WEBGL = (function(){
+    try{
+      var c = document.createElement('canvas');
+      return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl')));
+    }catch(e){ return false; }
+  })();
+  if(REDUCE) document.documentElement.classList.add('reduce-motion');
+  if(!HAS_WEBGL) document.documentElement.classList.add('no-webgl');
+
+  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+  function lerp(a,b,t){ return a + (b-a)*t; }
+
+  /* ================= Loader ================= */
+  function boot(){
+    var fill = document.getElementById('loader-bar-fill');
+    var loader = document.getElementById('loader');
+    var text = document.getElementById('loader-text');
+    var pct = 0;
+    var fontsPromise = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+    var tick = setInterval(function(){
+      pct = clamp(pct + Math.random()*14, 0, 92);
+      fill.style.width = pct + '%';
+    }, 120);
+
+    Promise.all([fontsPromise, new Promise(function(res){ setTimeout(res, 700); })]).then(function(){
+      clearInterval(tick);
+      fill.style.width = '100%';
+      text.textContent = 'Entering Dimension 00';
+      setTimeout(function(){
+        loader.classList.add('is-done');
+        document.body.classList.remove('is-loading');
+        window.dispatchEvent(new Event('kt-loaded'));
+      }, 380);
+    });
+  }
+
+  /* ================= Custom cursor ================= */
+  function initCursor(){
+    if(IS_TOUCH) return;
+    document.documentElement.classList.add('has-cursor');
+    var ring = document.getElementById('cursor-ring');
+    var dot = document.getElementById('cursor-dot');
+    var label = document.getElementById('cursor-ring-label');
+    var rx=innerWidth/2, ry=innerHeight/2, tx=rx, ty=ry;
+    window.addEventListener('mousemove', function(e){
+      tx = e.clientX; ty = e.clientY;
+      dot.style.transform = 'translate(' + tx + 'px,' + ty + 'px) translate(-50%,-50%)';
+    });
+    (function raf(){
+      rx = lerp(rx, tx, 0.18);
+      ry = lerp(ry, ty, 0.18);
+      ring.style.transform = 'translate(' + rx + 'px,' + ry + 'px) translate(-50%,-50%)';
+      requestAnimationFrame(raf);
+    })();
+    document.addEventListener('mouseover', function(e){
+      var target = e.target.closest('[data-cursor], a, button');
+      if(target && target.hasAttribute('data-cursor')){
+        ring.classList.add('is-active');
+        label.textContent = target.getAttribute('data-cursor');
+      } else if(target){
+        ring.classList.add('is-active');
+        label.textContent = '';
+      }
+    });
+    document.addEventListener('mouseout', function(e){
+      var target = e.target.closest('[data-cursor], a, button');
+      if(target){ ring.classList.remove('is-active'); label.textContent=''; }
+    });
+  }
+
+  /* ================= Background starfield ================= */
+  var bgState = { rotation: 0, colorMix: 0 };
+  function initBackground(){
+    if(!HAS_WEBGL) return;
+    var canvas = document.getElementById('bg-canvas');
+    var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha:true, antialias:false });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.8));
+    renderer.setSize(innerWidth, innerHeight);
+
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 1, 2000);
+    camera.position.z = 420;
+
+    var count = window.innerWidth < 768 ? 1600 : 3200;
+    var geo = new THREE.BufferGeometry();
+    var positions = new Float32Array(count*3);
+    var seeds = new Float32Array(count);
+    for(var i=0;i<count;i++){
+      var r = 300 + Math.random()*900;
+      var theta = Math.random()*Math.PI*2;
+      var phi = Math.acos((Math.random()*2)-1);
+      positions[i*3] = r*Math.sin(phi)*Math.cos(theta);
+      positions[i*3+1] = r*Math.sin(phi)*Math.sin(theta);
+      positions[i*3+2] = r*Math.cos(phi) - 300;
+      seeds[i] = Math.random();
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(positions,3));
+    geo.setAttribute('aSeed', new THREE.BufferAttribute(seeds,1));
+
+    var mat = new THREE.ShaderMaterial({
+      transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+      uniforms:{
+        uTime:{value:0},
+        uMix:{value:0},
+        uColorA:{value:new THREE.Color('#6d3bd6')},
+        uColorB:{value:new THREE.Color('#55e6d8')},
+        uColorC:{value:new THREE.Color('#ffb545')}
+      },
+      vertexShader:
+        'attribute float aSeed;\n'+
+        'uniform float uTime;\n'+
+        'varying float vSeed;\n'+
+        'void main(){\n'+
+        '  vSeed = aSeed;\n'+
+        '  vec3 pos = position;\n'+
+        '  pos.x += sin(uTime*0.05 + aSeed*30.0) * 6.0;\n'+
+        '  pos.y += cos(uTime*0.04 + aSeed*30.0) * 6.0;\n'+
+        '  vec4 mv = modelViewMatrix * vec4(pos,1.0);\n'+
+        '  gl_PointSize = (1.1 + aSeed*1.6) * (420.0 / -mv.z);\n'+
+        '  gl_Position = projectionMatrix * mv;\n'+
+        '}',
+      fragmentShader:
+        'precision mediump float;\n'+
+        'varying float vSeed;\n'+
+        'uniform float uMix;\n'+
+        'uniform vec3 uColorA; uniform vec3 uColorB; uniform vec3 uColorC;\n'+
+        'void main(){\n'+
+        '  vec2 uv = gl_PointCoord - 0.5;\n'+
+        '  float d = length(uv);\n'+
+        '  if(d > 0.5) discard;\n'+
+        '  float alpha = smoothstep(0.5, 0.0, d);\n'+
+        '  vec3 base = mix(uColorA, uColorB, vSeed);\n'+
+        '  vec3 col = mix(base, uColorC, uMix * step(0.82, vSeed));\n'+
+        '  gl_FragColor = vec4(col, alpha*0.85);\n'+
+        '}'
+    });
+
+    var points = new THREE.Points(geo, mat);
+    scene.add(points);
+
+    var mouseX=0, mouseY=0;
+    window.addEventListener('mousemove', function(e){
+      mouseX = (e.clientX/innerWidth - 0.5);
+      mouseY = (e.clientY/innerHeight - 0.5);
+    });
+
+    var clock = new THREE.Clock();
+    function animate(){
+      var t = clock.getElapsedTime();
+      mat.uniforms.uTime.value = t;
+      mat.uniforms.uMix.value = bgState.colorMix;
+      points.rotation.y = bgState.rotation + t*0.01;
+      points.rotation.x = bgState.rotation*0.3;
+      camera.position.x = lerp(camera.position.x, mouseX*40, 0.04);
+      camera.position.y = lerp(camera.position.y, -mouseY*40, 0.04);
+      camera.lookAt(0,0,-200);
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    window.addEventListener('resize', function(){
+      camera.aspect = innerWidth/innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+  }
+
+  /* ================= Hero: text -> particles ================= */
+  function initHeroParticles(){
+    var canvas = document.getElementById('hero-particles');
+    var section = document.getElementById('s00-hero');
+    if(!HAS_WEBGL){
+      section.querySelector('.hero-text-wrap').style.opacity = 1;
+      return;
+    }
+    var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha:true, antialias:true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    var w = canvas.clientWidth || innerWidth, h = canvas.clientHeight || innerHeight;
+    renderer.setSize(w, h, false);
+
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(50, w/h, 1, 3000);
+    camera.position.z = 600;
+
+    var points = null;
+    var progress = 0;
+
+    function sampleText(){
+      var cw = 1400, ch = 640;
+      var off = document.createElement('canvas');
+      off.width = cw; off.height = ch;
+      var ctx = off.getContext('2d');
+      ctx.clearRect(0,0,cw,ch);
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      var fontSize = 190;
+      ctx.font = '900 ' + fontSize + 'px Unbounded, sans-serif';
+      ctx.fillText('KAEL', cw/2, ch*0.32);
+      ctx.fillText('THORN', cw/2, ch*0.72);
+
+      var data = ctx.getImageData(0,0,cw,ch).data;
+      var step = window.innerWidth < 768 ? 7 : 4;
+      var pts = [];
+      for(var y=0;y<ch;y+=step){
+        for(var x=0;x<cw;x+=step){
+          var idx = (y*cw+x)*4;
+          if(data[idx+3] > 120){
+            pts.push([(x-cw/2)*0.62, -(y-ch/2)*0.62]);
+          }
+        }
+      }
+      return pts;
+    }
+
+    function buildPoints(pts){
+      var n = pts.length;
+      var positions = new Float32Array(n*3);
+      var explode = new Float32Array(n*3);
+      var seeds = new Float32Array(n);
+      for(var i=0;i<n;i++){
+        positions[i*3] = pts[i][0];
+        positions[i*3+1] = pts[i][1];
+        positions[i*3+2] = (Math.random()-0.5)*40;
+
+        var dirX = (Math.random()-0.5);
+        var dirY = (Math.random()-0.5);
+        var dirZ = (Math.random()-0.5);
+        var len = Math.sqrt(dirX*dirX+dirY*dirY+dirZ*dirZ) || 1;
+        var dist = 260 + Math.random()*760;
+        explode[i*3] = (dirX/len)*dist;
+        explode[i*3+1] = (dirY/len)*dist;
+        explode[i*3+2] = (dirZ/len)*dist;
+
+        seeds[i] = Math.random();
+      }
+      var geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(positions,3));
+      geo.setAttribute('aExplode', new THREE.BufferAttribute(explode,3));
+      geo.setAttribute('aSeed', new THREE.BufferAttribute(seeds,1));
+
+      var mat = new THREE.ShaderMaterial({
+        transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+        uniforms:{
+          uProgress:{value:0},
+          uTime:{value:0},
+          uColorA:{value:new THREE.Color('#ffb545')},
+          uColorB:{value:new THREE.Color('#6d3bd6')}
+        },
+        vertexShader:
+          'attribute vec3 aExplode;\n'+
+          'attribute float aSeed;\n'+
+          'uniform float uProgress;\n'+
+          'uniform float uTime;\n'+
+          'varying float vSeed;\n'+
+          'varying float vProgress;\n'+
+          'void main(){\n'+
+          '  vSeed = aSeed;\n'+
+          '  vProgress = uProgress;\n'+
+          '  vec3 pos = position + aExplode * uProgress;\n'+
+          '  pos.x += sin(uTime*0.6 + aSeed*12.0) * (1.0 + uProgress*5.0);\n'+
+          '  pos.y += cos(uTime*0.5 + aSeed*12.0) * (1.0 + uProgress*5.0);\n'+
+          '  pos.z += sin(uTime*0.4 + aSeed*20.0) * uProgress * 60.0;\n'+
+          '  vec4 mv = modelViewMatrix * vec4(pos,1.0);\n'+
+          '  gl_PointSize = (2.4 + aSeed*2.4) * (340.0 / -mv.z);\n'+
+          '  gl_Position = projectionMatrix * mv;\n'+
+          '}',
+        fragmentShader:
+          'precision mediump float;\n'+
+          'varying float vSeed; varying float vProgress;\n'+
+          'uniform vec3 uColorA; uniform vec3 uColorB;\n'+
+          'void main(){\n'+
+          '  vec2 uv = gl_PointCoord - 0.5;\n'+
+          '  float d = length(uv);\n'+
+          '  if(d > 0.5) discard;\n'+
+          '  float alpha = smoothstep(0.5, 0.0, d);\n'+
+          '  vec3 col = mix(uColorA, uColorB, vSeed);\n'+
+          '  float fade = 1.0 - smoothstep(0.7, 1.0, vProgress);\n'+
+          '  gl_FragColor = vec4(col, alpha * (fade*0.5 + 0.5));\n'+
+          '}'
+      });
+
+      if(points){ scene.remove(points); }
+      points = new THREE.Points(geo, mat);
+      scene.add(points);
+    }
+
+    var fontLoad = (document.fonts && document.fonts.load) ? document.fonts.load('900 190px Unbounded') : Promise.resolve();
+    Promise.resolve(fontLoad).then(function(){ return document.fonts ? document.fonts.ready : null; }).then(function(){
+      buildPoints(sampleText());
+    }).catch(function(){ buildPoints(sampleText()); });
+
+    var clock = new THREE.Clock();
+    function animate(){
+      if(points){
+        points.material.uniforms.uProgress.value = progress;
+        points.material.uniforms.uTime.value = clock.getElapsedTime();
+        points.rotation.y = progress*0.6;
+      }
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    window.addEventListener('resize', function(){
+      var nw = canvas.clientWidth || innerWidth, nh = canvas.clientHeight || innerHeight;
+      camera.aspect = nw/nh; camera.updateProjectionMatrix();
+      renderer.setSize(nw, nh, false);
+    });
+
+    ScrollTrigger.create({
+      trigger: section,
+      start: 'top top',
+      end: 'bottom top',
+      scrub: true,
+      onUpdate: function(self){
+        progress = self.progress;
+        var wrap = document.getElementById('hero-text-wrap');
+        wrap.style.opacity = String(clamp(1 - progress*1.6, 0, 1));
+        wrap.style.filter = 'blur(' + (progress*10) + 'px)';
+        wrap.style.transform = 'scale(' + (1 + progress*0.22) + ') translateY(' + (-progress*40) + 'px)';
+        bgState.colorMix = progress;
+      }
+    });
+  }
+
+  /* ================= Fold: 2D -> 3D ================= */
+  function initFold(){
+    var section = document.getElementById('s01-fold');
+    var scene = document.getElementById('fold-scene');
+    ScrollTrigger.create({
+      trigger: section,
+      start: 'top top',
+      end: 'bottom bottom',
+      scrub: true,
+      onUpdate: function(self){
+        scene.style.setProperty('--p', self.progress.toFixed(4));
+      }
+    });
+  }
+
+  /* ================= Timeline: warp ================= */
+  function initTimeline(){
+    var wrap = document.getElementById('tl-wrap');
+    var svg = document.getElementById('tl-svg');
+    var path = document.getElementById('tl-path');
+    var items = gsap.utils.toArray('.tl-item');
+
+    items.forEach(function(item, i){
+      var fromLeft = item.getAttribute('data-side') === 'left';
+      gsap.fromTo(item,
+        { opacity:0, x: fromLeft ? -60 : 60, rotateY: fromLeft ? -18 : 18, z:-140 },
+        {
+          opacity:1, x:0, rotateY:0, z:0, ease:'none',
+          scrollTrigger:{ trigger:item, start:'top 88%', end:'top 42%', scrub:true }
+        }
+      );
+    });
+
+    function redrawPath(progress){
+      var h = wrap.offsetHeight || 1000;
+      svg.setAttribute('viewBox', '0 0 40 ' + h);
+      var segments = 9;
+      var d = 'M20,0';
+      for(var i=1;i<=segments;i++){
+        var y = (h/segments)*i;
+        var prevY = (h/segments)*(i-1);
+        var amp = 16 * progress;
+        var cx1 = 20 + amp*Math.sin(progress*Math.PI*2 + i*0.7);
+        var cy1 = prevY + (y-prevY)*0.33;
+        var cx2 = 20 + amp*Math.cos(progress*Math.PI*2 + i*0.5);
+        var cy2 = prevY + (y-prevY)*0.66;
+        d += ' C ' + cx1.toFixed(2) + ',' + cy1.toFixed(2) + ' ' + cx2.toFixed(2) + ',' + cy2.toFixed(2) + ' 20,' + y.toFixed(2);
+      }
+      path.setAttribute('d', d);
+    }
+
+    ScrollTrigger.create({
+      trigger: document.getElementById('s02-timeline'),
+      start: 'top bottom',
+      end: 'bottom top',
+      scrub: true,
+      onUpdate: function(self){ redrawPath(self.progress); }
+    });
+    redrawPath(0);
+    window.addEventListener('resize', function(){ redrawPath(0); });
+  }
+
+  /* ================= Portfolio: 3D cubes ================= */
+  function initPortfolio(){
+    var wrapEl = document.getElementById('portfolio-canvas-wrap');
+    var canvas = document.getElementById('portfolio-canvas');
+    if(!HAS_WEBGL) return;
+
+    var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias:true, alpha:true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    var w = wrapEl.clientWidth, h = wrapEl.clientHeight;
+    renderer.setSize(w, h, false);
+
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(45, w/h, 1, 2000);
+    camera.position.set(0, 0, 620);
+
+    scene.add(new THREE.AmbientLight('#22163f', 1.4));
+    var l1 = new THREE.PointLight('#ffb545', 1.3, 1400); l1.position.set(300,200,400); scene.add(l1);
+    var l2 = new THREE.PointLight('#55e6d8', 1.1, 1400); l2.position.set(-300,-150,300); scene.add(l2);
+
+    var colors = ['#ffb545','#55e6d8','#6d3bd6','#ff4fa3','#f4f1ff','#9d7bd8'];
+    var pieces = ['ENTROPY GARDEN','GHOST FREQUENCIES','SUTURE','PARALLAX MEMORY','THE SLOW COLLAPSE','ORACLE BONE'];
+    var cubes = [];
+    var group = new THREE.Group();
+    scene.add(group);
+
+    var layoutPositions = [
+      [-160,70,0],[150,90,-60],[0,-40,80],[-120,-110,-40],[170,-60,40],[-10,140,-30]
+    ];
+
+    function makeLabelTexture(text, color){
+      var c = document.createElement('canvas');
+      c.width = 256; c.height = 256;
+      var ctx = c.getContext('2d');
+      ctx.fillStyle = '#0b0720';
+      ctx.fillRect(0,0,256,256);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 6;
+      ctx.strokeRect(3,3,250,250);
+      ctx.fillStyle = color;
+      ctx.font = '700 22px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      var idx = pieces.indexOf(text)+1;
+      ctx.fillText(String(idx).padStart(2,'0'), 128, 128);
+      return new THREE.CanvasTexture(c);
+    }
+
+    pieces.forEach(function(name, i){
+      var size = 70;
+      var geo = new THREE.BoxGeometry(size,size,size);
+      var color = colors[i];
+      var faceMat = new THREE.MeshPhysicalMaterial({ color: color, transparent:true, opacity:0.28, roughness:0.35, metalness:0.1 });
+      var labelMat = new THREE.MeshBasicMaterial({ map: makeLabelTexture(name, color) });
+      var mats = [faceMat, faceMat, labelMat, faceMat, faceMat, faceMat];
+      var mesh = new THREE.Mesh(geo, mats);
+
+      var edges = new THREE.EdgesGeometry(geo);
+      var line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: color }));
+      mesh.add(line);
+
+      var pos = layoutPositions[i];
+      mesh.position.set(pos[0], pos[1], pos[2]);
+      mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, 0);
+      mesh.userData = { velX:0, velY:0, idleSpeed: 0.15+Math.random()*0.2, bobOffset: Math.random()*Math.PI*2, name:name };
+      group.add(mesh);
+      cubes.push(mesh);
+    });
+
+    var raycaster = new THREE.Raycaster();
+    var pointerNDC = new THREE.Vector2();
+    var dragging = null;
+    var lastX = 0, lastY = 0;
+    var entered = false;
+
+    function toNDC(e, target){
+      var rect = canvas.getBoundingClientRect();
+      var cx = (e.touches ? e.touches[0].clientX : e.clientX);
+      var cy = (e.touches ? e.touches[0].clientY : e.clientY);
+      target.x = ((cx - rect.left)/rect.width)*2 - 1;
+      target.y = -((cy - rect.top)/rect.height)*2 + 1;
+      return { x: cx, y: cy };
+    }
+
+    function onDown(e){
+      var raw = toNDC(e, pointerNDC);
+      raycaster.setFromCamera(pointerNDC, camera);
+      var hits = raycaster.intersectObjects(cubes);
+      if(hits.length){
+        dragging = hits[0].object;
+        lastX = raw.x; lastY = raw.y;
+        canvas.style.cursor = 'grabbing';
+      }
+    }
+    function onMove(e){
+      if(!dragging) return;
+      var raw = toNDC(e, pointerNDC);
+      var dx = raw.x - lastX, dy = raw.y - lastY;
+      dragging.rotation.y += dx*0.012;
+      dragging.rotation.x += dy*0.012;
+      dragging.userData.velX = dx*0.012;
+      dragging.userData.velY = dy*0.012;
+      lastX = raw.x; lastY = raw.y;
+      if(e.cancelable) e.preventDefault();
+    }
+    function onUp(){
+      dragging = null;
+      canvas.style.cursor = 'grab';
+    }
+
+    canvas.addEventListener('mousedown', onDown);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    canvas.addEventListener('touchstart', onDown, { passive:true });
+    canvas.addEventListener('touchmove', onMove, { passive:false });
+    canvas.addEventListener('touchend', onUp);
+
+    var clock = new THREE.Clock();
+    function animate(){
+      var t = clock.getElapsedTime();
+      cubes.forEach(function(cube){
+        if(cube !== dragging){
+          cube.rotation.y += cube.userData.idleSpeed*0.006 + cube.userData.velX;
+          cube.rotation.x += cube.userData.velY;
+          cube.userData.velX *= 0.94;
+          cube.userData.velY *= 0.94;
+          cube.position.y += Math.sin(t*0.6 + cube.userData.bobOffset)*0.05;
+        }
+      });
+      group.rotation.y = Math.sin(t*0.05)*0.08;
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    function resize(){
+      var nw = wrapEl.clientWidth, nh = wrapEl.clientHeight;
+      camera.aspect = nw/nh; camera.updateProjectionMatrix();
+      renderer.setSize(nw, nh, false);
+    }
+    window.addEventListener('resize', resize);
+
+    gsap.fromTo(group.scale, { x:0.001,y:0.001,z:0.001 }, {
+      x:1,y:1,z:1, ease:'power2.out',
+      scrollTrigger:{ trigger: wrapEl, start:'top 85%', end:'top 45%', scrub:true }
+    });
+  }
+
+  /* ================= Philosophy: fragments assemble ================= */
+  function initFragments(){
+    var lines = document.querySelectorAll('[data-frag]');
+    lines.forEach(function(line){
+      var text = line.textContent.trim();
+      var words = text.split(' ');
+      line.textContent = '';
+      var spans = words.map(function(word){
+        var span = document.createElement('span');
+        span.className = 'frag-word';
+        span.textContent = word + '\u00A0';
+        var dx = (Math.random()-0.5)*420;
+        var dy = (Math.random()-0.5)*220;
+        var rot = (Math.random()-0.5)*70;
+        span.style.transform = 'translate(' + dx + 'px,' + dy + 'px) rotate(' + rot + 'deg)';
+        span.style.opacity = '0';
+        span.style.filter = 'blur(6px)';
+        line.appendChild(span);
+        return span;
+      });
+
+      gsap.to(spans, {
+        opacity:1, x:0, y:0, rotate:0, filter:'blur(0px)',
+        stagger: 0.035, ease:'power2.out',
+        scrollTrigger:{ trigger:line, start:'top 85%', end:'top 40%', scrub:true }
+      });
+    });
+  }
+
+  /* ================= Portal: vortex ================= */
+  function initPortal(){
+    var canvas = document.getElementById('portal-canvas');
+    var section = document.getElementById('s05-portal');
+    if(!HAS_WEBGL) return;
+
+    var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha:true, antialias:true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    var w = canvas.clientWidth || innerWidth, h = canvas.clientHeight || innerHeight;
+    renderer.setSize(w, h, false);
+
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(55, w/h, 1, 3000);
+    camera.position.set(0,0,320);
+
+    var count = window.innerWidth < 768 ? 1400 : 2600;
+    var geo = new THREE.BufferGeometry();
+    var angle = new Float32Array(count);
+    var radius = new Float32Array(count);
+    var speed = new Float32Array(count);
+    var zseed = new Float32Array(count);
+    var seed = new Float32Array(count);
+    var maxR = 280;
+    for(var i=0;i<count;i++){
+      angle[i] = Math.random()*Math.PI*2;
+      radius[i] = 20 + Math.random()*maxR;
+      speed[i] = 0.15 + Math.random()*0.35;
+      zseed[i] = (Math.random()-0.5)*120;
+      seed[i] = Math.random();
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(count*3),3));
+    geo.setAttribute('aAngle', new THREE.BufferAttribute(angle,1));
+    geo.setAttribute('aRadius', new THREE.BufferAttribute(radius,1));
+    geo.setAttribute('aSpeed', new THREE.BufferAttribute(speed,1));
+    geo.setAttribute('aZSeed', new THREE.BufferAttribute(zseed,1));
+    geo.setAttribute('aSeed', new THREE.BufferAttribute(seed,1));
+
+    var mat = new THREE.ShaderMaterial({
+      transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+      uniforms:{
+        uTime:{value:0}, uMaxR:{value:maxR}, uIntensity:{value:1},
+        uColorA:{value:new THREE.Color('#ffb545')}, uColorB:{value:new THREE.Color('#55e6d8')}
+      },
+      vertexShader:
+        'attribute float aAngle; attribute float aRadius; attribute float aSpeed; attribute float aZSeed; attribute float aSeed;\n'+
+        'uniform float uTime; uniform float uMaxR; uniform float uIntensity;\n'+
+        'varying float vSeed; varying float vR;\n'+
+        'void main(){\n'+
+        '  vSeed = aSeed;\n'+
+        '  float r = mod(aRadius - uTime*(14.0*uIntensity)*aSpeed, uMaxR) + 6.0;\n'+
+        '  float a = aAngle + uTime*uIntensity*(aSpeed*0.6 + 3.0/(r+8.0));\n'+
+        '  vR = r/uMaxR;\n'+
+        '  vec3 pos = vec3(cos(a)*r, sin(a)*r, aZSeed*vR);\n'+
+        '  vec4 mv = modelViewMatrix * vec4(pos,1.0);\n'+
+        '  gl_PointSize = (1.6 + (1.0-vR)*3.5) * (300.0 / -mv.z);\n'+
+        '  gl_Position = projectionMatrix * mv;\n'+
+        '}',
+      fragmentShader:
+        'precision mediump float;\n'+
+        'varying float vSeed; varying float vR;\n'+
+        'uniform vec3 uColorA; uniform vec3 uColorB;\n'+
+        'void main(){\n'+
+        '  vec2 uv = gl_PointCoord - 0.5;\n'+
+        '  float d = length(uv);\n'+
+        '  if(d > 0.5) discard;\n'+
+        '  float alpha = smoothstep(0.5, 0.0, d);\n'+
+        '  vec3 col = mix(uColorA, uColorB, vSeed);\n'+
+        '  gl_FragColor = vec4(col, alpha * (1.0 - vR*0.5));\n'+
+        '}'
+    });
+
+    var points = new THREE.Points(geo, mat);
+    scene.add(points);
+
+    var progress = 0;
+    var clock = new THREE.Clock();
+    function animate(){
+      mat.uniforms.uTime.value = clock.getElapsedTime();
+      mat.uniforms.uIntensity.value = 1 + progress*2.4;
+      camera.position.z = lerp(320, 120, progress);
+      points.rotation.z += 0.0009 + progress*0.002;
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    window.addEventListener('resize', function(){
+      var nw = canvas.clientWidth || innerWidth, nh = canvas.clientHeight || innerHeight;
+      camera.aspect = nw/nh; camera.updateProjectionMatrix();
+      renderer.setSize(nw, nh, false);
+    });
+
+    ScrollTrigger.create({
+      trigger: section,
+      start: 'top top',
+      end: 'bottom bottom',
+      scrub: true,
+      onUpdate: function(self){ progress = self.progress; }
+    });
+  }
+
+  /* ================= Nav / HUD / scroll progress ================= */
+  function initNav(){
+    var sections = gsap.utils.toArray('main > section');
+    var buttons = gsap.utils.toArray('#dot-nav button');
+    var hudPct = document.getElementById('hud-pct');
+    var hudDim = document.getElementById('hud-dim');
+
+    buttons.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var target = document.querySelector(btn.getAttribute('data-target'));
+        if(target) target.scrollIntoView({ behavior: REDUCE ? 'auto' : 'smooth' });
+      });
+    });
+    document.getElementById('back-to-top').addEventListener('click', function(){
+      document.getElementById('s00-hero').scrollIntoView({ behavior: REDUCE ? 'auto' : 'smooth' });
+    });
+
+    sections.forEach(function(sec, i){
+      ScrollTrigger.create({
+        trigger: sec,
+        start: 'top center',
+        end: 'bottom center',
+        onToggle: function(self){
+          if(self.isActive){
+            buttons.forEach(function(b){ b.classList.remove('is-active'); });
+            if(buttons[i]) buttons[i].classList.add('is-active');
+            hudDim.textContent = 'DIM ' + sec.getAttribute('data-dim') + ' / 05';
+            bgState.rotation = i*0.35;
+          }
+        }
+      });
+    });
+
+    ScrollTrigger.create({
+      trigger: document.body,
+      start: 'top top',
+      end: 'bottom bottom',
+      onUpdate: function(self){
+        hudPct.textContent = String(Math.round(self.progress*100)).padStart(3,'0');
+      }
+    });
+  }
+
+  /* ================= Init ================= */
+  window.addEventListener('kt-loaded', function(){
+    gsap.to('.hero-text-wrap', { opacity:1, duration: REDUCE ? 0 : 1.1, ease:'power2.out' });
+  });
+
+  function init(){
+    if(window.gsap && window.ScrollTrigger){
+      gsap.registerPlugin(ScrollTrigger);
+    }
+    boot();
+    initCursor();
+    initBackground();
+    initHeroParticles();
+    initFold();
+    initTimeline();
+    initPortfolio();
+    initFragments();
+    initPortal();
+    initNav();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+</body>
+</html>

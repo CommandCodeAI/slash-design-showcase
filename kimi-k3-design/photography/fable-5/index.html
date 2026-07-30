@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elena Voss Photography — Light, held still</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Manrope:wght@300;400;500&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        paper: '#F7F6F3',
+        ink: '#16140F',
+        stone2: '#9A948A',
+        hairline: '#DDD8CF',
+        umber: '#6B6255',
+      },
+      fontFamily: {
+        display: ['"Cormorant Garamond"', 'serif'],
+        body: ['Manrope', 'sans-serif'],
+      },
+    }
+  }
+}
+</script>
+<style>
+  :root { --ease-out: cubic-bezier(.22,.7,.25,1); }
+  html { background: #F7F6F3; }
+  body { -webkit-font-smoothing: antialiased; }
+  ::selection { background: #16140F; color: #F7F6F3; }
+
+  .eyebrow {
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.66rem; letter-spacing: 0.32em; text-transform: uppercase;
+    color: #9A948A; font-weight: 500;
+  }
+
+  /* ---------- 3D hero frame ---------- */
+  .stage { perspective: 1400px; }
+  .tilt-group { transform-style: preserve-3d; transition: transform .9s var(--ease-out); will-change: transform; }
+  .tilt-photo { transform: translateZ(0px); }
+  .tilt-frame {
+    position: absolute; inset: 0;
+    transform: translateZ(70px) translate(-1.6rem, 1.6rem);
+    border: 1px solid #16140F; pointer-events: none;
+  }
+  .tilt-frame::after {
+    content: ''; position: absolute; inset: -1px;
+    border: 1px solid rgba(22,20,15,.12);
+    transform: translate(10px, -10px);
+  }
+  .tilt-shadow {
+    position: absolute; inset: 8% -4% -6% 4%;
+    background: radial-gradient(60% 55% at 50% 55%, rgba(22,20,15,.22), transparent 70%);
+    transform: translateZ(-80px); filter: blur(18px); pointer-events: none;
+  }
+
+  /* ---------- reveal on scroll ---------- */
+  .reveal { opacity: 0; transform: translateY(26px); transition: opacity 1.1s var(--ease-out), transform 1.1s var(--ease-out); }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+
+  /* ---------- masonry ---------- */
+  .masonry { columns: 1; column-gap: 2rem; }
+  @media (min-width: 640px) { .masonry { columns: 2; } }
+  @media (min-width: 1024px) { .masonry { columns: 3; } }
+  .tile { break-inside: avoid; margin-bottom: 2rem; opacity: 0; transform: translateY(30px) scale(.985); transition: opacity 1.2s var(--ease-out), transform 1.2s var(--ease-out); cursor: pointer; }
+  .tile.in { opacity: 1; transform: translateY(0) scale(1); }
+  .tile figure { overflow: hidden; }
+  .tile img { display: block; width: 100%; transition: transform 1.4s var(--ease-out), filter 1.4s var(--ease-out); filter: saturate(.92); }
+  .tile:hover img { transform: scale(1.035); filter: saturate(1); }
+  .tile figcaption { display: flex; justify-content: space-between; align-items: baseline; padding-top: .7rem; }
+
+  /* ---------- lightbox ---------- */
+  #lightbox { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; background: rgba(247,246,243,.96); backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity .55s var(--ease-out); }
+  #lightbox.open { opacity: 1; pointer-events: auto; }
+  .lb-stage { perspective: 1600px; }
+  .lb-card { transform-style: preserve-3d; transition: transform .8s var(--ease-out); position: relative; }
+  #lightbox.open .lb-card { animation: lb-in .9s var(--ease-out); }
+  @keyframes lb-in {
+    from { opacity: 0; transform: rotateY(-7deg) rotateX(3deg) translateZ(-120px); }
+    to   { opacity: 1; transform: rotateY(0) rotateX(0) translateZ(0); }
+  }
+  .lb-card img { max-height: 76vh; max-width: 86vw; display: block; box-shadow: 0 40px 90px -30px rgba(22,20,15,.45); }
+  .lb-frame { position: absolute; inset: 0; border: 1px solid #16140F; transform: translateZ(55px) translate(-1.1rem, 1.1rem); pointer-events: none; }
+  .lb-btn { font-family: 'Manrope', sans-serif; font-size: .66rem; letter-spacing: .3em; text-transform: uppercase; color: #16140F; padding: 1rem; transition: opacity .3s; }
+  .lb-btn:hover { opacity: .5; }
+
+  /* ---------- parallax ---------- */
+  .plx-window { overflow: hidden; }
+  .plx-img { will-change: transform; transform: translateY(0) scale(1.18); transition: transform .1s linear; }
+
+  /* ---------- journal rail ---------- */
+  .rail { display: flex; gap: 2rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 1.5rem; scrollbar-width: none; }
+  .rail::-webkit-scrollbar { display: none; }
+  .rail > article { scroll-snap-align: start; flex: 0 0 auto; }
+
+  /* ---------- form ---------- */
+  .field { width: 100%; background: transparent; border: 0; border-bottom: 1px solid #DDD8CF; padding: .9rem 0; font-family: 'Manrope', sans-serif; font-size: .92rem; color: #16140F; transition: border-color .4s; }
+  .field:focus { outline: none; border-color: #16140F; }
+  .field::placeholder { color: #B7B1A6; }
+
+  a:focus-visible, button:focus-visible { outline: 1px solid #16140F; outline-offset: 4px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tilt-group, .tile, .reveal, .plx-img, .lb-card, .tile img { transition: none !important; animation: none !important; transform: none !important; }
+    .reveal, .tile { opacity: 1 !important; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body class="bg-paper text-ink font-body font-light">
+
+<!-- ====================== NAV ====================== -->
+<header class="fixed top-0 inset-x-0 z-50">
+  <nav class="max-w-7xl mx-auto flex items-baseline justify-between px-6 md:px-10 py-6">
+    <a href="#" class="font-display text-xl tracking-wide">Elena&nbsp;Voss</a>
+    <div class="hidden md:flex items-baseline gap-10">
+      <a href="#work" class="eyebrow hover:text-ink transition-colors">Work</a>
+      <a href="#about" class="eyebrow hover:text-ink transition-colors">About</a>
+      <a href="#journal" class="eyebrow hover:text-ink transition-colors">Journal</a>
+      <a href="#contact" class="eyebrow hover:text-ink transition-colors">Enquiries</a>
+    </div>
+  </nav>
+</header>
+
+<!-- ====================== HERO ====================== -->
+<section class="min-h-screen flex items-center pt-28 pb-16 overflow-hidden">
+  <div class="max-w-7xl mx-auto w-full px-6 md:px-10 grid lg:grid-cols-12 gap-14 items-center">
+    <div class="lg:col-span-5 order-2 lg:order-1">
+      <p class="eyebrow mb-8 reveal">Fine art &amp; editorial photography</p>
+      <h1 class="font-display font-light text-[13vw] sm:text-7xl xl:text-8xl leading-[0.95] reveal">
+        Light,<br><em class="text-umber">held</em> still.
+      </h1>
+      <p class="mt-10 max-w-sm text-[0.95rem] leading-relaxed text-stone2 reveal">
+        Quiet portraits, landscapes, and the hour between —
+        photographed slowly, printed carefully. Based in Lisbon,
+        working wherever the weather is honest.
+      </p>
+      <div class="mt-12 flex items-center gap-8 reveal">
+        <a href="#work" class="eyebrow !text-ink border-b border-ink pb-1 hover:opacity-50 transition-opacity">View the work</a>
+        <a href="#contact" class="eyebrow hover:text-ink transition-colors">Book a session</a>
+      </div>
+    </div>
+
+    <!-- 3D floating frame -->
+    <div class="lg:col-span-7 order-1 lg:order-2">
+      <div class="stage px-6 sm:px-10">
+        <div id="heroTilt" class="tilt-group relative mx-auto max-w-xl">
+          <div class="tilt-shadow"></div>
+          <figure class="tilt-photo relative">
+            <img src="https://picsum.photos/id/1027/900/1150" alt="Portrait in soft window light" class="w-full block" loading="eager">
+          </figure>
+          <div class="tilt-frame"></div>
+          <figcaption class="absolute -bottom-9 left-0 eyebrow">Nº 01 — Marta, morning light</figcaption>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== WORK / MASONRY ====================== -->
+<section id="work" class="py-28 md:py-40">
+  <div class="max-w-7xl mx-auto px-6 md:px-10">
+    <div class="flex items-end justify-between mb-16 reveal">
+      <div>
+        <p class="eyebrow mb-5">Selected work</p>
+        <h2 class="font-display font-light text-5xl md:text-6xl">The quiet archive</h2>
+      </div>
+      <p class="hidden md:block eyebrow">Scroll — it keeps going</p>
+    </div>
+
+    <div id="masonry" class="masonry"></div>
+    <div id="sentinel" class="h-px"></div>
+    <p id="loading" class="eyebrow text-center mt-12 opacity-0 transition-opacity duration-500">Loading more —</p>
+  </div>
+</section>
+
+<!-- ====================== ABOUT / PARALLAX ====================== -->
+<section id="about" class="py-28 md:py-40 border-t border-hairline">
+  <div class="max-w-7xl mx-auto px-6 md:px-10 grid lg:grid-cols-12 gap-16 items-center">
+    <div class="lg:col-span-6">
+      <div class="plx-window aspect-[4/5] max-w-lg">
+        <img src="https://picsum.photos/id/1080/1000/1400" alt="Elena in her studio" class="plx-img w-full h-full object-cover" data-plx="0.12">
+      </div>
+    </div>
+    <div class="lg:col-span-5 lg:col-start-8">
+      <p class="eyebrow mb-8 reveal">About Elena</p>
+      <h2 class="font-display font-light text-4xl md:text-5xl leading-tight reveal">
+        Photography is <em class="text-umber">patience</em>, arranged.
+      </h2>
+      <div class="mt-10 space-y-6 text-[0.95rem] leading-relaxed text-stone2 reveal">
+        <p>
+          For twelve years I've worked with one rule: arrive early, leave late,
+          and let the light decide. My work sits between portraiture and landscape —
+          people in their places, places with a pulse.
+        </p>
+        <p>
+          Commissions have taken me from the Azores to northern Japan.
+          Prints are made by hand in small editions, on cotton rag, in my Lisbon studio.
+        </p>
+      </div>
+      <dl class="mt-12 grid grid-cols-3 gap-6 reveal">
+        <div><dt class="eyebrow mb-2">Editions</dt><dd class="font-display text-3xl">42</dd></div>
+        <div><dt class="eyebrow mb-2">Countries</dt><dd class="font-display text-3xl">19</dd></div>
+        <div><dt class="eyebrow mb-2">Years</dt><dd class="font-display text-3xl">12</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== JOURNAL ====================== -->
+<section id="journal" class="py-28 md:py-40 border-t border-hairline">
+  <div class="max-w-7xl mx-auto px-6 md:px-10">
+    <div class="flex items-end justify-between mb-14 reveal">
+      <div>
+        <p class="eyebrow mb-5">Journal</p>
+        <h2 class="font-display font-light text-5xl md:text-6xl">Field notes</h2>
+      </div>
+      <div class="hidden md:flex gap-3">
+        <button id="railPrev" class="lb-btn border border-hairline" aria-label="Previous stories">&larr;</button>
+        <button id="railNext" class="lb-btn border border-hairline" aria-label="Next stories">&rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto pl-6 md:pl-10">
+    <div id="rail" class="rail pr-6 md:pr-10">
+      <!-- cards injected by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ====================== CONTACT ====================== -->
+<section id="contact" class="py-28 md:py-40 border-t border-hairline">
+  <div class="max-w-7xl mx-auto px-6 md:px-10 grid lg:grid-cols-12 gap-16">
+    <div class="lg:col-span-5">
+      <p class="eyebrow mb-8 reveal">Enquiries</p>
+      <h2 class="font-display font-light text-5xl md:text-6xl leading-tight reveal">
+        Tell me about<br>your <em class="text-umber">light</em>.
+      </h2>
+      <p class="mt-10 max-w-sm text-[0.95rem] leading-relaxed text-stone2 reveal">
+        Portrait sessions, editorial commissions, and print enquiries.
+        Replies within two working days.
+      </p>
+      <div class="mt-12 space-y-3 reveal">
+        <p class="eyebrow">studio@elenavoss.photo</p>
+        <p class="eyebrow">Lisbon · Portugal</p>
+      </div>
+    </div>
+
+    <div class="lg:col-span-6 lg:col-start-7">
+      <div id="contactForm" class="space-y-10 reveal">
+        <div class="grid sm:grid-cols-2 gap-x-10 gap-y-10">
+          <div>
+            <label for="f-name" class="eyebrow block mb-1">Name</label>
+            <input id="f-name" type="text" class="field" placeholder="Your name" autocomplete="name">
+          </div>
+          <div>
+            <label for="f-email" class="eyebrow block mb-1">Email</label>
+            <input id="f-email" type="email" class="field" placeholder="you@example.com" autocomplete="email">
+          </div>
+        </div>
+        <div>
+          <label for="f-type" class="eyebrow block mb-1">Session type</label>
+          <select id="f-type" class="field">
+            <option>Portrait session</option>
+            <option>Editorial commission</option>
+            <option>Print enquiry</option>
+            <option>Something else</option>
+          </select>
+        </div>
+        <div>
+          <label for="f-msg" class="eyebrow block mb-1">Message</label>
+          <textarea id="f-msg" rows="4" class="field resize-none" placeholder="Where, when, and what the light is like —"></textarea>
+        </div>
+        <button id="sendBtn" class="eyebrow !text-ink border-b border-ink pb-1 hover:opacity-50 transition-opacity">Send enquiry</button>
+        <p id="sentNote" class="eyebrow opacity-0 transition-opacity duration-700">Received — thank you. Elena will write back shortly.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== FOOTER ====================== -->
+<footer class="border-t border-hairline">
+  <div class="max-w-7xl mx-auto px-6 md:px-10 py-12 flex flex-col md:flex-row gap-6 items-baseline justify-between">
+    <p class="font-display text-lg">Elena Voss</p>
+    <p class="eyebrow">© 2026 · All photographs are original works</p>
+    <div class="flex gap-8">
+      <a href="#" class="eyebrow hover:text-ink transition-colors">Instagram</a>
+      <a href="#" class="eyebrow hover:text-ink transition-colors">Prints</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ====================== LIGHTBOX ====================== -->
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
+  <button id="lbClose" class="lb-btn absolute top-6 right-6 md:right-10">Close ×</button>
+  <button id="lbPrev" class="lb-btn absolute left-4 md:left-10 top-1/2 -translate-y-1/2">&larr;</button>
+  <button id="lbNext" class="lb-btn absolute right-4 md:right-10 top-1/2 -translate-y-1/2">&rarr;</button>
+  <div class="lb-stage">
+    <div id="lbCard" class="lb-card">
+      <img id="lbImg" src="" alt="">
+      <div class="lb-frame"></div>
+    </div>
+  </div>
+  <p id="lbCaption" class="eyebrow absolute bottom-8 left-1/2 -translate-x-1/2"></p>
+</div>
+
+<script>
+(() => {
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- generic reveal ---------- */
+  const revealIO = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); revealIO.unobserve(e.target); }
+  }), { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => revealIO.observe(el));
+
+  /* ---------- hero 3D tilt ---------- */
+  const heroTilt = document.getElementById('heroTilt');
+  const heroStage = heroTilt.closest('.stage');
+  if (!reduced) {
+    heroStage.addEventListener('mousemove', e => {
+      const r = heroStage.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      heroTilt.style.transform = `rotateY(${x * 9}deg) rotateX(${ -y * 7}deg)`;
+    });
+    heroStage.addEventListener('mouseleave', () => heroTilt.style.transform = 'rotateY(0deg) rotateX(0deg)');
+  }
+
+  /* ---------- masonry: infinite scroll ---------- */
+  const ids = [1015,1016,1018,1019,1021,1022,1024,1025,1029,1035,1036,1039,1040,1043,1044,1047,1050,1053,1057,1059,1060,1062,1063,1067,1069,1074,1081,1082,1084,103,110,122,129,137,152,164,167,177,190,193,206,212,219,227,235,244];
+  const ratios = [[900,1200],[900,700],[900,1100],[900,900],[900,1300],[900,760]];
+  const places = ['Azores','Lisbon','Hokkaido','Douro','Madeira','Porto','Alentejo','Sintra','Comporta','Faial'];
+  const grid = document.getElementById('masonry');
+  const loading = document.getElementById('loading');
+  const gallery = [];   // {src, caption}
+  let cursor = 0, batch = 0, busy = false;
+
+  const tileIO = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); tileIO.unobserve(e.target); }
+  }), { threshold: 0.08 });
+
+  function loadBatch(n = 8) {
+    if (busy || cursor >= ids.length) return;
+    busy = true;
+    loading.style.opacity = 1;
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < n && cursor < ids.length; i++, cursor++) {
+      const id = ids[cursor];
+      const [w,h] = ratios[(cursor + batch) % ratios.length];
+      const src = `https://picsum.photos/id/${id}/${w}/${h}`;
+      const caption = `${places[cursor % places.length]}, ${2016 + (cursor % 10)}`;
+      const index = gallery.push({ src, caption }) - 1;
+
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      tile.innerHTML = `
+        <figure><img src="${src}" alt="${caption}" loading="lazy"></figure>
+        <figcaption>
+          <span class="eyebrow">Nº ${String(index + 2).padStart(2,'0')}</span>
+          <span class="eyebrow !normal-case !tracking-normal font-display italic text-sm !text-umber">${caption}</span>
+        </figcaption>`;
+      tile.addEventListener('click', () => openLightbox(index));
+      frag.appendChild(tile);
+      tileIO.observe(tile);
+    }
+    grid.appendChild(frag);
+    batch++;
+    setTimeout(() => { busy = false; loading.style.opacity = 0; }, 400);
+  }
+
+  loadBatch(9);
+  const sentinelIO = new IntersectionObserver(es => {
+    if (es[0].isIntersecting) loadBatch(6);
+  }, { rootMargin: '600px' });
+  sentinelIO.observe(document.getElementById('sentinel'));
+
+  /* ---------- lightbox ---------- */
+  const lb = document.getElementById('lightbox');
+  const lbCard = document.getElementById('lbCard');
+  const lbImg = document.getElementById('lbImg');
+  const lbCaption = document.getElementById('lbCaption');
+  let lbIndex = 0;
+
+  function renderLb() {
+    const item = gallery[lbIndex];
+    lbImg.src = item.src;
+    lbImg.alt = item.caption;
+    lbCaption.textContent = `Nº ${String(lbIndex + 2).padStart(2,'0')} — ${item.caption}`;
+  }
+  function openLightbox(i) {
+    lbIndex = i; renderLb();
+    lb.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    lb.classList.remove('open');
+    document.body.style.overflow = '';
+    lbCard.style.transform = '';
+  }
+  function step(d) { lbIndex = (lbIndex + d + gallery.length) % gallery.length; renderLb(); }
+
+  document.getElementById('lbClose').addEventListener('click', closeLightbox);
+  document.getElementById('lbPrev').addEventListener('click', e => { e.stopPropagation(); step(-1); });
+  document.getElementById('lbNext').addEventListener('click', e => { e.stopPropagation(); step(1); });
+  lb.addEventListener('click', e => { if (e.target === lb) closeLightbox(); });
+  addEventListener('keydown', e => {
+    if (!lb.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') step(-1);
+    if (e.key === 'ArrowRight') step(1);
+  });
+
+  if (!reduced) {
+    lb.addEventListener('mousemove', e => {
+      const x = e.clientX / innerWidth - 0.5;
+      const y = e.clientY / innerHeight - 0.5;
+      lbCard.style.transform = `rotateY(${x * 8}deg) rotateX(${ -y * 6}deg) rotateZ(${x * 1.2}deg)`;
+    });
+  }
+
+  /* ---------- parallax ---------- */
+  const plxEls = [...document.querySelectorAll('.plx-img')];
+  if (!reduced && plxEls.length) {
+    let ticking = false;
+    const plx = () => {
+      plxEls.forEach(el => {
+        const r = el.parentElement.getBoundingClientRect();
+        const progress = (r.top + r.height / 2 - innerHeight / 2) / innerHeight;
+        el.style.transform = `translateY(${progress * -r.height * parseFloat(el.dataset.plx)}px) scale(1.18)`;
+      });
+      ticking = false;
+    };
+    addEventListener('scroll', () => { if (!ticking) { requestAnimationFrame(plx); ticking = true; } }, { passive: true });
+    plx();
+  }
+
+  /* ---------- journal cards ---------- */
+  const stories = [
+    { id: 1057, title: 'The hour before the ferry', place: 'Azores', text: 'Waiting rooms have their own weather. Notes on photographing patience.' },
+    { id: 164,  title: 'Salt on the lens',           place: 'Comporta', text: 'Why I stopped cleaning my filters mid-shoot, and what the haze gave back.' },
+    { id: 1039, title: 'North, in February',         place: 'Hokkaido', text: 'Ten days of white balance. A field diary from the coldest commission.' },
+    { id: 122,  title: 'Printing by hand',           place: 'Lisbon studio', text: 'Cotton rag, slow ink, and the case for editions of twelve.' },
+    { id: 1043, title: 'Portraits without faces',    place: 'Douro', text: 'Hands, collars, doorways — what remains when the subject looks away.' },
+    { id: 206,  title: 'Blue hour, honestly',        place: 'Sintra', text: 'On resisting the saturation slider and trusting dusk to be enough.' },
+  ];
+  const rail = document.getElementById('rail');
+  stories.forEach((s, i) => {
+    const card = document.createElement('article');
+    card.className = 'w-[78vw] sm:w-[380px] group';
+    card.innerHTML = `
+      <figure class="overflow-hidden aspect-[4/3]">
+        <img src="https://picsum.photos/id/${s.id}/760/570" alt="${s.title}" loading="lazy"
+             class="w-full h-full object-cover transition-transform duration-[1400ms] group-hover:scale-[1.04]" style="filter:saturate(.92)">
+      </figure>
+      <p class="eyebrow mt-6">${s.place}</p>
+      <h3 class="font-display font-light text-2xl mt-2 leading-snug">${s.title}</h3>
+      <p class="text-sm text-stone2 leading-relaxed mt-3 max-w-[34ch]">${s.text}</p>
+      <a href="#" class="eyebrow !text-ink inline-block border-b border-ink pb-1 mt-5 hover:opacity-50 transition-opacity">Read the note</a>`;
+    rail.appendChild(card);
+  });
+  const scrollRail = d => rail.scrollBy({ left: d * (rail.firstElementChild.offsetWidth + 32), behavior: reduced ? 'auto' : 'smooth' });
+  document.getElementById('railPrev').addEventListener('click', () => scrollRail(-1));
+  document.getElementById('railNext').addEventListener('click', () => scrollRail(1));
+
+  /* ---------- contact (demo submit) ---------- */
+  document.getElementById('sendBtn').addEventListener('click', () => {
+    const note = document.getElementById('sentNote');
+    note.style.opacity = 1;
+    setTimeout(() => note.style.opacity = 0, 5000);
+  });
+})();
+</script>
+</body>
+</html>

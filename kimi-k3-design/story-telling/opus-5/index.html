@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LUNAR — We make things the earth can take back</title>
+<meta name="description" content="LUNAR is a carbon-negative atelier. Regenerative fibre, closed-loop craft, and a garment that comes home." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        ink:   '#060907',
+        bark:  '#0d120e',
+        moss:  '#1b241c',
+        fern:  '#3f5741',
+        sage:  '#93a68d',
+        bone:  '#efe9dc',
+        lunar: '#dfe4e0',
+        gold:  '#c9a566',
+        rust:  '#a1553a'
+      },
+      fontFamily: {
+        display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        sans: ['Jost', 'system-ui', 'sans-serif']
+      }
+    }
+  }
+}
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<style>
+  :root{
+    --ease: cubic-bezier(.16,1,.3,1);
+  }
+  html,body{ background:#060907; }
+  body{
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body.is-locked{ overflow:hidden; height:100vh; }
+
+  ::selection{ background:#c9a566; color:#060907; }
+
+  /* ---------- utility type ---------- */
+  .eyebrow{
+    font-family:'Jost',sans-serif;
+    font-weight:300;
+    font-size:.6875rem;
+    letter-spacing:.42em;
+    text-transform:uppercase;
+  }
+  .rule{ height:1px; background:linear-gradient(90deg,rgba(147,166,141,.5),rgba(147,166,141,0)); }
+
+  /* ---------- reveal (Intersection Observer) ---------- */
+  [data-reveal]{
+    opacity:0;
+    transform:translateY(26px);
+    filter:blur(7px);
+    transition:opacity 1.2s var(--ease), transform 1.2s var(--ease), filter 1.2s var(--ease);
+    transition-delay:var(--d,0s);
+  }
+  [data-reveal].is-in{ opacity:1; transform:none; filter:blur(0); }
+
+  /* word mask reveal */
+  .wm{ display:inline-block; overflow:hidden; vertical-align:bottom; padding-bottom:.14em; margin-bottom:-.14em; }
+  .wi{
+    display:inline-block;
+    transform:translateY(112%);
+    transition:transform 1.15s var(--ease);
+    transition-delay:calc(var(--i,0) * .055s + var(--d2,0s));
+  }
+  .is-in .wi{ transform:translateY(0); }
+
+  /* ---------- fixed layers ---------- */
+  #scene{ position:fixed; inset:0; z-index:0; }
+  #grain{
+    position:fixed; inset:-150px; z-index:60; pointer-events:none;
+    opacity:.16; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='260' height='260' filter='url(%23n)' opacity='.55'/></svg>");
+    animation:grainShift 700ms steps(1) infinite;
+  }
+  @keyframes grainShift{
+    0%{transform:translate(0,0)} 20%{transform:translate(-14px,8px)} 40%{transform:translate(9px,-12px)}
+    60%{transform:translate(-7px,-6px)} 80%{transform:translate(12px,10px)} 100%{transform:translate(0,0)}
+  }
+  #vignette{
+    position:fixed; inset:0; z-index:55; pointer-events:none;
+    background:radial-gradient(120% 85% at 50% 45%, rgba(0,0,0,0) 38%, rgba(0,0,0,.55) 78%, rgba(0,0,0,.86) 100%);
+  }
+  #cursorglow{
+    position:fixed; top:0; left:0; width:520px; height:520px; margin:-260px 0 0 -260px;
+    z-index:2; pointer-events:none; opacity:0; transition:opacity .6s ease;
+    background:radial-gradient(circle, rgba(201,165,102,.10) 0%, rgba(147,166,141,.05) 38%, rgba(0,0,0,0) 68%);
+  }
+  @media (hover:hover) and (pointer:fine){ #cursorglow{ opacity:1; } }
+
+  /* ---------- preloader ---------- */
+  #loader{
+    position:fixed; inset:0; z-index:100; background:#060907;
+    display:flex; align-items:center; justify-content:center; flex-direction:column;
+    transition:opacity 1.4s var(--ease), visibility 1.4s;
+  }
+  #loader.done{ opacity:0; visibility:hidden; }
+  #loader .ll{ display:inline-block; transform:translateY(105%); }
+  #loadbar{ width:min(240px,42vw); height:1px; background:rgba(239,233,220,.14); overflow:hidden; }
+  #loadbar i{ display:block; height:100%; width:0%; background:#c9a566; transition:width .5s linear; }
+
+  /* ---------- chapter rail ---------- */
+  #rail{ position:fixed; right:clamp(14px,2.4vw,34px); top:50%; transform:translateY(-50%); z-index:50; }
+  #rail a{ display:block; padding:9px 0; text-align:right; }
+  #rail .rn{
+    font-family:'Cormorant Garamond',serif; font-size:12px; letter-spacing:.22em;
+    color:rgba(239,233,220,.30); transition:color .5s var(--ease), transform .5s var(--ease);
+    display:inline-block;
+  }
+  #rail .rl{
+    display:block; margin-left:auto; margin-top:5px; width:14px; height:1px;
+    background:rgba(239,233,220,.22); transition:width .6s var(--ease), background .6s var(--ease);
+  }
+  #rail a.on .rn{ color:#c9a566; }
+  #rail a.on .rl{ width:34px; background:#c9a566; }
+
+  #progress{ position:fixed; left:0; top:0; height:1px; z-index:70; background:#c9a566; width:0; }
+
+  /* ---------- hero forest ---------- */
+  .ridge{ position:absolute; left:50%; bottom:-1px; transform:translateX(-50%); width:118%; will-change:transform; }
+  .mist{ position:absolute; left:50%; transform:translateX(-50%); width:150%; filter:blur(34px); pointer-events:none; }
+
+  /* ---------- panels ---------- */
+  .jpanel{ position:absolute; inset:0; display:flex; align-items:center; will-change:opacity,transform,filter; }
+
+  /* ---------- orbit ---------- */
+  .orbit{ position:absolute; inset:0; will-change:transform; }
+  .node{ position:absolute; left:50%; top:50%; width:0; height:0; transform:rotate(var(--a)) translate(var(--r)); }
+  .node-in{
+    position:absolute; left:50%; top:50%;
+    transform:translate(-50%,-50%) rotate(var(--c,0deg));
+    white-space:nowrap;
+  }
+  .node-dot{
+    width:7px; height:7px; border-radius:99px; background:#c9a566; margin:0 auto 10px;
+    box-shadow:0 0 0 1px rgba(201,165,102,.25), 0 0 22px 3px rgba(201,165,102,.45);
+  }
+
+  /* ---------- inputs ---------- */
+  .field{
+    background:transparent; border:0; border-bottom:1px solid rgba(239,233,220,.22);
+    padding:.85rem .25rem; color:#efe9dc; outline:none; width:100%;
+    transition:border-color .5s var(--ease);
+  }
+  .field::placeholder{ color:rgba(239,233,220,.32); }
+  .field:focus{ border-color:#c9a566; }
+  .btn{
+    position:relative; overflow:hidden; border:1px solid rgba(201,165,102,.55);
+    transition:color .6s var(--ease), border-color .6s var(--ease);
+  }
+  .btn span{ position:relative; z-index:1; }
+  .btn:before{
+    content:''; position:absolute; inset:0; background:#c9a566;
+    transform:translateY(101%); transition:transform .7s var(--ease);
+  }
+  .btn:hover{ color:#060907; border-color:#c9a566; }
+  .btn:hover:before{ transform:translateY(0); }
+
+  a:focus-visible, button:focus-visible, input:focus-visible{
+    outline:1px solid #c9a566; outline-offset:4px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    [data-reveal]{ opacity:1 !important; transform:none !important; filter:none !important; }
+    .wi{ transform:none !important; }
+    #grain{ animation:none; }
+    html{ scroll-behavior:auto; }
+  }
+</style>
+</head>
+
+<body class="bg-ink text-bone font-sans antialiased is-locked">
+
+<!-- ══════════ PRELOADER ══════════ -->
+<div id="loader">
+  <div class="overflow-hidden mb-7">
+    <div class="font-display font-light text-[clamp(2.6rem,9vw,5.5rem)] leading-none tracking-[.3em] pl-[.3em] text-bone">
+      <span class="ll">L</span><span class="ll">U</span><span class="ll">N</span><span class="ll">A</span><span class="ll">R</span>
+    </div>
+  </div>
+  <div id="loadbar"><i></i></div>
+  <p class="eyebrow text-sage/50 mt-6" id="loadmsg">Waking the forest</p>
+</div>
+
+<!-- ══════════ FIXED LAYERS ══════════ -->
+<canvas id="scene"></canvas>
+<div id="cursorglow"></div>
+<div id="vignette"></div>
+<div id="grain"></div>
+<div id="progress"></div>
+
+<!-- chapter rail -->
+<nav id="rail" aria-label="Chapters">
+  <a href="#problem" data-rail="problem"><span class="rn">I</span><span class="rl"></span></a>
+  <a href="#journey" data-rail="journey"><span class="rn">II</span><span class="rl"></span></a>
+  <a href="#solution" data-rail="solution"><span class="rn">III</span><span class="rl"></span></a>
+  <a href="#impact" data-rail="impact"><span class="rn">IV</span><span class="rl"></span></a>
+</nav>
+
+<!-- ══════════ HEADER ══════════ -->
+<header class="fixed top-0 inset-x-0 z-50 px-6 md:px-10 py-6 flex items-center justify-between mix-blend-difference">
+  <a href="#hero" class="font-display text-xl md:text-2xl tracking-[.45em] pl-[.45em] text-bone">LUNAR</a>
+  <div class="hidden md:flex items-center gap-10 eyebrow text-bone/70">
+    <a href="#journey" class="hover:text-bone transition-colors duration-500">Atelier</a>
+    <a href="#solution" class="hover:text-bone transition-colors duration-500">Collection</a>
+    <a href="#impact" class="hover:text-bone transition-colors duration-500">Ledger</a>
+  </div>
+  <a href="#cta" class="eyebrow text-bone/70 hover:text-bone transition-colors duration-500">Request an invitation</a>
+</header>
+
+<main class="relative z-10">
+
+<!-- ══════════ HERO ══════════ -->
+<section id="hero" class="relative h-[100svh] min-h-[620px] overflow-hidden">
+
+  <!-- moon halo behind the WebGL moon -->
+  <div id="halo" class="absolute left-1/2 top-[38%] -translate-x-1/2 -translate-y-1/2 w-[130vmin] h-[130vmin] pointer-events-none"
+       style="background:radial-gradient(circle,rgba(223,228,224,.16) 0%,rgba(147,166,141,.07) 30%,rgba(0,0,0,0) 62%)"></div>
+
+  <!-- forest -->
+  <div id="forest" class="absolute inset-0 pointer-events-none">
+    <div class="mist" style="bottom:26%; height:30vh; background:radial-gradient(ellipse at center,rgba(147,166,141,.16),rgba(0,0,0,0) 70%)"></div>
+    <svg class="ridge" data-depth="0.10" viewBox="0 0 1440 620" preserveAspectRatio="xMidYMax slice" style="height:52vh"><path fill="#101a13" d=""/></svg>
+    <div class="mist" style="bottom:14%; height:26vh; background:radial-gradient(ellipse at center,rgba(147,166,141,.14),rgba(0,0,0,0) 70%)"></div>
+    <svg class="ridge" data-depth="0.26" viewBox="0 0 1440 620" preserveAspectRatio="xMidYMax slice" style="height:44vh"><path fill="#0a110c" d=""/></svg>
+    <svg class="ridge" data-depth="0.52" viewBox="0 0 1440 620" preserveAspectRatio="xMidYMax slice" style="height:36vh"><path fill="#060b07" d=""/></svg>
+    <svg class="ridge" data-depth="0.92" viewBox="0 0 1440 620" preserveAspectRatio="xMidYMax slice" style="height:26vh"><path fill="#030503" d=""/></svg>
+  </div>
+
+  <!-- hero copy -->
+  <div class="relative z-20 h-full flex flex-col items-center justify-center text-center px-6">
+    <p class="eyebrow text-sage/80" data-reveal style="--d:.15s">Carbon negative since 2019 &nbsp;·&nbsp; Aotearoa</p>
+
+    <h1 class="mt-8 font-display font-light leading-[.86] text-[clamp(4.5rem,20vw,17rem)] tracking-[.06em] pl-[.06em] text-bone"
+        data-reveal data-split style="--d:.3s">LUNAR</h1>
+
+    <p class="mt-8 max-w-lg font-display italic font-light text-[clamp(1.15rem,2.4vw,1.75rem)] leading-snug text-bone/75"
+       data-reveal style="--d:.75s">
+      We make things the earth can take back.
+    </p>
+
+    <div class="mt-14 flex flex-col items-center gap-4" data-reveal style="--d:1s">
+      <span class="eyebrow text-bone/40">Begin the descent</span>
+      <span class="block w-px h-16 bg-gradient-to-b from-bone/40 to-transparent"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ I — THE PROBLEM ══════════ -->
+<section id="problem" class="relative py-[22vh] px-6 md:px-10">
+  <div class="absolute inset-0 bg-gradient-to-b from-ink via-ink/40 to-ink pointer-events-none"></div>
+
+  <div class="relative max-w-6xl mx-auto">
+    <div class="flex items-baseline gap-6" data-reveal>
+      <span class="font-display text-gold text-2xl">I</span>
+      <span class="eyebrow text-sage/70">The long night</span>
+      <span class="rule flex-1 mt-1"></span>
+    </div>
+
+    <h2 class="mt-16 font-display font-light leading-[1.02] text-[clamp(2.4rem,7vw,6rem)] max-w-4xl text-bone"
+        data-reveal data-split>We built a world that cannot forget us.</h2>
+
+    <div class="mt-14 grid md:grid-cols-12 gap-10">
+      <p class="md:col-span-5 md:col-start-2 text-bone/60 leading-relaxed text-[1.02rem]" data-reveal style="--d:.15s">
+        Every year the industry buries, burns, or ships away enough cloth to bury a city. It does not rot. It leaches.
+        It arrives on a beach eight thousand kilometres from the shop that sold it, and it is still there when the
+        child who wore it is old.
+      </p>
+      <p class="md:col-span-4 text-bone/60 leading-relaxed text-[1.02rem]" data-reveal style="--d:.3s">
+        Luxury, as we inherited it, is a promise kept to the buyer and broken to the ground. We wanted to know
+        whether a beautiful thing could be made without leaving a debt behind it.
+      </p>
+    </div>
+
+    <div class="mt-24 grid sm:grid-cols-3 gap-px bg-bone/10 border border-bone/10">
+      <div class="bg-ink/70 p-8 md:p-10" data-reveal>
+        <p class="font-display font-light text-[clamp(2.6rem,6vw,4.4rem)] leading-none text-rust">92<span class="text-2xl align-top ml-1">Mt</span></p>
+        <p class="mt-4 text-bone/45 text-sm leading-relaxed">of textile waste discarded annually — roughly a truckload every second.</p>
+      </div>
+      <div class="bg-ink/70 p-8 md:p-10" data-reveal style="--d:.12s">
+        <p class="font-display font-light text-[clamp(2.6rem,6vw,4.4rem)] leading-none text-rust">2,700<span class="text-2xl align-top ml-1">L</span></p>
+        <p class="mt-4 text-bone/45 text-sm leading-relaxed">of fresh water drawn to grow the cotton for a single conventional shirt.</p>
+      </div>
+      <div class="bg-ink/70 p-8 md:p-10" data-reveal style="--d:.24s">
+        <p class="font-display font-light text-[clamp(2.6rem,6vw,4.4rem)] leading-none text-rust">200<span class="text-2xl align-top ml-1">yrs</span></p>
+        <p class="mt-4 text-bone/45 text-sm leading-relaxed">before a polyester blend begins to break down, into pieces too small to gather.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ II — THE JOURNEY (sticky, scrubbed) ══════════ -->
+<section id="journey" class="relative">
+  <div class="h-[360vh]">
+    <div class="sticky top-0 h-[100svh] overflow-hidden">
+
+      <div class="absolute inset-0 bg-gradient-to-r from-ink via-ink/25 to-transparent pointer-events-none"></div>
+
+      <!-- chapter mark -->
+      <div class="absolute top-[14vh] left-6 md:left-10 z-20 flex items-baseline gap-6">
+        <span class="font-display text-gold text-2xl">II</span>
+        <span class="eyebrow text-sage/70">The long walk</span>
+      </div>
+
+      <!-- progress rail -->
+      <div class="absolute left-6 md:left-10 bottom-[14vh] z-20 w-[clamp(120px,22vw,300px)]">
+        <div class="h-px bg-bone/15"><div id="jbar" class="h-px bg-gold w-0"></div></div>
+        <div class="mt-4 flex justify-between eyebrow text-bone/35">
+          <span>Field</span><span>Atelier</span><span>Return</span>
+        </div>
+      </div>
+
+      <!-- panels -->
+      <div class="relative h-full max-w-6xl mx-auto px-6 md:px-10">
+
+        <article class="jpanel">
+          <div class="max-w-xl">
+            <p class="eyebrow text-gold/80">Stage one</p>
+            <h3 class="mt-6 font-display font-light leading-[1.02] text-[clamp(2.4rem,6.5vw,5rem)]">The field remembers</h3>
+            <p class="mt-7 text-bone/60 leading-relaxed max-w-md">
+              We grow flax and hemp on land that was tired. No irrigation, no synthetic nitrogen — only rotation,
+              compost, and patience. Four seasons in, the soil holds water again, and it holds carbon: 4.1 tonnes
+              to the hectare, measured and independently verified.
+            </p>
+            <p class="mt-8 font-display italic text-bone/40 text-lg">Latitude 41°S — Te Tauihu</p>
+          </div>
+        </article>
+
+        <article class="jpanel">
+          <div class="max-w-xl">
+            <p class="eyebrow text-gold/80">Stage two</p>
+            <h3 class="mt-6 font-display font-light leading-[1.02] text-[clamp(2.4rem,6.5vw,5rem)]">The water goes home</h3>
+            <p class="mt-7 text-bone/60 leading-relaxed max-w-md">
+              Our dyes are grown, not mixed — madder root, walnut hull, indigo, iron. Every litre we draw is filtered
+              through reed beds and returned to the same catchment, clean enough to drink. Nothing leaves the building
+              that did not arrive as a plant.
+            </p>
+            <p class="mt-8 font-display italic text-bone/40 text-lg">94% of process water reclaimed</p>
+          </div>
+        </article>
+
+        <article class="jpanel">
+          <div class="max-w-xl">
+            <p class="eyebrow text-gold/80">Stage three</p>
+            <h3 class="mt-6 font-display font-light leading-[1.02] text-[clamp(2.4rem,6.5vw,5rem)]">The coat comes back</h3>
+            <p class="mt-7 text-bone/60 leading-relaxed max-w-md">
+              Wear it for a decade. We will mend it for free, twice. When it is finally finished, send it home:
+              we take the buttons off, and the cloth goes into the compost row that feeds next season's flax.
+              A garment becomes a field becomes a garment.
+            </p>
+            <p class="mt-8 font-display italic text-bone/40 text-lg">Zero to landfill — 18,400 pieces returned</p>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ III — THE SOLUTION (sticky ecosystem) ══════════ -->
+<section id="solution" class="relative">
+  <div class="h-[340vh]">
+    <div class="sticky top-0 h-[100svh] overflow-hidden">
+      <div class="absolute inset-0 bg-gradient-to-b from-ink/80 via-transparent to-ink/90 pointer-events-none"></div>
+
+      <div class="absolute top-[13vh] inset-x-0 z-20 text-center px-6">
+        <div class="flex items-baseline gap-5 justify-center">
+          <span class="font-display text-gold text-2xl">III</span>
+          <span class="eyebrow text-sage/70">The closed loop</span>
+        </div>
+        <h2 id="soltitle" class="mt-6 font-display font-light leading-[1.05] text-[clamp(2rem,5vw,3.8rem)]">
+          Nothing here is a waste product.
+        </h2>
+      </div>
+
+      <!-- orbit system -->
+      <div class="absolute inset-0 grid place-items-center">
+        <div class="relative w-[min(78vmin,720px)] h-[min(78vmin,720px)]">
+
+          <!-- rings -->
+          <div class="absolute inset-[14%] rounded-full border border-bone/10"></div>
+          <div class="absolute inset-[2%] rounded-full border border-bone/[.06]"></div>
+
+          <!-- core -->
+          <div id="core" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[26%] h-[26%] rounded-full"
+               style="background:radial-gradient(circle at 35% 30%,rgba(201,165,102,.55),rgba(63,87,65,.35) 45%,rgba(6,9,7,0) 72%)"></div>
+
+          <div class="orbit" id="orbit">
+            <div class="node" style="--a:-90deg;  --r:min(31vmin,286px)"><div class="node-in"><span class="node-dot block"></span><span class="eyebrow text-bone/70">Flax</span></div></div>
+            <div class="node" style="--a:-30deg;  --r:min(31vmin,286px)"><div class="node-in"><span class="node-dot block"></span><span class="eyebrow text-bone/70">Root dye</span></div></div>
+            <div class="node" style="--a:30deg;   --r:min(31vmin,286px)"><div class="node-in"><span class="node-dot block"></span><span class="eyebrow text-bone/70">Reed bed</span></div></div>
+            <div class="node" style="--a:90deg;   --r:min(31vmin,286px)"><div class="node-in"><span class="node-dot block"></span><span class="eyebrow text-bone/70">Repair</span></div></div>
+            <div class="node" style="--a:150deg;  --r:min(31vmin,286px)"><div class="node-in"><span class="node-dot block"></span><span class="eyebrow text-bone/70">Return</span></div></div>
+            <div class="node" style="--a:210deg;  --r:min(31vmin,286px)"><div class="node-in"><span class="node-dot block"></span><span class="eyebrow text-bone/70">Compost row</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- product cards -->
+      <div class="absolute bottom-[9vh] inset-x-0 z-20 px-6 md:px-10">
+        <div class="max-w-6xl mx-auto grid sm:grid-cols-3 gap-6 md:gap-10">
+          <div class="scard border-t border-bone/15 pt-5">
+            <p class="font-display text-2xl md:text-3xl font-light">The Eclipse Coat</p>
+            <p class="mt-2 text-bone/45 text-sm leading-relaxed">Undyed hemp canvas, waxed with beeswax and pine resin. Buttons turned from windfall oak.</p>
+          </div>
+          <div class="scard border-t border-bone/15 pt-5">
+            <p class="font-display text-2xl md:text-3xl font-light">The Tidal Knit</p>
+            <p class="mt-2 text-bone/45 text-sm leading-relaxed">Single-fibre merino, unblended so it can be unravelled and spun again. Indigo, three dips.</p>
+          </div>
+          <div class="scard border-t border-bone/15 pt-5">
+            <p class="font-display text-2xl md:text-3xl font-light">The Ash Trouser</p>
+            <p class="mt-2 text-bone/45 text-sm leading-relaxed">Wet-spun flax linen, walnut-hull dyed. Softens for ten years, then feeds the row it grew in.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ IV — IMPACT ══════════ -->
+<section id="impact" class="relative py-[20vh] px-6 md:px-10 overflow-hidden">
+  <div class="absolute inset-0 bg-gradient-to-b from-ink via-ink/50 to-ink pointer-events-none"></div>
+
+  <div class="relative max-w-6xl mx-auto">
+    <div class="flex items-baseline gap-6" data-reveal>
+      <span class="font-display text-gold text-2xl">IV</span>
+      <span class="eyebrow text-sage/70">The ledger</span>
+      <span class="rule flex-1 mt-1"></span>
+    </div>
+
+    <h2 class="mt-14 font-display font-light leading-[1.05] text-[clamp(2.2rem,6vw,5rem)] max-w-3xl" data-reveal data-split>
+      Seven years, counted honestly.
+    </h2>
+
+    <div class="mt-24 space-y-20 md:space-y-28">
+      <div class="stat flex flex-col md:flex-row md:items-end gap-4 md:gap-12" data-dir="-1">
+        <p class="num font-display font-light leading-[.85] text-[clamp(4rem,15vw,12rem)] text-bone tabular-nums"
+           data-count="1240000" data-format="compact">0</p>
+        <p class="md:pb-6 text-bone/50 max-w-xs leading-relaxed">native trees planted along the catchment we draw from, at a 91% survival rate.</p>
+      </div>
+
+      <div class="stat flex flex-col md:flex-row-reverse md:items-end gap-4 md:gap-12 md:text-right" data-dir="1">
+        <p class="num font-display font-light leading-[.85] text-[clamp(4rem,15vw,12rem)] text-bone tabular-nums"
+           data-count="94" data-format="pct">0</p>
+        <p class="md:pb-6 text-bone/50 max-w-xs leading-relaxed">of every litre of process water filtered through reed beds and returned to source.</p>
+      </div>
+
+      <div class="stat flex flex-col md:flex-row md:items-end gap-4 md:gap-12" data-dir="-1">
+        <p class="num font-display font-light leading-[.85] text-[clamp(4rem,15vw,12rem)] text-bone tabular-nums"
+           data-count="18400" data-format="plain">0</p>
+        <p class="md:pb-6 text-bone/50 max-w-xs leading-relaxed">garments sent home, taken apart, and composted into the next season's beds.</p>
+      </div>
+
+      <div class="stat flex flex-col md:flex-row-reverse md:items-end gap-4 md:gap-12 md:text-right" data-dir="1">
+        <p class="num font-display font-light leading-[.85] text-[clamp(4rem,15vw,12rem)] text-gold tabular-nums"
+           data-count="0" data-format="plain">0</p>
+        <p class="md:pb-6 text-bone/50 max-w-xs leading-relaxed">kilograms of LUNAR cloth in landfill. This is the only number we will not let move.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ CTA ══════════ -->
+<section id="cta" class="relative min-h-[100svh] flex items-center px-6 md:px-10 py-[16vh]">
+  <div class="absolute inset-0 bg-gradient-to-b from-ink/90 via-ink/40 to-ink pointer-events-none"></div>
+
+  <div class="relative max-w-3xl mx-auto text-center">
+    <p class="eyebrow text-sage/70" data-reveal>Spring collection — 400 pieces</p>
+
+    <h2 class="mt-9 font-display font-light leading-[.98] text-[clamp(2.8rem,9vw,7rem)]" data-reveal data-split>
+      Come home to the ground.
+    </h2>
+
+    <p class="mt-9 text-bone/55 leading-relaxed max-w-lg mx-auto" data-reveal style="--d:.2s">
+      We release once a year, to a list. Leave your email and we will write to you the week the flax is cut —
+      once, with a date, and nothing else.
+    </p>
+
+    <div class="mt-14 max-w-md mx-auto" data-reveal style="--d:.35s">
+      <div id="ctaform" class="flex flex-col sm:flex-row items-end gap-5">
+        <div class="w-full text-left">
+          <label for="email" class="eyebrow text-bone/40 block mb-2">Email</label>
+          <input id="email" type="email" class="field" placeholder="you@example.com" autocomplete="email" />
+        </div>
+        <button id="joinbtn" class="btn shrink-0 px-9 py-4 eyebrow text-gold whitespace-nowrap"><span>Join the list</span></button>
+      </div>
+      <p id="formnote" class="mt-4 text-sm text-bone/40 h-5"></p>
+    </div>
+
+    <p class="mt-20 font-display italic text-bone/30 text-lg" data-reveal style="--d:.5s">
+      The moon pulls the tide without touching it.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer class="relative border-t border-bone/10 px-6 md:px-10 py-12">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row gap-8 md:items-center justify-between">
+    <span class="font-display text-lg tracking-[.45em] pl-[.45em] text-bone/70">LUNAR</span>
+    <div class="flex flex-wrap gap-x-10 gap-y-3 eyebrow text-bone/35">
+      <a href="#" class="hover:text-bone/70 transition-colors duration-500">Impact report</a>
+      <a href="#" class="hover:text-bone/70 transition-colors duration-500">Repair &amp; return</a>
+      <a href="#" class="hover:text-bone/70 transition-colors duration-500">Stockists</a>
+      <a href="#" class="hover:text-bone/70 transition-colors duration-500">Contact</a>
+    </div>
+    <span class="eyebrow text-bone/25">© 2026 — Made slowly</span>
+  </div>
+</footer>
+
+</main>
+
+<script>
+(function(){
+  'use strict';
+
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* ────────────────────────────────────────────────
+     0 · helpers
+  ──────────────────────────────────────────────── */
+  function mulberry32(a){
+    return function(){
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  var lerp = function(a,b,t){ return a + (b-a)*t; };
+  var clamp = function(v,a,b){ return Math.min(b, Math.max(a,v)); };
+  function smooth(t){ return t*t*(3-2*t); }
+
+  // keyframe interpolation over normalized page scroll
+  function kf(p, pts){
+    if(p <= pts[0][0]) return pts[0][1];
+    for(var i=1;i<pts.length;i++){
+      if(p <= pts[i][0]){
+        var a = pts[i-1], b = pts[i];
+        var span = (b[0]-a[0]) || 1e-6;
+        return lerp(a[1], b[1], smooth(clamp((p-a[0])/span,0,1)));
+      }
+    }
+    return pts[pts.length-1][1];
+  }
+  function kfc(p, pts, out){
+    if(p <= pts[0][0]){ out.set(pts[0][1]); return out; }
+    for(var i=1;i<pts.length;i++){
+      if(p <= pts[i][0]){
+        var a = pts[i-1], b = pts[i];
+        var span = (b[0]-a[0]) || 1e-6;
+        out.set(a[1]);
+        return out.lerp(new THREE.Color(b[1]), smooth(clamp((p-a[0])/span,0,1)));
+      }
+    }
+    out.set(pts[pts.length-1][1]); return out;
+  }
+
+  /* ────────────────────────────────────────────────
+     1 · procedural pine ridges
+  ──────────────────────────────────────────────── */
+  function ridgePath(w,h,seed,peaks,jag,base){
+    var r = mulberry32(seed);
+    var step = w/peaks;
+    var d = 'M0,'+h+' L0,'+(h*base);
+    for(var i=0;i<=peaks;i++){
+      var x = i*step;
+      var b = h*base + Math.sin(i*0.55 + seed)*h*0.05 + r()*h*0.04;
+      var top = b - (h*jag)*(0.45 + r()*0.55);
+      d += ' L'+(x-step*0.42).toFixed(1)+','+(b + r()*h*0.03).toFixed(1);
+      d += ' L'+(x-step*0.16).toFixed(1)+','+(b - (b-top)*0.42).toFixed(1);
+      d += ' L'+x.toFixed(1)+','+top.toFixed(1);
+      d += ' L'+(x+step*0.16).toFixed(1)+','+(b - (b-top)*0.40).toFixed(1);
+      d += ' L'+(x+step*0.42).toFixed(1)+','+(b + r()*h*0.03).toFixed(1);
+    }
+    d += ' L'+w+','+h+' Z';
+    return d;
+  }
+  var ridges = [].slice.call(document.querySelectorAll('.ridge'));
+  ridges.forEach(function(svg,i){
+    var peaks = [9,13,18,26][i] || 14;
+    var jag   = [0.50,0.42,0.34,0.26][i] || 0.35;
+    var base  = [0.52,0.62,0.72,0.84][i] || 0.7;
+    svg.querySelector('path').setAttribute('d', ridgePath(1440,620, 1337+i*97, peaks, jag, base));
+  });
+
+  /* ────────────────────────────────────────────────
+     2 · word-mask split for headlines
+  ──────────────────────────────────────────────── */
+  document.querySelectorAll('[data-split]').forEach(function(el){
+    var words = el.textContent.trim().split(/\s+/);
+    el.innerHTML = words.map(function(w,i){
+      return '<span class="wm"><span class="wi" style="--i:'+i+'">'+w+'</span></span>';
+    }).join(' ');
+  });
+
+  /* ────────────────────────────────────────────────
+     3 · Intersection Observer reveals
+  ──────────────────────────────────────────────── */
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ e.target.classList.add('is-in'); io.unobserve(e.target); }
+    });
+  }, { rootMargin: '0px 0px -12% 0px', threshold: 0.12 });
+  document.querySelectorAll('[data-reveal]').forEach(function(el){ io.observe(el); });
+
+  // chapter rail
+  var railLinks = {};
+  document.querySelectorAll('#rail a').forEach(function(a){ railLinks[a.dataset.rail] = a; });
+  var railIO = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      var a = railLinks[e.target.id];
+      if(!a) return;
+      if(e.isIntersecting) a.classList.add('on'); else a.classList.remove('on');
+    });
+  }, { threshold: 0, rootMargin: '-45% 0px -45% 0px' });
+  ['problem','journey','solution','impact'].forEach(function(id){
+    var el = document.getElementById(id); if(el) railIO.observe(el);
+  });
+
+  /* ────────────────────────────────────────────────
+     4 · WebGL — moon, earth, dust
+  ──────────────────────────────────────────────── */
+  var canvas = document.getElementById('scene');
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+
+  var scene = new THREE.Scene();
+  var bg = new THREE.Color('#060907');
+  scene.fog = new THREE.FogExp2(0x060907, 0.028);
+
+  var camera = new THREE.PerspectiveCamera(42, innerWidth/innerHeight, 0.1, 220);
+  camera.position.set(0,0,9);
+
+  // — procedural moon texture
+  function moonTexture(){
+    var s = 1024, c = document.createElement('canvas'); c.width = s; c.height = s/2;
+    var x = c.getContext('2d'), r = mulberry32(7);
+    x.fillStyle = '#cdc7ba'; x.fillRect(0,0,c.width,c.height);
+    for(var i=0;i<16;i++){ // maria
+      var mx = r()*c.width, my = r()*c.height, rad = 40 + r()*170;
+      var g = x.createRadialGradient(mx,my,0,mx,my,rad);
+      g.addColorStop(0,'rgba(120,116,108,.45)'); g.addColorStop(1,'rgba(120,116,108,0)');
+      x.fillStyle = g; x.beginPath(); x.arc(mx,my,rad,0,6.284); x.fill();
+    }
+    for(var j=0;j<320;j++){ // craters
+      var cx = r()*c.width, cy = r()*c.height, cr = 1.5 + Math.pow(r(),3)*26;
+      var g2 = x.createRadialGradient(cx-cr*.3, cy-cr*.3, 0, cx, cy, cr);
+      g2.addColorStop(0,'rgba(255,252,243,.32)');
+      g2.addColorStop(.55,'rgba(150,145,136,.30)');
+      g2.addColorStop(1,'rgba(255,255,255,0)');
+      x.fillStyle = g2; x.beginPath(); x.arc(cx,cy,cr,0,6.284); x.fill();
+    }
+    var img = x.getImageData(0,0,c.width,c.height), d = img.data; // grain
+    for(var k=0;k<d.length;k+=4){ var n=(r()-.5)*17; d[k]+=n; d[k+1]+=n; d[k+2]+=n; }
+    x.putImageData(img,0,0);
+    var t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t;
+  }
+
+  // — procedural land mask (earth)
+  function landTexture(alpha){
+    var s = 1024, c = document.createElement('canvas'); c.width = s; c.height = s/2;
+    var x = c.getContext('2d'), r = mulberry32(21);
+    x.fillStyle = alpha ? '#000000' : '#07100f'; x.fillRect(0,0,c.width,c.height);
+    x.fillStyle = alpha ? '#ffffff' : '#25392a';
+    for(var i=0;i<9;i++){
+      var cx = r()*c.width, cy = 60 + r()*(c.height-120);
+      x.beginPath();
+      for(var b=0;b<26;b++){
+        var ang = (b/26)*6.284;
+        var rad = (34 + r()*105) * (0.55 + 0.45*Math.abs(Math.sin(ang*2.3+i)));
+        var px = cx + Math.cos(ang)*rad*1.5, py = cy + Math.sin(ang)*rad*0.8;
+        b ? x.lineTo(px,py) : x.moveTo(px,py);
+      }
+      x.closePath(); x.fill();
+    }
+    var t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t;
+  }
+
+  // moon
+  var moonGeo = new THREE.SphereGeometry(1, 96, 96);
+  var moon = new THREE.Mesh(moonGeo, new THREE.MeshStandardMaterial({
+    map: moonTexture(), bumpMap: moonTexture(), bumpScale: 0.028,
+    roughness: 1, metalness: 0, color: 0xffffff
+  }));
+  moon.position.set(2.7, -0.2, -1);
+  moon.scale.setScalar(2.4);
+  scene.add(moon);
+
+  // earth
+  var earthMat = new THREE.MeshStandardMaterial({
+    map: landTexture(false),
+    emissiveMap: landTexture(true),
+    emissive: new THREE.Color('#8a4a2a'),
+    emissiveIntensity: 0.9,
+    roughness: .85, metalness: .05, color: 0x223028
+  });
+  var earth = new THREE.Mesh(new THREE.SphereGeometry(1, 72, 72), earthMat);
+  earth.position.set(0, 8, -3);
+  earth.scale.setScalar(1.25);
+  scene.add(earth);
+
+  // atmosphere (fresnel shell)
+  var atmoUni = { uColor: { value: new THREE.Color('#8a4a2a') }, uPower: { value: 3.0 } };
+  var atmo = new THREE.Mesh(new THREE.SphereGeometry(1.16, 64, 64), new THREE.ShaderMaterial({
+    uniforms: atmoUni,
+    vertexShader: 'varying vec3 vN; varying vec3 vP;\
+      void main(){ vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position,1.0); vP = mv.xyz; gl_Position = projectionMatrix * mv; }',
+    fragmentShader: 'uniform vec3 uColor; uniform float uPower; varying vec3 vN; varying vec3 vP;\
+      void main(){ float f = pow(1.0 - abs(dot(normalize(vN), normalize(-vP))), uPower); gl_FragColor = vec4(uColor, f); }',
+    transparent: true, blending: THREE.AdditiveBlending, side: THREE.BackSide, depthWrite: false
+  }));
+  earth.add(atmo);
+
+  // orbital ring
+  var ring = new THREE.Mesh(new THREE.TorusGeometry(1.8, 0.004, 8, 220),
+    new THREE.MeshBasicMaterial({ color: 0xc9a566, transparent: true, opacity: 0 }));
+  ring.rotation.x = Math.PI * 0.42;
+  earth.add(ring);
+
+  // dust / stars
+  var COUNT = 1700, pos = new Float32Array(COUNT*3), seedR = mulberry32(99);
+  for(var i=0;i<COUNT;i++){
+    var rad = 14 + seedR()*46, th = seedR()*6.283, ph = Math.acos(2*seedR()-1);
+    pos[i*3]   = rad*Math.sin(ph)*Math.cos(th);
+    pos[i*3+1] = rad*Math.sin(ph)*Math.sin(th)*0.7;
+    pos[i*3+2] = rad*Math.cos(ph)*0.6 - 10;
+  }
+  var pGeo = new THREE.BufferGeometry();
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  var pMat = new THREE.PointsMaterial({ size: 0.075, color: 0xdfe4e0, transparent: true, opacity: .5, sizeAttenuation: true, depthWrite: false });
+  var dust = new THREE.Points(pGeo, pMat);
+  scene.add(dust);
+
+  // light
+  scene.add(new THREE.AmbientLight(0x2a3a30, 0.55));
+  var key = new THREE.DirectionalLight(0xf3efe4, 2.1); key.position.set(-4, 2.5, 4); scene.add(key);
+  var rim = new THREE.PointLight(0x93a68d, 1.6, 40); rim.position.set(6, -3, -6); scene.add(rim);
+
+  /* ─── scroll anchors ─── */
+  var A = {};
+  function anchors(){
+    var total = Math.max(1, document.body.scrollHeight - innerHeight);
+    ['hero','problem','journey','solution','impact','cta'].forEach(function(id){
+      var el = document.getElementById(id);
+      A[id] = el ? clamp(el.offsetTop/total, 0, 1) : 0;
+    });
+    A.end = 1;
+  }
+  anchors();
+
+  var target = 0, sp = 0;
+  function pageProgress(){
+    var total = Math.max(1, document.body.scrollHeight - innerHeight);
+    return clamp(window.scrollY/total, 0, 1);
+  }
+
+  var tmpC = new THREE.Color();
+  var clock = new THREE.Clock();
+
+  function frame(){
+    requestAnimationFrame(frame);
+    var dt = Math.min(clock.getDelta(), 0.05);
+    target = pageProgress();
+    sp = lerp(sp, target, reduce ? 1 : 0.075);
+    var p = sp;
+
+    var h = A.hero, pr = A.problem, jo = A.journey, so = A.solution, im = A.impact, ct = A.cta;
+
+    // — moon: rises out of the forest, recedes, returns huge for the CTA
+    moon.position.x = kf(p, [[0,2.7],[pr,-3.4],[jo,-5.6],[so,-9],[im,-6],[ct,0]]);
+    moon.position.y = kf(p, [[0,-1.9],[h+0.06,0.35],[pr,2.4],[jo,3.2],[so,4.5],[im,3.2],[ct,0.1]]);
+    moon.position.z = kf(p, [[0,-1],[pr,-6],[so,-16],[ct,-6.5]]);
+    var ms = kf(p, [[0,2.45],[pr,1.5],[so,1.0],[im,1.6],[ct,4.4]]);
+    moon.scale.setScalar(ms);
+    moon.rotation.y += dt*0.018;
+
+    // — earth: arrives polluted, is carried across, heals into the loop
+    earth.position.x = kf(p, [[0,0],[pr,2.6],[jo,-2.4],[so,0],[im,3.2],[ct,-6]]);
+    earth.position.y = kf(p, [[0,9],[pr,-0.2],[jo,0.4],[so,-0.05],[im,-1.4],[ct,-4]]);
+    earth.position.z = kf(p, [[0,-3],[pr,-2.5],[jo,-1.8],[so,-0.6],[im,-4],[ct,-9]]);
+    earth.scale.setScalar(kf(p, [[0,1.2],[pr,1.15],[jo,1.35],[so,1.62],[im,1.0],[ct,0.6]]));
+    earth.rotation.y += dt * kf(p, [[0,0.05],[jo,0.16],[so,0.07],[1,0.05]]);
+    earth.rotation.z = kf(p, [[0,0.18],[so,0.05],[1,0.05]]);
+
+    // healing colour: rust → fern → gold-lit green
+    kfc(p, [[0,'#8a4a2a'],[pr,'#9c4f2c'],[jo,'#6c6335'],[so,'#3f7a56'],[im,'#4b8a5f'],[ct,'#3f7a56']], tmpC);
+    earthMat.emissive.copy(tmpC);
+    atmoUni.uColor.value.copy(tmpC).multiplyScalar(1.15);
+    earthMat.emissiveIntensity = kf(p, [[0,0.55],[pr,1.05],[so,1.5],[im,1.2],[ct,0.8]]);
+
+    ring.material.opacity = kf(p, [[0,0],[jo,0],[so,0.5],[im,0.12],[ct,0]]);
+    ring.rotation.z += dt*0.14;
+
+    // dust: ash grey through the problem, pollen-warm through the loop
+    kfc(p, [[0,'#dfe4e0'],[pr,'#7d7468'],[jo,'#9aa38f'],[so,'#c9a566'],[ct,'#dfe4e0']], tmpC);
+    pMat.color.copy(tmpC);
+    pMat.opacity = kf(p, [[0,0.5],[pr,0.22],[so,0.62],[ct,0.5]]);
+    dust.rotation.y += dt*0.008;
+    dust.position.y = -p*6;
+
+    // background / fog mood
+    kfc(p, [[0,'#060907'],[pr,'#0b0806'],[jo,'#080d09'],[so,'#06100c'],[im,'#060a08'],[ct,'#050807']], tmpC);
+    bg.copy(tmpC);
+    renderer.setClearColor(bg, 1);
+    scene.fog.color.copy(bg);
+
+    // gentle camera drift
+    camera.position.x = lerp(camera.position.x, mx*0.5, 0.04);
+    camera.position.y = lerp(camera.position.y, my*0.35, 0.04);
+    camera.lookAt(0,0,0);
+
+    renderer.render(scene, camera);
+  }
+
+  /* ─── pointer ─── */
+  var mx = 0, my = 0, glow = document.getElementById('cursorglow'), gx = 0, gy = 0;
+  window.addEventListener('pointermove', function(e){
+    mx = (e.clientX/innerWidth - 0.5)*2;
+    my = -(e.clientY/innerHeight - 0.5)*2;
+    gx = e.clientX; gy = e.clientY;
+  }, { passive:true });
+  (function glowLoop(){
+    requestAnimationFrame(glowLoop);
+    var cur = glow.style.transform.match(/-?\d+\.?\d*/g);
+    var cx = cur ? parseFloat(cur[0]) : gx, cy = cur ? parseFloat(cur[1]) : gy;
+    glow.style.transform = 'translate('+lerp(cx,gx,0.08).toFixed(1)+'px,'+lerp(cy,gy,0.08).toFixed(1)+'px)';
+  })();
+
+  window.addEventListener('resize', function(){
+    renderer.setSize(innerWidth, innerHeight);
+    camera.aspect = innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+    anchors();
+    ScrollTrigger.refresh();
+  });
+
+  frame();
+
+  /* ────────────────────────────────────────────────
+     5 · GSAP ScrollTrigger choreography
+  ──────────────────────────────────────────────── */
+
+  // scroll progress bar
+  ScrollTrigger.create({
+    trigger: document.body, start: 'top top', end: 'bottom bottom',
+    onUpdate: function(self){ document.getElementById('progress').style.width = (self.progress*100).toFixed(2)+'%'; }
+  });
+
+  // hero: descend past the trees
+  if(!reduce){
+    var heroTl = gsap.timeline({ scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: 0.8 } });
+    ridges.forEach(function(svg){
+      var d = parseFloat(svg.dataset.depth);
+      heroTl.to(svg, { yPercent: 40 + d*160, scale: 1 + d*0.5, opacity: 0.15, ease: 'none' }, 0);
+    });
+    heroTl.to('#forest .mist', { yPercent: 90, opacity: 0, ease: 'none' }, 0);
+    heroTl.to('#halo', { scale: 1.5, opacity: 0.35, ease: 'none' }, 0);
+    heroTl.to('#hero .relative.z-20', { yPercent: -22, opacity: 0, filter: 'blur(8px)', ease: 'none' }, 0);
+  }
+
+  // journey: three stages cross-dissolve
+  var panels = gsap.utils.toArray('#journey .jpanel');
+  gsap.set(panels, { opacity: 0, scale: 1.06, filter: 'blur(12px)', yPercent: 4 });
+  gsap.set(panels[0], { opacity: 1, scale: 1, filter: 'blur(0px)', yPercent: 0 });
+
+  var jt = gsap.timeline({
+    scrollTrigger: {
+      trigger: '#journey', start: 'top top', end: 'bottom bottom', scrub: 1,
+      onUpdate: function(self){ document.getElementById('jbar').style.width = (self.progress*100).toFixed(1)+'%'; }
+    },
+    defaults: { ease: 'power2.inOut', duration: 0.14 }
+  });
+  jt.to(panels[0], { opacity: 0, scale: 0.95, filter: 'blur(12px)', yPercent: -4 }, 0.26)
+    .to(panels[1], { opacity: 1, scale: 1, filter: 'blur(0px)', yPercent: 0 }, 0.32)
+    .to(panels[1], { opacity: 0, scale: 0.95, filter: 'blur(12px)', yPercent: -4 }, 0.62)
+    .to(panels[2], { opacity: 1, scale: 1, filter: 'blur(0px)', yPercent: 0 }, 0.68)
+    .to({}, { duration: 0.14 }, 0.86);
+
+  // solution: the loop turns as you scroll
+  var orbitEl = document.getElementById('orbit');
+  var nodes = [].slice.call(document.querySelectorAll('#orbit .node'));
+  var nodeIn = nodes.map(function(n){ return n.querySelector('.node-in'); });
+  var nodeAng = nodes.map(function(n){ return parseFloat(n.style.getPropertyValue('--a')); });
+
+  gsap.set('#solution .scard', { opacity: 0, y: 26 });
+  gsap.set('#core', { scale: 0.6, opacity: 0.4 });
+
+  var st = gsap.timeline({
+    scrollTrigger: {
+      trigger: '#solution', start: 'top top', end: 'bottom bottom', scrub: 1,
+      onUpdate: function(self){
+        var rot = self.progress * 300;
+        orbitEl.style.transform = 'rotate(' + rot + 'deg)';
+        for(var i=0;i<nodeIn.length;i++){
+          nodeIn[i].style.setProperty('--c', (-(rot + nodeAng[i])) + 'deg');
+        }
+      }
+    },
+    defaults: { ease: 'power2.out' }
+  });
+  st.to('#core', { scale: 1, opacity: 1, duration: 0.3 }, 0.05)
+    .to('#solution .scard', { opacity: 1, y: 0, duration: 0.22, stagger: 0.14 }, 0.30)
+    .to('#soltitle', { opacity: 0.35, duration: 0.2 }, 0.75);
+
+  // set initial node counter-rotation
+  nodeIn.forEach(function(el,i){ el.style.setProperty('--c', (-nodeAng[i]) + 'deg'); });
+
+  // impact: numbers fly in and count
+  function fmt(v, mode){
+    if(mode === 'compact'){
+      if(v >= 1e6) return (v/1e6).toFixed(2) + 'M';
+      if(v >= 1e3) return Math.round(v/1e3) + 'K';
+      return Math.round(v).toString();
+    }
+    if(mode === 'pct') return Math.round(v) + '%';
+    return Math.round(v).toLocaleString('en-US');
+  }
+  gsap.utils.toArray('#impact .stat').forEach(function(stat){
+    var dir = parseFloat(stat.dataset.dir) || 1;
+    var num = stat.querySelector('.num');
+    var end = parseFloat(num.dataset.count);
+    var mode = num.dataset.format;
+
+    gsap.fromTo(stat,
+      { x: dir * (window.innerWidth < 768 ? 60 : 180), opacity: 0, filter: 'blur(10px)' },
+      { x: 0, opacity: 1, filter: 'blur(0px)', ease: 'none',
+        scrollTrigger: { trigger: stat, start: 'top 92%', end: 'top 45%', scrub: 1 } }
+    );
+
+    if(end === 0){ num.textContent = '0'; return; }
+    var obj = { v: 0 };
+    gsap.to(obj, {
+      v: end, ease: 'none',
+      scrollTrigger: { trigger: stat, start: 'top 88%', end: 'top 40%', scrub: 0.6 },
+      onUpdate: function(){ num.textContent = fmt(obj.v, mode); }
+    });
+  });
+
+  /* ────────────────────────────────────────────────
+     6 · CTA
+  ──────────────────────────────────────────────── */
+  var btn = document.getElementById('joinbtn'), input = document.getElementById('email'), note = document.getElementById('formnote');
+  function join(){
+    var v = (input.value || '').trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)){
+      note.textContent = 'That address is missing something — check it and try again.';
+      note.className = 'mt-4 text-sm text-rust h-5';
+      input.focus();
+      return;
+    }
+    note.textContent = 'You are on the list. We will write when the flax is cut.';
+    note.className = 'mt-4 text-sm text-gold h-5';
+    btn.querySelector('span').textContent = 'Joined';
+    input.value = '';
+    input.disabled = true;
+    btn.disabled = true;
+  }
+  btn.addEventListener('click', join);
+  input.addEventListener('keydown', function(e){ if(e.key === 'Enter') join(); });
+
+  /* ────────────────────────────────────────────────
+     7 · preloader
+  ──────────────────────────────────────────────── */
+  var loader = document.getElementById('loader'),
+      bar = document.querySelector('#loadbar i'),
+      msg = document.getElementById('loadmsg'),
+      letters = document.querySelectorAll('#loader .ll');
+
+  gsap.to(letters, { y: '0%', duration: 1.1, ease: 'power3.out', stagger: 0.07, delay: 0.15 });
+
+  var prog = 0, msgs = ['Waking the forest', 'Raising the moon', 'Turning the loop'];
+  var tick = setInterval(function(){
+    prog = Math.min(100, prog + 6 + Math.random()*11);
+    bar.style.width = prog + '%';
+    msg.textContent = msgs[Math.min(2, Math.floor(prog/38))];
+    if(prog >= 100) clearInterval(tick);
+  }, 130);
+
+  function reveal(){
+    bar.style.width = '100%';
+    setTimeout(function(){
+      loader.classList.add('done');
+      document.body.classList.remove('is-locked');
+      anchors();
+      ScrollTrigger.refresh();
+      document.querySelectorAll('#hero [data-reveal]').forEach(function(el){ el.classList.add('is-in'); });
+    }, 420);
+  }
+  if(document.readyState === 'complete') setTimeout(reveal, 900);
+  else window.addEventListener('load', function(){ setTimeout(reveal, 900); });
+
+  // safety net
+  setTimeout(reveal, 4200);
+})();
+</script>
+</body>
+</html>

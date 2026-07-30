@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alex Chen — Creative Frontend Developer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<!-- Preloader -->
+<div class="preloader" id="preloader">
+  <div class="preloader-content">
+    <div class="preloader-text" aria-hidden="true">AC</div>
+    <div class="preloader-progress">
+      <div class="preloader-bar"></div>
+    </div>
+  </div>
+</div>
+
+<body>
+  <!-- Custom Cursor -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-follower" id="cursorFollower"></div>
+
+  <!-- Scroll Progress -->
+  <div class="scroll-progress" id="scrollProgress">
+    <div class="scroll-progress-fill"></div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <a href="#" class="nav-logo" data-cursor-pointer>AC</a>
+    <div class="nav-links" id="navLinks">
+      <a href="#work" class="nav-link" data-cursor-pointer>Work</a>
+      <a href="#about" class="nav-link" data-cursor-pointer>About</a>
+      <a href="#contact" class="nav-link" data-cursor-pointer>Contact</a>
+    </div>
+    <button class="nav-menu-btn" id="menuBtn" aria-label="Toggle menu" data-cursor-pointer>
+      <span class="nav-menu-btn-line"></span>
+      <span class="nav-menu-btn-line"></span>
+    </button>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero">
+    <div class="hero-bg-grain"></div>
+    <div class="hero-shapes">
+      <div class="shape shape--ring"></div>
+      <div class="shape shape--dot-large"></div>
+      <div class="shape shape--dot-medium"></div>
+      <div class="shape shape--diamond"></div>
+      <div class="shape shape--orb"></div>
+    </div>
+    <div class="hero-content">
+      <p class="hero-intro" data-animate>
+        <span>Creative frontend developer</span>
+        <span class="hero-intro-divider">&middot;</span>
+        <span>based in San Francisco</span>
+      </p>
+      <h1 class="hero-title" data-animate>
+        <span class="hero-title-line"><span class="char-split">I craft digital</span></span>
+        <span class="hero-title-line accent-line"><span class="char-split"><em class="accent-text">experiences</em> that</span></span>
+        <span class="hero-title-line"><span class="char-split">people remember.</span></span>
+      </h1>
+      <p class="hero-description" data-animate>
+        Specializing in interactive web experiences, motion design, and 
+        performant applications that push the boundaries of what's possible 
+        in the browser.
+      </p>
+      <div class="hero-actions" data-animate>
+        <a href="#work" class="btn btn-primary" data-cursor-pointer>View Projects</a>
+        <a href="#contact" class="btn btn-ghost" data-cursor-pointer>Get In Touch</a>
+      </div>
+    </div>
+    <div class="hero-scroll-indicator">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+    <div class="hero-corner hero-corner--top-right">
+      <div class="corner-dot"></div>
+      <div class="corner-dot"></div>
+      <div class="corner-dot"></div>
+    </div>
+  </section>
+
+  <!-- Marquee Separator -->
+  <div class="marquee-track" aria-hidden="true">
+    <div class="marquee-inner">
+      <span>Web Applications</span>
+      <span class="marquee-dot">&bull;</span>
+      <span>Interactive Design</span>
+      <span class="marquee-dot">&bull;</span>
+      <span>Animation & Motion</span>
+      <span class="marquee-dot">&bull;</span>
+      <span>Creative Development</span>
+      <span class="marquee-dot">&bull;</span>
+      <span>Performance Engineering</span>
+      <span class="marquee-dot">&bull;</span>
+      <span>Web Applications</span>
+      <span class="marquee-dot">&bull;</span>
+      <span>Interactive Design</span>
+      <span class="marquee-dot">&bull;</span>
+      <span>Animation & Motion</span>
+      <span class="marquee-dot">&bull;</span>
+      <span>Creative Development</span>
+      <span class="marquee-dot">&bull;</span>
+      <span>Performance Engineering</span>
+      <span class="marquee-dot">&bull;</span>
+    </div>
+  </div>
+
+  <!-- Work / Projects Section -->
+  <section class="work" id="work">
+    <div class="work-header" data-animate>
+      <span class="section-label">Selected Work</span>
+      <h2 class="section-heading">Projects I'm proud of.</h2>
+    </div>
+    <div class="projects-horizontal" id="projectsHorizontal">
+      <!-- Project 1 -->
+      <article class="project-card" data-animate>
+        <div class="project-card-image" style="--hue: 220; --sat: 60;">
+          <div class="project-card-placeholder"></div>
+          <div class="project-card-overlay">
+            <span class="project-card-view">View Project</span>
+            <svg class="project-card-arrow" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M4 16L16 4M16 4H7M16 4V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="project-card-info">
+          <span class="project-card-year">2024</span>
+          <h3 class="project-card-title">Luminary Dashboard</h3>
+          <p class="project-card-desc">Real-time analytics platform with fluid data visualization and dark-mode-first design.</p>
+          <div class="project-card-tags">
+            <span class="tag">React</span>
+            <span class="tag">D3.js</span>
+            <span class="tag">TypeScript</span>
+          </div>
+          <a href="#" class="project-card-link" data-cursor-pointer>
+            View Case Study
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+      </article>
+      <!-- Project 2 -->
+      <article class="project-card" data-animate>
+        <div class="project-card-image" style="--hue: 280; --sat: 45;">
+          <div class="project-card-placeholder"></div>
+          <div class="project-card-overlay">
+            <span class="project-card-view">View Project</span>
+            <svg class="project-card-arrow" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M4 16L16 4M16 4H7M16 4V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="project-card-info">
+          <span class="project-card-year">2024</span>
+          <h3 class="project-card-title">Atelier E-Commerce</h3>
+          <p class="project-card-desc">High-end fashion storefront with immersive product galleries and seamless checkout flow.</p>
+          <div class="project-card-tags">
+            <span class="tag">Next.js</span>
+            <span class="tag">GSAP</span>
+            <span class="tag">Stripe</span>
+          </div>
+          <a href="#" class="project-card-link" data-cursor-pointer>
+            View Case Study
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+      </article>
+      <!-- Project 3 -->
+      <article class="project-card" data-animate>
+        <div class="project-card-image" style="--hue: 160; --sat: 50;">
+          <div class="project-card-placeholder"></div>
+          <div class="project-card-overlay">
+            <span class="project-card-view">View Project</span>
+            <svg class="project-card-arrow" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M4 16L16 4M16 4H7M16 4V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="project-card-info">
+          <span class="project-card-year">2023</span>
+          <h3 class="project-card-title">Synthwave Music App</h3>
+          <p class="project-card-desc">Browser-based audio workstation with real-time synthesis and reactive visual feedback.</p>
+          <div class="project-card-tags">
+            <span class="tag">Web Audio API</span>
+            <span class="tag">Canvas</span>
+            <span class="tag">WebGL</span>
+          </div>
+          <a href="#" class="project-card-link" data-cursor-pointer>
+            View Case Study
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+      </article>
+      <!-- Project 4 -->
+      <article class="project-card" data-animate>
+        <div class="project-card-image" style="--hue: 30; --sat: 70;">
+          <div class="project-card-placeholder"></div>
+          <div class="project-card-overlay">
+            <span class="project-card-view">View Project</span>
+            <svg class="project-card-arrow" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M4 16L16 4M16 4H7M16 4V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="project-card-info">
+          <span class="project-card-year">2023</span>
+          <h3 class="project-card-title">Nomad Travel Platform</h3>
+          <p class="project-card-desc">Social platform for remote workers to discover and share work-from-anywhere destinations.</p>
+          <div class="project-card-tags">
+            <span class="tag">Vue.js</span>
+            <span class="tag">MapboxGL</span>
+            <span class="tag">Node.js</span>
+          </div>
+          <a href="#" class="project-card-link" data-cursor-pointer>
+            View Case Study
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section class="about" id="about">
+    <div class="about-grid">
+      <div class="about-left">
+        <span class="about-decor" aria-hidden="true">01</span>
+        <span class="section-label" data-animate>About</span>
+        <h2 class="section-heading section-heading--narrow" data-animate>
+          A developer who cares about how things feel, not just how they work.
+        </h2>
+      </div>
+      <div class="about-right">
+        <p class="about-body" data-animate>
+          I've spent the last six years working at the intersection of design and engineering. 
+          I believe the best digital products are the ones where you can't tell where one 
+          ends and the other begins.
+        </p>
+        <p class="about-body" data-animate>
+          Previously at Vercel, Linear, and several early-stage startups. I focus on 
+          performance-critical applications, interactive experiences, and systems that 
+          scale gracefully across devices.
+        </p>
+        <div class="about-stats" data-animate>
+          <div class="stat">
+            <span class="stat-number">6+</span>
+            <span class="stat-label">Years experience</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">40+</span>
+            <span class="stat-label">Projects shipped</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">15+</span>
+            <span class="stat-label">Happy clients</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Skills Section -->
+  <section class="skills" id="skills">
+    <div class="skills-container">
+      <span class="section-label" data-animate>Expertise</span>
+      <h2 class="section-heading" data-animate>Tools of the trade.</h2>
+      <div class="skills-grid">
+        <div class="skill-item" data-animate>
+          <h3 class="skill-name">JavaScript / TypeScript</h3>
+          <div class="skill-bar" role="progressbar" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100">
+            <div class="skill-fill" data-skill-width="95"></div>
+          </div>
+        </div>
+        <div class="skill-item" data-animate>
+          <h3 class="skill-name">React / Next.js</h3>
+          <div class="skill-bar" role="progressbar" aria-valuenow="92" aria-valuemin="0" aria-valuemax="100">
+            <div class="skill-fill" data-skill-width="92"></div>
+          </div>
+        </div>
+        <div class="skill-item" data-animate>
+          <h3 class="skill-name">CSS / Animation</h3>
+          <div class="skill-bar" role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100">
+            <div class="skill-fill" data-skill-width="90"></div>
+          </div>
+        </div>
+        <div class="skill-item" data-animate>
+          <h3 class="skill-name">WebGL / Canvas</h3>
+          <div class="skill-bar" role="progressbar" aria-valuenow="78" aria-valuemin="0" aria-valuemax="100">
+            <div class="skill-fill" data-skill-width="78"></div>
+          </div>
+        </div>
+        <div class="skill-item" data-animate>
+          <h3 class="skill-name">Node.js / Databases</h3>
+          <div class="skill-bar" role="progressbar" aria-valuenow="82" aria-valuemin="0" aria-valuemax="100">
+            <div class="skill-fill" data-skill-width="82"></div>
+          </div>
+        </div>
+        <div class="skill-item" data-animate>
+          <h3 class="skill-name">UI / UX Design</h3>
+          <div class="skill-bar" role="progressbar" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">
+            <div class="skill-fill" data-skill-width="85"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact / Footer Section -->
+  <section class="contact" id="contact">
+    <div class="contact-content">
+      <p class="contact-intro" data-animate>Got an idea? Let's build it.</p>
+      <a href="mailto:hello@alexchen.dev" class="contact-email" data-cursor-pointer data-animate data-text="hello@alexchen.dev">
+        hello@alexchen.dev
+      </a>
+      <div class="contact-bottom">
+        <div class="contact-socials">
+          <a href="#" class="social-link" data-cursor-pointer>GitHub</a>
+          <a href="#" class="social-link" data-cursor-pointer>LinkedIn</a>
+          <a href="#" class="social-link" data-cursor-pointer>Twitter/X</a>
+          <a href="#" class="social-link" data-cursor-pointer>Dribbble</a>
+        </div>
+        <p class="contact-copy">&copy; 2024 Alex Chen. Crafted with intention.</p>
+      </div>
+    </div>
+  </section>
+
+  <script src="script.js" defer></script>
+</body>
+</html>

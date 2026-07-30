@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Turbo Highway Racing</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a12; display: flex; justify-content: center; align-items: center; font-family: 'Segoe UI', system-ui, sans-serif; }
+  canvas { border-radius: 8px; box-shadow: 0 0 60px rgba(0,120,255,0.15), 0 0 120px rgba(0,120,255,0.05); image-rendering: auto; }
+</style>
+</head>
+<body>
+<canvas id="game" width="700" height="700"></canvas>
+<script>
+// ─── SETUP ──────────────────────────────────────────────
+const C = document.getElementById('game');
+const X = C.getContext('2d');
+const W = 700, H = 700;
+
+// ─── AUDIO ENGINE ───────────────────────────────────────
+let audioCtx;
+function initAudio() {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+function playTone(freq, dur, type='square', vol=0.08, slide=0) {
+  if (!audioCtx) return;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  if (slide) o.frequency.linearRampToValueAtTime(freq + slide, audioCtx.currentTime + dur);
+  g.gain.setValueAtTime(vol, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  o.connect(g).connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime + dur);
+}
+function playCoin() { playTone(880, 0.1, 'sine', 0.12); setTimeout(() => playTone(1320, 0.15, 'sine', 0.1), 60); }
+function playCrash() { playTone(120, 0.4, 'sawtooth', 0.15, -80); playTone(80, 0.3, 'square', 0.1, -40); }
+function playBoost() { playTone(400, 0.3, 'sine', 0.1, 600); playTone(900, 0.2, 'sine', 0.08, 200); }
+let engineNode = null, engineGain = null;
+function startEngine() {
+  if (!audioCtx) return;
+  if (engineNode) return;
+  engineNode = audioCtx.createOscillator();
+  engineGain = audioCtx.createGain();
+  engineNode.type = 'sawtooth';
+  engineNode.frequency.value = 60;
+  engineGain.gain.value = 0.025;
+  engineNode.connect(engineGain).connect(audioCtx.destination);
+  engineNode.start();
+}
+function updateEngine(speed) {
+  if (!engineNode || !engineGain) return;
+  const base = 55 + speed * 1.8;
+  engineNode.frequency.setTargetAtTime(base, audioCtx.currentTime, 0.05);
+  engineGain.gain.setTargetAtTime(0.02 + Math.min(speed * 0.001, 0.04), audioCtx.currentTime, 0.05);
+}
+function stopEngine() {
+  try { if (engineNode) { engineNode.stop(); engineNode = null; engineGain = null; } } catch(e){}
+}
+
+// ─── CONSTANTS ──────────────────────────────────────────
+const ROAD_W = 300;
+const LANE_COUNT = 4;
+const LANE_W = ROAD_W / LANE_COUNT;
+const SEG_H = 4; // screen pixels per segment row
+const NUM_SEG = 250;
+const GRAVITY = 0.5;
+const MAX_LIVES = 3;
+
+// ─── GAME STATE ─────────────────────────────────────────
+let state = 'start'; // start | playing | paused | gameover
+let score = 0;
+let highScore = parseInt(localStorage.getItem('turboHighScore') || '0');
+let lives = MAX_LIVES;
+let distance = 0;
+let baseSpeed = 3;
+let maxSpeed = 14;
+let currentDifficulty = 1;
+
+// Player physics
+let player = {
+  x: 0, y: 0, // world space x,y on road
+  vx: 0, vy: 0,
+  accel: 0.12,
+  decel: 0.05,
+  brakeForce: 0.2,
+  steerSpeed: 0.28,
+  friction: 0.96,
+  driftFactor: 0.88,
+  shield: false, shieldTimer: 0,
+  boost: false, boostTimer: 0,
+  width: 40, height: 65
+};
+
+// Camera - follows player from behind
+let cam = { y: 0, shakeX: 0, shakeY: 0 };
+
+// Road segments
+let segments = [];
+
+// Entities
+let enemies = [];
+let coins = [];
+let powerups = [];
+let particles = [];
+let sceneryItems = [];
+
+// Input
+let keys = {};
+document.addEventListener('keydown', e => {
+  keys[e.key.toLowerCase()] = true;
+  if (e.key === ' ') { e.preventDefault(); handleSpace(); }
+  if (e.key.toLowerCase() === 'p' && state === 'playing') state = 'paused';
+  else if (e.key.toLowerCase() === 'p' && state === 'paused') state = 'playing';
+});
+document.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+function handleSpace() {
+  if (state === 'start') {
+    initAudio();
+    resetGame();
+    state = 'playing';
+    startEngine();
+  } else if (state === 'gameover') {
+    resetGame();
+    state = 'playing';
+    startEngine();
+  }
+}
+
+// ─── ROAD GENERATION ───────────────────────────────────
+function buildRoad() {
+  segments = [];
+  for (let i = 0; i < NUM_SEG; i++) {
+    let curve = 0;
+    // Gentle curves
+    if (i > 30 && i < 70) curve = 2;
+    if (i > 100 && i < 150) curve = -3;
+    if (i > 180 && i < 210) curve = 4;
+    if (i > 240 && i < 270) curve = -2;
+    let hill = Math.sin(i * 0.05) * 0.3 + Math.sin(i * 0.02) * 0.5;
+    segments.push({ index: i, curve, hill, worldY: i * SEG_H, clipY: 0, clipW: 0, screenX: 0, screenY: 0, screenH: 0 });
+  }
+}
+
+function getSegment(z) {
+  return segments[((z % NUM_SEG) + NUM_SEG) % NUM_SEG];
+}
+
+// ─── ENTITY SPAWNING ───────────────────────────────────
+function spawnEnemy() {
+  let lane = Math.floor(Math.random() * LANE_COUNT);
+  let sx = -ROAD_W / 2 + lane * LANE_W + LANE_W / 2 + (Math.random() - 0.5) * 10;
+  let colors = ['#e74c3c', '#f39c12', '#ff6b6b', '#ffa726'];
+  let color = colors[Math.floor(Math.random() * colors.length)];
+  enemies.push({
+    x: sx, y: cam.y + H + 80 + Math.random() * 200,
+    w: 36, h: 55, speed: 1.5 + Math.random() * 2 + currentDifficulty * 0.3,
+    color, lane, swayDir: 0, swayTimer: 0
+  });
+}
+
+function spawnCoin() {
+  let lane = Math.floor(Math.random() * LANE_COUNT);
+  let sx = -ROAD_W / 2 + lane * LANE_W + LANE_W / 2 + (Math.random() - 0.5) * 10;
+  coins.push({ x: sx, y: cam.y + H + 50 + Math.random() * 150, r: 12, pulse: Math.random() * Math.PI * 2, glow: 0 });
+}
+
+function spawnPowerup() {
+  let lane = Math.floor(Math.random() * LANE_COUNT);
+  let sx = -ROAD_W / 2 + lane * LANE_W + LANE_W / 2;
+  let type = Math.random() < 0.5 ? 'shield' : 'boost';
+  powerups.push({ x: sx, y: cam.y + H + 80, type, w: 30, h: 30, bob: Math.random() * Math.PI * 2 });
+}
+
+function addParticle(x, y, vx, vy, life, color, size, type='circle') {
+  particles.push({ x, y, vx, vy, life, maxLife: life, color, size, type });
+}
+
+function emitSmoke(x, y, spread) {
+  for (let i = 0; i < 2; i++) {
+    addParticle(x + (Math.random()-0.5)*spread, y, (Math.random()-0.5)*0.5, 1+Math.random(), 30+Math.random()*20,
+      `rgba(${180+Math.random()*50},${180+Math.random()*40},${180+Math.random()*40},0.5)`, 3+Math.random()*4);
+  }
+}
+
+function emitSparks(x, y) {
+  for (let i = 0; i < 15; i++) {
+    let angle = Math.random() * Math.PI * 2;
+    let spd = 1 + Math.random() * 5;
+    let colors = ['#ffd700', '#ff6b35', '#fff', '#ff4444'];
+    addParticle(x, y, Math.cos(angle)*spd, Math.sin(angle)*spd, 20+Math.random()*15,
+      colors[Math.floor(Math.random()*colors.length)], 1.5+Math.random()*3, 'spark');
+  }
+}
+
+function emitDust(x, y) {
+  addParticle(x + (Math.random()-0.5)*20, y, (Math.random()-0.5)*1, 0.5+Math.random(), 15+Math.random()*10,
+    `rgba(${140+Math.random()*40},${130+Math.random()*30},${100+Math.random()*30},0.3)`, 2+Math.random()*3);
+}
+
+function addScenery() {
+  let side = Math.random() < 0.5 ? -1 : 1;
+  let types = ['tree', 'bush', 'building', 'lamp'];
+  let type = types[Math.floor(Math.random() * types.length)];
+  let dist = ROAD_W/2 + 30 + Math.random() * 80;
+  sceneryItems.push({
+    x: side * dist, y: cam.y + H + 50 + Math.random() * 100,
+    type, side, scale: 0.6 + Math.random() * 0.6
+  });
+}
+
+// ─── INIT / RESET ───────────────────────────────────────
+function resetGame() {
+  buildRoad();
+  score = 0; lives = MAX_LIVES; distance = 0; currentDifficulty = 1;
+  player.x = 0; player.y = 0; player.vx = 0; player.vy = 0;
+  player.shield = false; player.boost = false; player.shieldTimer = 0; player.boostTimer = 0;
+  cam.y = 0; cam.shakeX = 0; cam.shakeY = 0;
+  enemies = []; coins = []; powerups = []; particles = []; sceneryItems = [];
+  // Pre-spawn some entities
+  for (let i = 0; i < 5; i++) spawnEnemy();
+  for (let i = 0; i < 8; i++) spawnCoin();
+  for (let i = 0; i < 3; i++) addScenery();
+}
+
+// ─── DRAWING HELPERS ────────────────────────────────────
+function drawRoundRect(x, y, w, h, r) {
+  X.beginPath();
+  X.moveTo(x+r, y); X.lineTo(x+w-r, y); X.quadraticCurveTo(x+w, y, x+w, y+r);
+  X.lineTo(x+w, y+h-r); X.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  X.lineTo(x+r, y+h); X.quadraticCurveTo(x, y+h, x, y+h-r);
+  X.lineTo(x, y+r); X.quadraticCurveTo(x, y, x+r, y); X.closePath();
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
+
+// ─── RENDER: SKY & BACKGROUND ──────────────────────────
+function drawSky() {
+  let skyGrad = X.createLinearGradient(0, 0, 0, H * 0.35);
+  skyGrad.addColorStop(0, '#0d1b2a');
+  skyGrad.addColorStop(0.4, '#1b2838');
+  skyGrad.addColorStop(0.7, '#1a2a4a');
+  skyGrad.addColorStop(1, '#2a3f5f');
+  X.fillStyle = skyGrad;
+  X.fillRect(0, 0, W, H * 0.38);
+
+  // Stars
+  let starSeed = 12345;
+  function randStar() { starSeed = (starSeed * 16807) % 2147483647; return starSeed / 2147483647; }
+  X.fillStyle = 'rgba(255,255,255,0.7)';
+  for (let i = 0; i < 80; i++) {
+    let sx = randStar() * W;
+    let sy = randStar() * H * 0.25;
+    let ss = randStar() * 1.5 + 0.5;
+    let flicker = Math.sin(Date.now() * 0.003 + i) * 0.3 + 0.7;
+    X.globalAlpha = flicker;
+    X.beginPath(); X.arc(sx, sy, ss, 0, Math.PI*2); X.fill();
+  }
+  X.globalAlpha = 1;
+
+  // City skyline silhouette
+  let skylineY = H * 0.28;
+  X.fillStyle = '#0f1a2e';
+  for (let i = 0; i < 20; i++) {
+    let bw = 20 + randStar() * 50;
+    let bh = 30 + randStar() * 80;
+    let bx = i * 38 + randStar() * 10;
+    X.fillRect(bx, skylineY - bh, bw, bh + 5);
+  }
+  // Building windows
+  X.fillStyle = 'rgba(255,220,100,0.4)';
+  for (let i = 0; i < 20; i++) {
+    let bw = 20 + (i*7 % 50);
+    let bh = 30 + (i*13 % 80);
+    let bx = i * 38;
+    for (let wy = skylineY - bh + 6; wy < skylineY - 4; wy += 8) {
+      for (let wx = bx + 4; wx < bx + bw - 4; wx += 7) {
+        if (randStar() > 0.4) X.fillRect(wx, wy, 3, 4);
+      }
+    }
+  }
+
+  // Ground below road
+  let groundGrad = X.createLinearGradient(0, H*0.3, 0, H);
+  groundGrad.addColorStop(0, '#1a3a1a');
+  groundGrad.addColorStop(1, '#0d2a0d');
+  X.fillStyle = groundGrad;
+  X.fillRect(0, H * 0.32, W, H * 0.7);
+}
+
+// ─── RENDER: TERRAIN SCENERY ───────────────────────────
+function drawTerrain() {
+  let horizonY = H * 0.33;
+
+  // Grass texture with perspective
+  let grassOffset = (distance * 0.7) % 16;
+  X.strokeStyle = 'rgba(40,90,40,0.3)';
+  X.lineWidth = 1;
+  for (let gy = H * 0.34; gy < H; gy += 12) {
+    let scale = (gy - horizonY) / (H - horizonY);
+    X.globalAlpha = scale * 0.3;
+    let gxStart = -ROAD_W/2 * scale + ROAD_W/2 * scale;
+    for (let gx = gxStart; gx < W; gx += 16) {
+      let wave = Math.sin((gx + grassOffset) * 0.1 + gy * 0.05) * 2;
+      X.beginPath();
+      X.moveTo(gx + wave, gy);
+      X.lineTo(gx + wave + 3, gy + 5);
+      X.stroke();
+    }
+  }
+  X.globalAlpha = 1;
+
+  // Scenery items (trees, buildings, lamps)
+  for (let item of sceneryItems) {
+    let relY = item.y - cam.y;
+    let normY = (relY + H*0.5) / H;
+    if (normY < -0.05 || normY > 1.15) continue;
+
+    let scale = Math.max(0.05, normY * normY);
+    let screenY = horizonY + normY * (H - horizonY);
+    let cx = W/2 + item.x * scale * 0.4;
+    if (cx < -100 || cx > W+100) continue;
+    let s = item.scale * scale;
+
+    X.save();
+    if (item.type === 'tree') {
+      // Trunk
+      X.fillStyle = '#3d2817';
+      X.fillRect(cx - 3*s, screenY - 35*s, 6*s, 35*s);
+      // Canopy layers
+      let greens = ['#1a5a1a', '#1e6e22', '#23802a'];
+      for (let g = 0; g < 3; g++) {
+        X.fillStyle = greens[g];
+        let tw = (25 - g*5) * s;
+        X.beginPath();
+        X.moveTo(cx, screenY - 35*s - (18-g*4)*s);
+        X.lineTo(cx - tw, screenY - 35*s + g*6*s);
+        X.lineTo(cx + tw, screenY - 35*s + g*6*s);
+        X.closePath(); X.fill();
+      }
+    } else if (item.type === 'bush') {
+      X.fillStyle = '#1f6622';
+      X.beginPath(); X.arc(cx, screenY - 8*s, 12*s, 0, Math.PI*2); X.fill();
+      X.fillStyle = '#288030';
+      X.beginPath(); X.arc(cx+5*s, screenY - 6*s, 8*s, 0, Math.PI*2); X.fill();
+    } else if (item.type === 'building') {
+      X.fillStyle = '#1a2240';
+      X.fillRect(cx - 20*s, screenY - 70*s, 40*s, 70*s);
+      // Windows
+      X.fillStyle = 'rgba(255,220,80,0.5)';
+      for (let wy = screenY - 64*s; wy < screenY - 8*s; wy += 10*s) {
+        for (let wx = cx - 15*s; wx < cx + 15*s; wx += 9*s) {
+          if ((wx + wy) % 17 !== 0) X.fillRect(wx, wy, 5*s, 6*s);
+        }
+      }
+    } else if (item.type === 'lamp') {
+      X.fillStyle = '#444';
+      X.fillRect(cx - 2*s, screenY - 60*s, 4*s, 60*s);
+      // Lamp glow
+      let lampGlow = X.createRadialGradient(cx, screenY - 60*s, 0, cx, screenY - 60*s, 20*s);
+      lampGlow.addColorStop(0, 'rgba(255,230,150,0.6)');
+      lampGlow.addColorStop(1, 'rgba(255,230,150,0)');
+      X.fillStyle = lampGlow;
+      X.beginPath(); X.arc(cx, screenY - 60*s, 20*s, 0, Math.PI*2); X.fill();
+      X.fillStyle = '#ffe8aa';
+      X.beginPath(); X.arc(cx, screenY - 60*s, 4*s, 0, Math.PI*2); X.fill();
+    }
+    X.restore();
+  }
+}
+
+// ─── RENDER: ROAD ──────────────────────────────────────
+function drawRoad() {
+  let horizonY = H * 0.33;
+  let totalSegs = NUM_SEG;
+
+  // Draw road from back to front for correct depth overlap
+  for (let segIdx = totalSegs - 1; segIdx >= 0; segIdx--) {
+    let seg = segments[segIdx];
+    let z = (seg.index - distance / SEG_H);
+    while (z < 0) z += totalSegs;
+    while (z >= totalSegs) z -= totalSegs;
+
+    let relZ = (z - (distance / SEG_H));
+    if (relZ < 0) continue;
+    if (relZ > totalSegs) continue;
+
+    let projT = relZ / totalSegs;
+    if (projT <= 0 || projT > 1) continue;
+
+    let scale = projT * projT;
+    let screenY = horizonY + scale * (H - horizonY);
+    let nextProjT = (relZ + 1) / totalSegs;
+    if (nextProjT > 1) nextProjT = 1;
+    let nextScale = nextProjT * nextProjT;
+    let nextScreenY = horizonY + nextScale * (H - horizonY);
+
+    // Perspective road width
+    let rw = ROAD_W * scale * 1.1;
+
+    // Apply curve offset
+    let curveAccum = 0;
+    for (let ci = 0; ci < segIdx; ci++) {
+      curveAccum += segments[ci].curve * scale * 0.5;
+    }
+    let offX = W/2 + curveAccum * 0.8;
+
+    seg.screenX = offX;
+    seg.screenY = screenY;
+    seg.screenW = rw;
+    seg.screenH = nextScreenY - screenY;
+    seg.clipY = nextScreenY;
+    seg.clipW = rw;
+
+    if (screenY < horizonY || screenY > H + 20) continue;
+
+    // Road surface with texture
+    let stripePhase = Math.floor((z + distance / SEG_H / SEG_H)) % 2;
+    let isAltLane = (Math.floor(segIdx / 12) % 2 === 0);
+
+    // Asphalt base
+    let asphaltDark = isAltLane ? '#2a2a2e' : '#303034';
+    X.fillStyle = asphaltDark;
+    X.fillRect(offX - rw/2, screenY, rw, seg.screenH + 1);
+
+    // Texture dots
+    if (scale > 0.02) {
+      let texSeed = segIdx * 7 + Math.floor(distance * 0.01);
+      for (let ti = 0; ti < 6; ti++) {
+        let txOff = ((texSeed * (ti+1) * 13) % 20) - 10;
+        let tyOff = ((texSeed * (ti+1) * 7) % 8);
+        X.fillStyle = Math.random() > 0.5 ? 'rgba(60,60,65,0.4)' : 'rgba(50,50,55,0.3)';
+        X.fillRect(offX + txOff * scale * 10, screenY + tyOff * scale * 3, 1*scale+0.5, 1*scale+0.5);
+      }
+    }
+
+    // Road borders (red-white curbs)
+    let curbRed = isAltLane;
+    let curbColor = curbRed ? '#cc2222' : '#eeeeee';
+    X.fillStyle = curbColor;
+    let curbW = 4 * scale;
+    X.fillRect(offX - rw/2 - curbW, screenY, curbW, seg.screenH + 1);
+    X.fillRect(offX + rw/2, screenY, curbW, seg.screenH + 1);
+
+    // Dashed center lines
+    if (stripePhase === 0 && scale > 0.03) {
+      X.fillStyle = 'rgba(255,255,255,0.9)';
+      let lw = 2 * scale;
+      for (let lane = 0; lane < LANE_COUNT - 1; lane++) {
+        let lx = offX - rw/2 + (lane + 0.5) * rw / LANE_COUNT;
+        X.fillRect(lx - lw/2, screenY, lw, seg.screenH + 1);
+      }
+    }
+
+    // Side edge lines (solid white)
+    X.fillStyle = 'rgba(255,255,255,0.7)';
+    let elw = 2.5 * scale;
+    X.fillRect(offX - rw/2 + 2*scale, screenY, elw, seg.screenH + 1);
+    X.fillRect(offX + rw/2 - 2*scale - elw, screenY, elw, seg.screenH + 1);
+  }
+}
+
+// ─── RENDER: PLAYER CAR ────────────────────────────────
+function drawPlayerCar() {
+  let cx = W / 2 + player.x * 0.5;
+  let cy = H - 140;
+  let tilt = player.vx * 0.03;
+  let w = player.width, h = player.height;
+
+  X.save();
+  X.translate(cx, cy);
+  X.rotate(tilt);
+
+  // Shadow
+  X.fillStyle = 'rgba(0,0,0,0.4)';
+  X.beginPath(); X.ellipse(4, h/2 + 5, w/2 + 4, 12, 0, 0, Math.PI*2); X.fill();
+
+  // Boost glow underneath
+  if (player.boost) {
+    let bglow = X.createRadialGradient(0, h/2 + 5, 0, 0, h/2 + 5, 30);
+    bglow.addColorStop(0, 'rgba(0,200,255,0.5)');
+    bglow.addColorStop(1, 'rgba(0,200,255,0)');
+    X.fillStyle = bglow;
+    X.beginPath(); X.arc(0, h/2 + 5, 30, 0, Math.PI*2); X.fill();
+  }
+
+  // Shield effect
+  if (player.shield) {
+    X.strokeStyle = `rgba(0,180,255,${0.4 + Math.sin(Date.now()*0.01)*0.2})`;
+    X.lineWidth = 3;
+    X.beginPath(); X.arc(0, 0, w/2 + 12, 0, Math.PI*2); X.stroke();
+    X.strokeStyle = `rgba(100,220,255,${0.2 + Math.sin(Date.now()*0.015)*0.1})`;
+    X.lineWidth = 1.5;
+    X.beginPath(); X.arc(0, 0, w/2 + 16, 0, Math.PI*2); X.stroke();
+  }
+
+  // Car body - main shape
+  X.fillStyle = '#1565c0';
+  drawRoundRect(-w/2, -h/2, w, h, 8); X.fill();
+
+  // Body highlight gradient
+  let bodyGrad = X.createLinearGradient(-w/2, -h/2, w/2, h/2);
+  bodyGrad.addColorStop(0, '#42a5f5');
+  bodyGrad.addColorStop(0.3, '#1976d2');
+  bodyGrad.addColorStop(1, '#0d47a1');
+  X.fillStyle = bodyGrad;
+  drawRoundRect(-w/2 + 2, -h/2 + 2, w - 4, h - 4, 7); X.fill();
+
+  // Windshield
+  let windGrad = X.createLinearGradient(-14, -h/2 + 12, 14, -h/2 + 25);
+  windGrad.addColorStop(0, '#64b5f6');
+  windGrad.addColorStop(1, '#1565c0');
+  X.fillStyle = windGrad;
+  drawRoundRect(-14, -h/2 + 10, 28, 20, 4); X.fill();
+  // Windshield reflection
+  X.fillStyle = 'rgba(255,255,255,0.25)';
+  X.beginPath(); X.moveTo(-10, -h/2 + 12); X.lineTo(2, -h/2 + 12); X.lineTo(-4, -h/2 + 26); X.lineTo(-14, -h/2 + 26); X.closePath(); X.fill();
+
+  // Roof section
+  X.fillStyle = '#1976d2';
+  drawRoundRect(-12, -h/2 + 30, 24, 14, 3); X.fill();
+
+  // Rear window
+  X.fillStyle = '#1a4a7a';
+  drawRoundRect(-10, h/2 - 22, 20, 12, 3); X.fill();
+
+  // Hood scoop detail
+  X.fillStyle = '#0d47a1';
+  X.fillRect(-3, -h/2 + 2, 6, 8);
+
+  // Side details - door lines
+  X.strokeStyle = '#0d3a8a';
+  X.lineWidth = 1;
+  X.beginPath();
+  X.moveTo(-w/2 + 4, -h/2 + 32); X.lineTo(-w/2 + 4, h/2 - 18);
+  X.moveTo(w/2 - 4, -h/2 + 32); X.lineTo(w/2 - 4, h/2 - 18);
+  X.stroke();
+
+  // Side mirror accents
+  X.fillStyle = '#bbdefb';
+  X.fillRect(-w/2 - 2, -h/2 + 26, 4, 3);
+  X.fillRect(w/2 - 2, -h/2 + 26, 4, 3);
+
+  // Headlights - front (top in our view since car faces up)
+  X.fillStyle = '#ffffff';
+  X.shadowColor = '#ffffff';
+  X.shadowBlur = 15;
+  drawRoundRect(-w/2 + 4, -h/2 + 1, 10, 6, 2); X.fill();
+  drawRoundRect(w/2 - 14, -h/2 + 1, 10, 6, 2); X.fill();
+  X.shadowBlur = 0;
+
+  // Headlight beams (subtle)
+  X.fillStyle = 'rgba(255,255,220,0.04)';
+  X.beginPath();
+  X.moveTo(-w/2 + 4, -h/2); X.lineTo(-w/2 - 10, -h/2 - 40);
+  X.lineTo(w/2 + 10, -h/2 - 40); X.lineTo(w/2 - 6, -h/2);
+  X.closePath(); X.fill();
+
+  // Taillights - rear (bottom)
+  X.shadowColor = '#ff0000';
+  X.shadowBlur = 12;
+  X.fillStyle = '#ff1a1a';
+  drawRoundRect(-w/2 + 3, h/2 - 7, 12, 5, 2); X.fill();
+  drawRoundRect(w/2 - 15, h/2 - 7, 12, 5, 2); X.fill();
+  X.shadowBlur = 0;
+
+  // Tail light bar
+  X.fillStyle = 'rgba(255,30,30,0.6)';
+  X.fillRect(-8, h/2 - 5, 16, 2);
+
+  // Center emblem stripe
+  X.fillStyle = '#1a6ecc';
+  X.fillRect(-2, -h/2 + 10, 4, h - 20);
+
+  // Wheels
+  X.fillStyle = '#1a1a1a';
+  // Front wheels
+  X.fillRect(-w/2 - 3, -h/2 + 8, 6, 12);
+  X.fillRect(w/2 - 3, -h/2 + 8, 6, 12);
+  // Rear wheels
+  X.fillRect(-w/2 - 3, h/2 - 20, 6, 12);
+  X.fillRect(w/2 - 3, h/2 - 20, 6, 12);
+  // Wheel rims
+  X.fillStyle = '#888';
+  X.fillRect(-w/2 - 1, -h/2 + 10, 2, 4);
+  X.fillRect(w/2 + 1, -h/2 + 10, 2, 4);
+  X.fillRect(-w/2 - 1, h/2 - 18, 2, 4);
+  X.fillRect(w/2 + 1, h/2 - 18, 2, 4);
+
+  // Exhaust flame when accelerating
+  if (keys['arrowup'] || keys['w']) {
+    X.fillStyle = `rgba(255,${100+Math.random()*100},0,0.7)`;
+    X.beginPath();
+    X.moveTo(-6, h/2 + 1); X.lineTo(-3, h/2 + 8 + Math.random()*8); X.lineTo(0, h/2 + 1); X.closePath(); X.fill();
+    X.beginPath();
+    X.moveTo(6, h/2 + 1); X.lineTo(3, h/2 + 6 + Math.random()*8); X.lineTo(0, h/2 + 1); X.closePath(); X.fill();
+  }
+
+  // Drift smoke from tires
+  if (Math.abs(player.vx) > 1.5 && speed > 5) {
+    emitSmoke(cx + (cx - W/2) * -0.3, cy + h/2, 10);
+  }
+
+  X.restore();
+}
+
+// ─── RENDER: ENEMY CARS ────────────────────────────────
+function drawEnemyCar(e) {
+  let relY = e.y - cam.y;
+  let normY = (relY + H * 0.5) / H;
+  if (normY < -0.05 || normY > 1.2) return;
+
+  let cx = W/2 + e.x * normY * 0.6;
+  let cy = H * 0.33 + normY * (H * 0.67);
+  let scale = normY;
+  let ew = e.w * scale;
+  let eh = e.h * scale;
+
+  if (cx < -80 || cx > W+80 || cy < H*0.25 || cy > H+40) return;
+
+  X.save();
+  X.translate(cx, cy);
+  X.rotate(Math.PI); // Enemy cars face opposite direction
+
+  // Shadow
+  X.fillStyle = 'rgba(0,0,0,0.3)';
+  X.beginPath(); X.ellipse(3, eh/2 + 4*scale, ew/2 + 2*scale, 8*scale, 0, 0, Math.PI*2); X.fill();
+
+  // Body
+  X.fillStyle = e.color;
+  drawRoundRect(-ew/2, -eh/2, ew, eh, 6*scale); X.fill();
+
+  // Highlight
+  X.fillStyle = 'rgba(255,255,255,0.15)';
+  drawRoundRect(-ew/2 + 2*scale, -eh/2 + 2*scale, ew/2, eh - 4*scale, 4*scale); X.fill();
+
+  // Windshield (rear window from player perspective)
+  X.fillStyle = '#333';
+  drawRoundRect(-ew/3, eh/4, ew*2/3, eh/4, 3*scale); X.fill();
+
+  // Headlights (front-facing toward player - at bottom after rotation)
+  X.fillStyle = '#ffee88';
+  X.shadowColor = '#ffee88'; X.shadowBlur = 8*scale;
+  X.fillRect(-ew/2 + 2*scale, eh/2 - 6*scale, ew/4, 4*scale);
+  X.fillRect(ew/2 - ew/4 - 2*scale, eh/2 - 6*scale, ew/4, 4*scale);
+  X.shadowBlur = 0;
+
+  // Taillights (at top after rotation)
+  X.fillStyle = '#ff2222';
+  X.fillRect(-ew/2 + 2*scale, -eh/2 + 1*scale, ew/4, 3*scale);
+  X.fillRect(ew/2 - ew/4 - 2*scale, -eh/2 + 1*scale, ew/4, 3*scale);
+
+  X.restore();
+}
+
+// ─── RENDER: COINS ─────────────────────────────────────
+function drawCoins() {
+  for (let c of coins) {
+    let relY = c.y - cam.y;
+    let normY = (relY + H * 0.5) / H;
+    if (normY < 0 || normY > 1.15) continue;
+
+    let cx = W/2 + c.x * normY * 0.6;
+    let cy = H * 0.33 + normY * (H * 0.67);
+    let cr = c.r * normY;
+
+    if (cx < -30 || cx > W+30 || cy < H*0.25 || cy > H+20) continue;
+
+    c.pulse += 0.06;
+    let glowPulse = 0.7 + Math.sin(c.pulse) * 0.3;
+    c.glow = glowPulse;
+
+    // Glow aura
+    let coinGlow = X.createRadialGradient(cx, cy, 0, cx, cy, cr * 2.5);
+    coinGlow.addColorStop(0, `rgba(255,215,0,${0.3 * glowPulse})`);
+    coinGlow.addColorStop(1, 'rgba(255,215,0,0)');
+    X.fillStyle = coinGlow;
+    X.beginPath(); X.arc(cx, cy, cr * 2.5, 0, Math.PI*2); X.fill();
+
+    // Coin body
+    X.fillStyle = '#ffd700';
+    X.shadowColor = '#ffd700'; X.shadowBlur = 8 * glowPulse;
+    X.beginPath(); X.arc(cx, cy, cr, 0, Math.PI*2); X.fill();
+
+    // Inner ring
+    X.strokeStyle = '#daa520'; X.lineWidth = 1.5 * normY;
+    X.beginPath(); X.arc(cx, cy, cr * 0.7, 0, Math.PI*2); X.stroke();
+
+    // Dollar sign
+    X.fillStyle = '#b8860b'; X.font = `bold ${Math.floor(10*normY)}px sans-serif`;
+    X.textAlign = 'center'; X.textBaseline = 'middle';
+    X.fillText('$', cx, cy + 1);
+    X.shadowBlur = 0;
+  }
+}
+
+// ─── RENDER: POWERUPS ─────────────────────────────────
+function drawPowerups() {
+  for (let p of powerups) {
+    let relY = p.y - cam.y;
+    let normY = (relY + H * 0.5) / H;
+    if (normY < 0 || normY > 1.15) continue;
+
+    let cx = W/2 + p.x * normY * 0.6;
+    let cy = H * 0.33 + normY * (H * 0.67);
+    let pw = p.w * normY;
+
+    if (cx < -40 || cx > W+40) continue;
+
+    p.bob += 0.08;
+    let bobY = Math.sin(p.bob) * 4 * normY;
+
+    // Outer glow
+    let puColor = p.type === 'shield' ? '0,180,255' : '255,100,255';
+    let pglow = X.createRadialGradient(cx, cy + bobY, 0, cx, cy + bobY, pw*2);
+    pglow.addColorStop(0, `rgba(${puColor},0.4)`);
+    pglow.addColorStop(1, `rgba(${puColor},0)`);
+    X.fillStyle = pglow;
+    X.beginPath(); X.arc(cx, cy + bobY, pw*2, 0, Math.PI*2); X.fill();
+
+    // Box
+    X.fillStyle = p.type === 'shield' ? '#00b0ff' : '#e040fb';
+    X.shadowColor = p.type === 'shield' ? '#00b0ff' : '#e040fb';
+    X.shadowBlur = 12;
+    drawRoundRect(cx - pw/2, cy + bobY - pw/2, pw, pw, 5*normY); X.fill();
+    X.shadowBlur = 0;
+
+    // Icon
+    X.fillStyle = '#fff'; X.font = `bold ${Math.floor(14*normY)}px sans-serif`;
+    X.textAlign = 'center'; X.textBaseline = 'middle';
+    X.fillText(p.type === 'shield' ? 'S' : 'B', cx, cy + bobY + 1);
+  }
+}
+
+// ─── RENDER: PARTICLES ────────────────────────────────
+function drawParticles() {
+  for (let p of particles) {
+    let alpha = p.life / p.maxLife;
+    X.globalAlpha = alpha;
+    X.fillStyle = p.color;
+    if (p.type === 'spark') {
+      X.fillRect(p.x - 1, p.y - 1, 2, 4);
+    } else if (p.type === 'smoke') {
+      X.beginPath();
+      X.arc(p.x, p.y, p.size * (1 + (1-alpha)*2), 0, Math.PI*2);
+      X.fill();
+    } else {
+      X.beginPath();
+      X.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      X.fill();
+    }
+  }
+  X.globalAlpha = 1;
+}
+
+// ─── HUD ────────────────────────────────────────────────
+function drawHUD() {
+  // Score panel
+  X.fillStyle = 'rgba(0,0,0,0.6)';
+  drawRoundRect(12, 12, 180, 44, 10); X.fill();
+  X.fillStyle = '#ffd700'; X.font = 'bold 22px "Segoe UI",system-ui,sans-serif';
+  X.textAlign = 'left'; X.textBaseline = 'middle';
+  X.fillText(`SCORE: ${score}`, 24, 34);
+
+  // High score
+  X.fillStyle = 'rgba(0,0,0,0.4)';
+  drawRoundRect(12, 62, 180, 24, 8); X.fill();
+  X.fillStyle = 'rgba(255,215,0,0.6)'; X.font = '13px "Segoe UI",system-ui,sans-serif';
+  X.fillText(`HI: ${highScore}`, 22, 74);
+
+  // Speedometer - right side
+  let spX = W - 100, spY = 40, spR = 40;
+  X.fillStyle = 'rgba(0,0,0,0.6)';
+  X.beginPath(); X.arc(spX, spY, spR + 8, 0, Math.PI*2); X.fill();
+
+  // Speedometer background
+  let spdBg = X.createRadialGradient(spX, spY, 0, spX, spY, spR);
+  spdBg.addColorStop(0, '#1a1a2e');
+  spdBg.addColorStop(1, '#0f0f1a');
+  X.fillStyle = spdBg;
+  X.beginPath(); X.arc(spX, spY, spR, 0, Math.PI*2); X.fill();
+
+  // Speed ticks and needle
+  let spdAngle = (speed / maxSpeed) * Math.PI * 1.2 - Math.PI * 0.6;
+  X.strokeStyle = 'rgba(255,255,255,0.2)'; X.lineWidth = 1;
+  for (let i = 0; i <= 6; i++) {
+    let tickAngle = -Math.PI*0.6 + (i / 6) * Math.PI * 1.2;
+    let inner = spR - 8;
+    let outer = spR - 3;
+    X.beginPath();
+    X.moveTo(spX + Math.cos(tickAngle)*inner, spY + Math.sin(tickAngle)*inner);
+    X.lineTo(spX + Math.cos(tickAngle)*outer, spY + Math.sin(tickAngle)*outer);
+    X.stroke();
+  }
+
+  // Needle
+  X.strokeStyle = '#ff3333'; X.lineWidth = 2.5;
+  X.beginPath();
+  X.moveTo(spX, spY);
+  X.lineTo(spX + Math.cos(spdAngle)*(spR-10), spY + Math.sin(spdAngle)*(spR-10));
+  X.stroke();
+
+  // Center dot
+  X.fillStyle = '#ff3333';
+  X.beginPath(); X.arc(spX, spY, 4, 0, Math.PI*2); X.fill();
+
+  // Speed text
+  X.fillStyle = '#fff'; X.font = 'bold 14px "Segoe UI",system-ui,sans-serif';
+  X.textAlign = 'center'; X.textBaseline = 'middle';
+  X.fillText(`${Math.floor(speed * 20)} km/h`, spX, spY + 18);
+
+  // Lives - left bottom area
+  for (let i = 0; i < MAX_LIVES; i++) {
+    let lx = 18 + i * 28;
+    let ly = H - 36;
+    if (i < lives) {
+      X.fillStyle = '#ff4444';
+      X.shadowColor = '#ff4444'; X.shadowBlur = 6;
+      // Heart shape
+      X.beginPath();
+      X.moveTo(lx + 10, ly + 4);
+      X.bezierCurveTo(lx + 10, ly, lx + 4, ly, lx, ly + 4);
+      X.bezierCurveTo(lx - 4, ly, lx - 4, ly + 8, lx, ly + 12);
+      X.lineTo(lx + 10, ly + 20);
+      X.lineTo(lx + 18, ly + 12);
+      X.bezierCurveTo(lx + 22, ly + 8, lx + 22, ly, lx + 16, ly + 4);
+      X.bezierCurveTo(lx + 14, ly, lx + 10, ly, lx + 10, ly + 4);
+      X.fill();
+      X.shadowBlur = 0;
+    } else {
+      X.fillStyle = 'rgba(100,100,100,0.4)';
+      X.beginPath();
+      X.moveTo(lx + 10, ly + 4);
+      X.bezierCurveTo(lx + 10, ly, lx + 4, ly, lx, ly + 4);
+      X.bezierCurveTo(lx - 4, ly, lx - 4, ly + 8, lx, ly + 12);
+      X.lineTo(lx + 10, ly + 20);
+      X.lineTo(lx + 18, ly + 12);
+      X.bezierCurveTo(lx + 22, ly + 8, lx + 22, ly, lx + 16, ly + 4);
+      X.bezierCurveTo(lx + 14, ly, lx + 10, ly, lx + 10, ly + 4);
+      X.fill();
+    }
+  }
+
+  // Active powerup indicators
+  let puY = H - 68;
+  if (player.shield) {
+    X.fillStyle = 'rgba(0,180,255,0.7)'; X.font = 'bold 13px "Segoe UI",system-ui,sans-serif';
+    X.textAlign = 'left';
+    X.fillText(`SHIELD ${Math.ceil(player.shieldTimer/60)}s`, 18, puY);
+  }
+  if (player.boost) {
+    X.fillStyle = 'rgba(255,100,255,0.7)'; X.font = 'bold 13px "Segoe UI",system-ui,sans-serif';
+    X.textAlign = 'left';
+    X.fillText(`BOOST ${Math.ceil(player.boostTimer/60)}s`, 18, puY - 20);
+  }
+}
+
+// ─── SCREENS ────────────────────────────────────────────
+function drawStartScreen() {
+  // Dark overlay
+  X.fillStyle = 'rgba(0,0,0,0.7)';
+  X.fillRect(0, 0, W, H);
+
+  // Animated road preview
+  let time = Date.now() * 0.001;
+  for (let i = 0; i < 5; i++) {
+    let lineY = ((time * 100 + i * 150) % (H + 200)) - 100;
+    X.strokeStyle = `rgba(255,255,255,${0.1 + (lineY/H)*0.1})`;
+    X.lineWidth = 2;
+    X.setLineDash([20, 20]);
+    X.beginPath();
+    X.moveTo(W/2 - 5, lineY); X.lineTo(W/2 + 5, lineY);
+    X.stroke();
+    X.setLineDash([]);
+  }
+
+  // Title
+  X.save();
+  X.shadowColor = '#0088ff';
+  X.shadowBlur = 30;
+  X.fillStyle = '#ffffff';
+  X.font = 'bold 52px "Segoe UI",system-ui,sans-serif';
+  X.textAlign = 'center'; X.textBaseline = 'middle';
+  X.fillText('TURBO HIGHWAY', W/2, H * 0.30);
+  X.font = 'bold 30px "Segoe UI",system-ui,sans-serif';
+  X.fillStyle = '#42a5f5';
+  X.fillText('RACING', W/2, H * 0.30 + 42);
+  X.shadowBlur = 0;
+  X.restore();
+
+  // Subtitle
+  X.fillStyle = 'rgba(255,255,255,0.5)';
+  X.font = '16px "Segoe UI",system-ui,sans-serif';
+  X.fillText('Third-Person Racing Experience', W/2, H * 0.30 + 72);
+
+  // Car illustration
+  X.save();
+  X.translate(W/2, H * 0.48);
+  let carBounce = Math.sin(time * 2) * 3;
+  X.translate(0, carBounce);
+  // Mini version of player car
+  let sc = 0.7;
+  X.fillStyle = '#1565c0';
+  drawRoundRect(-18*sc, -28*sc, 36*sc, 56*sc, 6); X.fill();
+  X.fillStyle = '#42a5f5';
+  drawRoundRect(-16*sc, -26*sc, 32*sc, 16*sc, 4); X.fill();
+  X.fillStyle = '#64b5f6';
+  drawRoundRect(-10*sc, -22*sc, 20*sc, 14*sc, 3); X.fill();
+  X.fillStyle = '#ffffff'; X.shadowColor='#fff'; X.shadowBlur=8;
+  X.fillRect(-14*sc, -28*sc+1, 8*sc, 4*sc);
+  X.fillRect(6*sc, -28*sc+1, 8*sc, 4*sc);
+  X.shadowBlur=0;
+  X.fillStyle = '#ff1a1a'; X.shadowColor='#ff0000'; X.shadowBlur=6;
+  X.fillRect(-14*sc, 28*sc-6, 10*sc, 3*sc);
+  X.fillRect(4*sc, 28*sc-6, 10*sc, 3*sc);
+  X.shadowBlur=0;
+  X.restore();
+
+  // Controls
+  X.fillStyle = 'rgba(255,255,255,0.6)'; X.font = '15px "Segoe UI",system-ui,sans-serif';
+  X.fillText('Arrow Keys or WASD to drive', W/2, H * 0.66);
+  X.fillText('Space to Start', W/2, H * 0.66 + 24);
+
+  // Blinking prompt
+  let blinkAlpha = Math.sin(time * 4) * 0.4 + 0.6;
+  X.fillStyle = `rgba(255,255,255,${blinkAlpha})`;
+  X.font = 'bold 20px "Segoe UI",system-ui,sans-serif';
+  X.fillText('[ PRESS SPACE ]', W/2, H * 0.82);
+
+  // Credits
+  X.fillStyle = 'rgba(255,255,255,0.3)'; X.font = '12px "Segoe UI",system-ui,sans-serif';
+  X.fillText('Avoid traffic · Collect coins · Beat your high score', W/2, H * 0.92);
+
+  if (highScore > 0) {
+    X.fillStyle = 'rgba(255,215,0,0.6)'; X.font = '14px "Segoe UI",system-ui,sans-serif';
+    X.fillText(`High Score: ${highScore}`, W/2, H * 0.96);
+  }
+}
+
+function drawPausedScreen() {
+  X.fillStyle = 'rgba(0,0,0,0.55)';
+  X.fillRect(0, 0, W, H);
+
+  X.fillStyle = '#fff';
+  X.font = 'bold 48px "Segoe UI",system-ui,sans-serif';
+  X.textAlign = 'center'; X.textBaseline = 'middle';
+  X.fillText('PAUSED', W/2, H * 0.45);
+
+  X.fillStyle = 'rgba(255,255,255,0.6)';
+  X.font = '18px "Segoe UI",system-ui,sans-serif';
+  X.fillText('Press P to resume', W/2, H * 0.58);
+}
+
+function drawGameOverScreen() {
+  X.fillStyle = 'rgba(0,0,0,0.75)';
+  X.fillRect(0, 0, W, H);
+
+  // Fire/glow effect behind title
+  let time = Date.now() * 0.002;
+  let glowGrad = X.createRadialGradient(W/2, H*0.35, 0, W/2, H*0.35, 120);
+  glowGrad.addColorStop(0, 'rgba(255,60,20,0.15)');
+  glowGrad.addColorStop(1, 'rgba(255,60,20,0)');
+  X.fillStyle = glowGrad;
+  X.beginPath(); X.arc(W/2, H*0.35, 120, 0, Math.PI*2); X.fill();
+
+  X.fillStyle = '#ff4444';
+  X.shadowColor = '#ff2222'; X.shadowBlur = 20;
+  X.font = 'bold 50px "Segoe UI",system-ui,sans-serif';
+  X.textAlign = 'center'; X.textBaseline = 'middle';
+  X.fillText('GAME OVER', W/2, H * 0.30);
+  X.shadowBlur = 0;
+
+  // Final score
+  X.fillStyle = '#ffd700';
+  X.font = 'bold 36px "Segoe UI",system-ui,sans-serif';
+  X.fillText(`${score}`, W/2, H * 0.45);
+
+  X.fillStyle = 'rgba(255,215,0,0.6)';
+  X.font = '16px "Segoe UI",system-ui,sans-serif';
+  X.fillText('FINAL SCORE', W/2, H * 0.45 + 28);
+
+  if (score >= highScore && score > 0) {
+    let blinkA = Math.sin(time * 5) * 0.3 + 0.7;
+    X.fillStyle = `rgba(0,255,100,${blinkA})`;
+    X.font = 'bold 18px "Segoe UI",system-ui,sans-serif';
+    X.fillText('NEW HIGH SCORE!', W/2, H * 0.55);
+  } else if (highScore > 0) {
+    X.fillStyle = 'rgba(255,255,255,0.4)';
+    X.font = '14px "Segoe UI",system-ui,sans-serif';
+    X.fillText(`High Score: ${highScore}`, W/2, H * 0.55);
+  }
+
+  // Distance traveled
+  X.fillStyle = 'rgba(255,255,255,0.5)';
+  X.font = '14px "Segoe UI",system-ui,sans-serif';
+  X.fillText(`Distance: ${Math.floor(distance * 0.1)}m`, W/2, H * 0.62);
+
+  let blinkAlpha = Math.sin(time * 4) * 0.3 + 0.7;
+  X.fillStyle = `rgba(255,255,255,${blinkAlpha})`;
+  X.font = 'bold 18px "Segoe UI",system-ui,sans-serif';
+  X.fillText('[ PRESS SPACE TO RESTART ]', W/2, H * 0.78);
+}
+
+// ─── UPDATE ─────────────────────────────────────────────
+let speed = 0; // Current game speed variable
+let lastSpawnEnemy = 0, lastSpawnCoin = 0, lastSpawnPu = 0, lastSpawnScenery = 0;
+
+function update() {
+  if (state !== 'playing') return;
+
+  // Increase difficulty
+  currentDifficulty = 1 + Math.floor(score / 500) * 0.5;
+  maxSpeed = 14 + currentDifficulty * 0.5;
+
+  // Acceleration
+  let targetSpeed = baseSpeed + currentDifficulty * 0.5;
+  if (player.boost) {
+    player.boostTimer--;
+    targetSpeed = maxSpeed;
+    if (player.boostTimer <= 0) player.boost = false;
+  }
+  if (keys['arrowup'] || keys['w']) {
+    speed = Math.min(speed + player.accel * 0.8, targetSpeed);
+  } else if (keys['arrowdown'] || keys['s']) {
+    speed = Math.max(speed - player.brakeForce, -2);
+  } else {
+    speed *= 0.995; // Natural deceleration
+    if (speed < 0.3) speed = 0.3;
+  }
+
+  // Steering
+  let steerInput = 0;
+  if (keys['arrowleft'] || keys['a']) steerInput = -1;
+  if (keys['arrowright'] || keys['d']) steerInput = 1;
+
+  let steerAmount = player.steerSpeed * (speed / 5);
+  player.vx += steerInput * steerAmount;
+  player.vx *= player.driftFactor; // Drift momentum
+
+  // Clamp player position
+  let halfRoad = ROAD_W / 2 - player.width / 2;
+  if (player.x < -halfRoad) { player.x = -halfRoad; player.vx = Math.abs(player.vx) * 0.3; }
+  if (player.x > halfRoad) { player.x = halfRoad; player.vx = -Math.abs(player.vx) * 0.3; }
+
+  player.x += player.vx;
+
+  // Shield timer
+  if (player.shield) {
+    player.shieldTimer--;
+    if (player.shieldTimer <= 0) player.shield = false;
+  }
+
+  // Update distance
+  distance += speed;
+
+  // Camera shake decay
+  cam.shakeX *= 0.9;
+  cam.shakeY *= 0.9;
+
+  // Spawn entities
+  lastSpawnEnemy++;
+  lastSpawnCoin++;
+  lastSpawnPu++;
+  lastSpawnScenery++;
+
+  let spawnRate = Math.max(30, 80 - currentDifficulty * 8);
+  if (lastSpawnEnemy > spawnRate) { spawnEnemy(); lastSpawnEnemy = 0; }
+  if (lastSpawnCoin > 25) { spawnCoin(); lastSpawnCoin = 0; }
+  if (lastSpawnPu > 600 + Math.random()*400) { spawnPowerup(); lastSpawnPu = 0; }
+  if (lastSpawnScenery > 15) { addScenery(); lastSpawnScenery = 0; }
+
+  // Update enemies
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    let e = enemies[i];
+    e.y += speed - e.speed; // Relative movement
+    e.swayTimer++;
+    if (e.swayTimer > 120) { e.swayDir = (Math.random() - 0.5) * 2; e.swayTimer = 0; }
+    e.x += e.swayDir;
+
+    // Remove if passed
+    if (e.y < cam.y - 100 || e.y > cam.y + H + 300) {
+      if (e.y < cam.y - 50) {
+        score += 10; // Overtaken!
+      }
+      enemies.splice(i, 1);
+      continue;
+    }
+
+    // Collision detection
+    let relDY = Math.abs(e.y - cam.y - (H - 140));
+    let relDX = Math.abs(e.x - player.x);
+    if (relDY < (e.h + player.height) / 2 && relDX < (e.w + player.width) / 2) {
+      if (player.shield) {
+        player.shield = false;
+        player.shieldTimer = 0;
+        emitSparks(W/2 + e.x * 0.5, H - 140);
+        playCrash();
+        enemies.splice(i, 1);
+        score += 25; // Destroy enemy!
+        cam.shakeX = (Math.random()-0.5) * 8;
+        cam.shakeY = (Math.random()-0.5) * 6;
+      } else {
+        lives--;
+        emitSparks(W/2 + e.x * 0.5, H - 140);
+        playCrash();
+        enemies.splice(i, 1);
+        speed *= 0.3; // Lose speed
+        cam.shakeX = (Math.random()-0.5) * 12;
+        cam.shakeY = (Math.random()-0.5) * 8;
+        if (lives <= 0) {
+          state = 'gameover';
+          stopEngine();
+          if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('turboHighScore', highScore.toString());
+          }
+          return;
+        }
+      }
+    }
+  }
+
+  // Update coins
+  for (let i = coins.length - 1; i >= 0; i--) {
+    let c = coins[i];
+    c.y += speed;
+
+    if (c.y < cam.y - 50) { coins.splice(i, 1); continue; }
+    if (c.y > cam.y + H + 100) { coins.splice(i, 1); continue; }
+
+    let relDY = Math.abs(c.y - cam.y - (H - 140));
+    let relDX = Math.abs(c.x - player.x);
+    if (relDY < c.r + player.width/2 && relDX < c.r + player.width/2) {
+      score += 100;
+      playCoin();
+      // Coin collect particles
+      for (let p = 0; p < 8; p++) {
+        addParticle(W/2 + c.x*0.5, H-140, (Math.random()-0.5)*3, (Math.random()-0.5)*3,
+          20, '#ffd700', 2);
+      }
+      coins.splice(i, 1);
+    }
+  }
+
+  // Update powerups
+  for (let i = powerups.length - 1; i >= 0; i--) {
+    let p = powerups[i];
+    p.y += speed;
+
+    if (p.y < cam.y - 50 || p.y > cam.y + H + 100) { powerups.splice(i, 1); continue; }
+
+    let relDY = Math.abs(p.y - cam.y - (H - 140));
+    let relDX = Math.abs(p.x - player.x);
+    if (relDY < p.w/2 + player.width/2 && relDX < p.w/2 + player.width/2) {
+      playBoost();
+      if (p.type === 'shield') {
+        player.shield = true; player.shieldTimer = 600; // 10 seconds
+      } else {
+        player.boost = true; player.boostTimer = 300; // 5 seconds
+      }
+      // Particles
+      let puC = p.type === 'shield' ? '#00b0ff' : '#e040fb';
+      for (let pp = 0; pp < 12; pp++) {
+        addParticle(W/2 + p.x*0.5, H-140, (Math.random()-0.5)*4, (Math.random()-0.5)*4,
+          25, puC, 3);
+      }
+      powerups.splice(i, 1);
+    }
+  }
+
+  // Update particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    let p = particles[i];
+    p.x += p.vx; p.y += p.vy;
+    p.vx *= 0.97; p.vy *= 0.97;
+    p.life--;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+
+  // Dust while driving
+  if (speed > 2 && Math.random() < 0.4) {
+    emitDust(W/2 + player.x*0.5, H - 140 + player.height/2 + 5);
+  }
+
+  // Tire smoke during drifting
+  if (Math.abs(player.vx) > 1.5 && speed > 4) {
+    emitSmoke(W/2 + player.x*0.5 - player.width/2, H - 140 + player.height/2, 8);
+    emitSmoke(W/2 + player.x*0.5 + player.width/2, H - 140 + player.height/2, 8);
+  }
+
+  // Engine sound
+  updateEngine(speed);
+}
+
+// ─── MAIN LOOP ──────────────────────────────────────────
+function gameLoop() {
+  update();
+
+  X.clearRect(0, 0, W, H);
+
+  // Background
+  drawSky();
+  drawTerrain();
+  drawRoad();
+
+  // Game objects
+  if (state === 'playing' || state === 'paused') {
+    // Sort by Y for depth
+    let sortedEntities = [...enemies.map(e => ({type:'enemy', ...e, sortY:e.y}))];
+
+    for (let e of sortedEntities) drawEnemyCar(e);
+    drawCoins();
+    drawPowerups();
+
+    drawPlayerCar();
+    drawParticles();
+
+    // Apply camera shake
+    X.save();
+    let shakeOff = state === 'paused';
+    if (!shakeOff) {
+      X.translate(cam.shakeX, cam.shakeY);
+    }
+
+    // Redraw player if shake was applied above (it was drawn outside)
+    if (shakeOff) {
+      // Redraw for pause overlay clarity - just keep as is
+    }
+    X.restore();
+
+    drawHUD();
+
+    if (state === 'paused') drawPausedScreen();
+  } else if (state === 'start') {
+    drawStartScreen();
+  } else if (state === 'gameover') {
+    drawGameOverScreen();
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+// ─── START ──────────────────────────────────────────────
+buildRoad();
+// Pre-populate some scenery
+for (let i = 0; i < 10; i++) {
+  let side = Math.random() < 0.5 ? -1 : 1;
+  let types = ['tree', 'bush', 'building', 'lamp'];
+  let type = types[Math.floor(Math.random() * types.length)];
+  sceneryItems.push({
+    x: side * (ROAD_W/2 + 30 + Math.random() * 80),
+    y: i * 50 + Math.random() * 50,
+    type, side, scale: 0.6 + Math.random() * 0.6
+  });
+}
+
+gameLoop();
+</script>
+</body>
+</html>

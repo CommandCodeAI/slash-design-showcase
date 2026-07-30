@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Styles</title>
+    <style>
+        @theme {
+            /* 🎨 Colors (OKLCH — equal perceptual steps) */
+            --color-pwv-black: oklch(0.00% 0.000 0.0);    /* #000000 */
+            --color-pwv-white: oklch(100.00% 0.000 0.0);  /* #ffffff */
+            --color-pwv-gray: oklch(91.89% 0.000 0.0);    /* #e4e4e4 */
+            --color-pwv-green: oklch(74.99% 0.243 144.1); /* #00d22e */
+            --color-pwv-teal: oklch(77.87% 0.135 188.7);  /* #00d2c8 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--color-pwv-black);
+            color: var(--color-pwv-white);
+            min-height: 100vh;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .palette {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .color-card {
+            background: var(--color-pwv-gray);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+
+        .color-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .color-swatch {
+            height: 150px;
+            width: 100%;
+        }
+
+        .color-info {
+            padding: 1.5rem;
+            background: var(--color-pwv-white);
+        }
+
+        .color-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--color-pwv-black);
+            margin-bottom: 0.5rem;
+        }
+
+        .color-hex {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Brand Colors</h1>
+    <div class="palette">
+        <div class="color-card">
+            <div class="color-swatch" style="background: var(--color-pwv-black);"></div>
+            <div class="color-info">
+                <div class="color-name">PWV Black</div>
+                <div class="color-hex">#000000</div>
+            </div>
+        </div>
+        <div class="color-card">
+            <div class="color-swatch" style="background: var(--color-pwv-white);"></div>
+            <div class="color-info">
+                <div class="color-name">PWV White</div>
+                <div class="color-hex">#ffffff</div>
+            </div>
+        </div>
+        <div class="color-card">
+            <div class="color-swatch" style="background: var(--color-pwv-gray);"></div>
+            <div class="color-info">
+                <div class="color-name">PWV Gray</div>
+                <div class="color-hex">#e4e4e4</div>
+            </div>
+        </div>
+        <div class="color-card">
+            <div class="color-swatch" style="background: var(--color-pwv-green);"></div>
+            <div class="color-info">
+                <div class="color-name">PWV Green</div>
+                <div class="color-hex">#00d22e</div>
+            </div>
+        </div>
+        <div class="color-card">
+            <div class="color-swatch" style="background: var(--color-pwv-teal);"></div>
+            <div class="color-info">
+                <div class="color-name">PWV Teal</div>
+                <div class="color-hex">#00d2c8</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
