@@ -178,7 +178,8 @@ function update(dt){
         var bL=bird.x-BR,bR=bird.x+BR,bT=bird.y-BR,bB=bird.y+BR;
         for(var n=0;n<pipes.length;n++){
             var pq=pipes[n];
-            if(bR>pq.x+2&&bL<pq.x+PW-2){
+            // Caps are PW+10 wide (5px wider each side than pipe body)
+            if(bR>pq.x+5&&bL<pq.x+PW+5){
                 if(bT<pq.top||bB>pq.top+PGAP){die();break;}
             }
         }
@@ -255,12 +256,12 @@ function drawGround(){
 function drawPipe(p){
     var tg=g.createLinearGradient(p.x,0,p.x+PW,0);
     tg.addColorStop(0,'#5BAE3F');tg.addColorStop(.35,'#7ED46F');tg.addColorStop(.65,'#6ECF5D');tg.addColorStop(1,'#4A9F32');
-    /* top pipe body — extends from screen top down to the cap */
-    g.fillStyle=tg;g.fillRect(p.x,0,PW,p.top-PW);
+    /* top pipe body — extends from screen top down to the cap at gap edge */
+    g.fillStyle=tg;g.fillRect(p.x,0,PW,p.top-PIPE_CAP);
     /* top cap */
-    roundRect(p.x-5,p.top-PW-PIPE_CAP,PW+10,PIPE_CAP,5);
+    roundRect(p.x-5,p.top-PIPE_CAP,PW+10,PIPE_CAP,5);
     g.fillStyle='#4CAF3E';g.fill();g.strokeStyle='rgba(0,0,0,0.07)';g.lineWidth=1;g.stroke();
-    g.fillStyle='rgba(255,255,255,0.14)';g.fillRect(p.x+6,0,6,p.top-PW);
+    g.fillStyle='rgba(255,255,255,0.14)';g.fillRect(p.x+6,0,6,p.top-PIPE_CAP);
     /* bottom pipe body — extends from gap down to ground */
     g.fillStyle=tg;g.fillRect(p.x,p.top+PGAP,PW,GY-p.top-PGAP);
     /* bottom cap */
@@ -285,23 +286,15 @@ function drawBird(){
     /* cheeks */
     g.fillStyle='rgba(255,160,160,0.4)';
     g.beginPath();g.arc(-8,1,3.2,0,Math.PI*2);g.fill();
-    g.beginPath();g.arc(8,1,3.2,0,Math.PI*2);g.fill();
 
-    /* left eye */
-    g.beginPath();g.arc(-5,-4.5,4.2,0,Math.PI*2);g.fillStyle='#fff';g.fill();
-    g.strokeStyle='#2C3E50';g.lineWidth=.6;g.stroke();
-    g.beginPath();g.arc(-4.3,-4.2,2.3,0,Math.PI*2);g.fillStyle='#1a1a2e';g.fill();
-    g.beginPath();g.arc(-5.2,-5.3,1,0,Math.PI*2);g.fillStyle='#fff';g.fill();
-
-    /* right eye */
+    /* single eye (side view - bird faces right) */
     g.beginPath();g.arc(5,-4.5,4.2,0,Math.PI*2);g.fillStyle='#fff';g.fill();
     g.strokeStyle='#2C3E50';g.lineWidth=.6;g.stroke();
-    g.beginPath();g.arc(5.7,-4.2,2.3,0,Math.PI*2);g.fillStyle='#1a1a2e';g.fill();
-    g.beginPath();g.arc(4.8,-5.3,1,0,Math.PI*2);g.fillStyle='#fff';g.fill();
+    g.beginPath();g.arc(4,-4.5,2.3,0,Math.PI*2);g.fillStyle='#1a1a2e';g.fill();
+    g.beginPath();g.arc(3.2,-5.3,1,0,Math.PI*2);g.fillStyle='#fff';g.fill();
 
-    /* eyebrows */
+    /* eyebrow */
     g.strokeStyle='rgba(44,62,80,0.25)';g.lineWidth=1.1;g.lineCap='round';
-    g.beginPath();g.arc(-5,-7.5,3.2,Math.PI+.3,-.3);g.stroke();
     g.beginPath();g.arc(5,-7.5,3.2,Math.PI+.3,-.3);g.stroke();
 
     /* beak */

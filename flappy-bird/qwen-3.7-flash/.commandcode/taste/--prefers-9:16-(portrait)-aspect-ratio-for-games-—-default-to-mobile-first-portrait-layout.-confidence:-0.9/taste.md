@@ -1,3 +1,4 @@
+# - Prefers 9:16 (portrait) aspect ratio for games — default to mobile-first portrait layout. Confidence: 0.9
 - Prefers 9:16 (portrait) aspect ratio for games — default to mobile-first portrait layout. Confidence: 0.9
 - Prefers simple, straightforward code over clever/over-engineered solutions — "don't make it hard." Confidence: 0.8
 - Expects the game/artifact to be immediately playable and bug-free — "it's not playable at all" is a critical failure. Confidence: 0.9

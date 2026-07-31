@@ -31,11 +31,14 @@
 |---|---|---:|---:|
 | Fable 5 (Claude) | `Fable-5/` | $0.4200 | 641 / 927 |
 | GLM 5.2 | `GLM-5.2/` | $0.0480 | 799 / 839 |
-| kimi-k3 | `kimi-k3/` | $0.0240 | 880 / — |
+| kimi-k3 | `kimi-k3/` | $0.1200 | 880 / — |
 | Opus 5 (Claude) | `opus-5/` | ~$0.2539 | 497 / — |
 | GPT-5.6 Sol | `gp-5.6-sol/` | ~$0.1500 | 631 / — |
 | DeepSeek | `DeepSeek-V4-Pro/` | $0.0008 | 748 / 876 |
 | Gemini 3.6 Flash | `gemini/` | $0.1500 (5-6 prompts) | 1,411 / — |
+| qwen-3.7-flash | `qwen-3.7-flash/` |  $0.006 (8 prompts)
+| deepseek-v4-flash | `deepseek-v4-flash/` | $0.0005 (2 prompts)
+| step-3.7-flash | `step-3.7-flash/` |  $0.009 (4 prompts) |
 
 
 ## Method
@@ -78,7 +81,7 @@ This only proves the logic doesn't crash; it isn't a substitute for an actual ha
 | Opus 5 | 5 | 4 | 5 | 5 | 4.5 | 5 | **4.75** | ~$0.1039 | ~46 |
 | GPT-5.6 Sol | 5 | 5 | 5 | 4 | 4 | 5 | **4.67** | ~$0.1500 | ~31 |
 | Fable 5 | 5 | 4 | 5 | 5 | 3.5 | 4 | **4.42** | $0.4200 | ~10.5 |
-| DeepSeek | 4 | 3 | 3.5 | 2 | 4 | 5 | **3.58** | $0.0008 | **~4,475** |
+| DeepSeek V4 Pro | 4 | 3 | 3.5 | 2 | 4 | 5 | **3.58** | $0.0008 | **~4,475** |
 
 **Opus 5 and kimi-k3 tie at 4.75, and they get there by opposite routes.** Opus 5 gives up a point on Collision (AABB approximation rather than the exact clamped circle-vs-rect test) and takes it back on Offline-safe (no Google Fonts dependency vs kimi-k3's). On Polish both land at 4.5 for different reasons: kimi-k3 ships audio with no mute; Opus 5 ships mute but never persists the best score it displays. If you weight offline-safety and the mute control, Opus 5 edges it; if you weight exact collision and a best score that survives reload, kimi-k3 does. On cost they are not close — kimi-k3's ~198 quality/$ is roughly 4.3x Opus 5's ~46.
 
@@ -97,3 +100,6 @@ Price reshuffles that ordering hard. **kimi-k3 is still the story**: at $0.024 i
 - kimi-k3, GPT-5.6 Sol, and Opus 5 were evaluated by static read and the automated `vm` smoke test only for this update — unlike Fable 5, GLM 5.2, and DeepSeek, none was hand-played in an actual browser, so their Scorecard rows reflect code-level judgment, not a played impression. That's the same caveat the third-view-car-game benchmark in this repo flags for its static-read-only scores. For Opus 5 specifically this means its "cute" score is read off the drawing code (blush, hair tuft, X-eyes on death, medal labels) rather than off a rendered frame, and its ~626 draw calls/frame have not been checked against real frame timing on a low-end device.
 - GPT-5.6 Sol's cost (~$0.15) and Opus 5's (~$0.1039) are formula estimates (bytes ÷ 4 × published output price), not user-reported like the other four; treat both as floors, not metered figures. Opus 5's floor is the least reliable of the two because Opus 5 runs with thinking enabled by default, and reasoning tokens are billed as output but never appear in the kept file — the real number is very likely higher, and the Quality/$ figure of ~46 should be read as an upper bound that falls if the metered cost comes in above $0.1039.
 - "Spec/cute", "Architecture", and "Polish" are disclosed aesthetic/code judgment, not measurements, unlike the collision-math, resize, audio, and persistence findings, which are cited directly from source.
+
+
+
