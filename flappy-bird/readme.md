@@ -39,6 +39,7 @@
 | qwen-3.7-flash | `qwen-3.7-flash/` |  $0.006 (8 prompts)
 | deepseek-v4-flash | `deepseek-v4-flash/` | $0.0005 (2 prompts)
 | step-3.7-flash | `step-3.7-flash/` |  $0.009 (4 prompts) |
+| qwen-3.8-max | `qwen-3.8-max/` | $0.0480 | 1,124 / — |
 
 
 ## Method
