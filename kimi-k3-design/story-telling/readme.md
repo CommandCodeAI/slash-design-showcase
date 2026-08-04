@@ -32,19 +32,19 @@ Include subtle 3D elements (Three.js spheres representing earth/moon) that move 
 
 > ⚠️ **Note:** this readme previously had product's (NEXUS Audio) prompt and link pasted in by mistake. The prompt above is the correct one for this build (verified against the actual `index.html`, titled "LUNAR — Luxury in Harmony with the Earth"); the real share link for this conversation wasn't recovered, so none is listed here rather than guessing one.
 
-## Benchmark
+## Models
 
-Both builds below are treated as a single **one-shot** generation from the prompt above — one call, no re-rolls, no follow-up prompts, no iteration.
+| Model | Dir | LOC | Est. cost |
+|---|---|---:|---:|
+| Fable 5 (Claude) | `fable-5/` | 548 | ~$0.35 |
+| Kimi K3 (Moonshot) | `kimi-k3/` | 583 | ~$0.11 |
+| qwen3.8-max | `qwen3.8-max/` | 1,083 | ~$0.055* |
 
-| Model | Dir | $/MTok in/out | LOC | Output size | Est. cost (one-shot) |
-|---|---|---:|---:|---:|---:|
-| Fable 5 (Claude) | `fable-5/` | $10 / $50 | 548 | 28,032 bytes | **~$0.35** |
-| Kimi K3 (Moonshot) | `kimi-k3/` | $3 / $15 | 583 | 28,986 bytes | **~$0.11** |
+Fable 5 and Kimi K3 are treated as a single **one-shot** generation from the prompt above — one call, no re-rolls, no follow-up prompts, no iteration. Cost uses the same floor formula as the rest of this repo's one-shot builds (chrome-dino, third-view-car-game, etc.): kept file's output bytes ÷ 4 (a rough byte→token approximation) × the model's published output price per MTok. Input is just the ~180-token prompt above plus `/design` overhead — at $10/MTok (Fable 5) and $3/MTok (Kimi K3) that's well under a cent either way, so it doesn't move the total:
 
-Cost uses the same floor formula as the rest of this repo's one-shot builds (chrome-dino, third-view-car-game, etc.): kept file's output bytes ÷ 4 (a rough byte→token approximation) × the model's published output price per MTok. Input is just the ~180-token prompt above plus `/design` overhead — at $10/MTok (Fable 5) and $3/MTok (Kimi K3) that's well under a cent either way, so it doesn't move the total:
-
-- **Fable 5:** 28,032 bytes ÷ 4 ≈ 7,008 output tokens × $50/MTok = **$0.35**
-- **Kimi K3:** 28,986 bytes ÷ 4 ≈ 7,247 output tokens × $15/MTok = **$0.11**
+- **Fable 5** ($10/$50 per MTok in/out): 28,032 bytes ÷ 4 ≈ 7,008 output tokens × $50/MTok = **$0.35**
+- **Kimi K3** ($3/$15 per MTok in/out): 28,986 bytes ÷ 4 ≈ 7,247 output tokens × $15/MTok = **$0.11**
+- **qwen3.8-max*** ($/MTok not published): 54,751 bytes ÷ 4 ≈ 13,688 output tokens × the repo-implied ~$2.91/MTok = **$0.04**
 
 ### Why the ~3.2× cost gap, despite near-identical output size
 
@@ -54,6 +54,8 @@ The two files are within 3% of each other in raw size — 548 vs. 583 LOC, 28,03
 - It's a **floor**, not a metered figure — it only counts the tokens in the final file you'd keep. Any hidden reasoning/thinking tokens the model billed on the way to that output aren't visible here and aren't counted.
 - **Bytes ÷ 4 is an approximation**, not a real tokenizer count — actual token counts for dense HTML/CSS/JS (lots of punctuation, short attribute names, repeated class strings) can differ from plain prose at the same byte count. A `client.messages.count_tokens()` call against the real prompt + output would be the accurate version of this number; this estimate is a stand-in for when that isn't available.
 - If either build in practice took more than one prompt to reach the kept file, the real cost is higher than shown here — this section assumes the one-shot premise holds for both.
+
+\* **qwen3.8-max's ~$0.04 is a floor only, and it isn't a one-shot figure like the two above.** This build went through the full agentic `/design` flow (multiple tool calls, in-loop verification, ~63 minutes wall clock including a mid-run connection error), not a single completion call — full derivation in [`qwen3.8-max/readme.md`](qwen3.8-max/readme.md). This repo's one actually-metered qwen3.8-max `/design` run, `creative-portfolio/qwen3.8-max`, billed a real $6.70 for a similarly-sized file — driven almost entirely by call count and accumulated input context (35 API calls, 2.7M input tokens, mostly cache reads), not output size. This build's own call count wasn't logged, so there's no sound way to turn that $6.70 into a specific number here; read ~$0.04 as a lower bound, not the real session cost.
 
 ## What the code shows
 

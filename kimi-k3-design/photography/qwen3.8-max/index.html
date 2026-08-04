@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Elena Voss — Photography</title>
+<meta name="description" content="Fine-art and documentary photography by Elena Voss. Portraits, places, and the pauses in between — from the Atlantic edge.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        ivory:  '#F4F1EA',
+        paper:  '#FAF8F3',
+        ink:    '#1B1813',
+        night:  '#131109',
+        soft:   '#6E6656',
+        line:   '#E1DAC9',
+        bronze: '#97805C',
+        sand:   '#C9A97E',
+      },
+      fontFamily: {
+        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        sans:  ['Jost', 'system-ui', 'sans-serif'],
+      },
+    },
+  },
+};
+</script>
+
+<style>
+:root { --ease: cubic-bezier(.16, 1, .3, 1); }
+
+html { scroll-padding-top: 5.5rem; }
+body { overflow-x: clip; }
+
+::selection { background: #1B1813; color: #F4F1EA; }
+
+:focus-visible {
+  outline: 1px solid #97805C;
+  outline-offset: 4px;
+  border-radius: 1px;
+}
+
+.kicker-rule { display: inline-block; width: 2.5rem; height: 1px; background: #97805C; vertical-align: middle; }
+
+/* ---------- scroll reveal ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity .9s var(--ease), transform .9s var(--ease);
+  transition-delay: var(--d, 0ms);
+}
+.reveal.is-in { opacity: 1; transform: none; }
+
+/* ---------- hero ---------- */
+@keyframes kenburns {
+  from { transform: scale(1.02); }
+  to   { transform: scale(1.1); }
+}
+.kenburns { animation: kenburns 26s ease-in-out infinite alternate; will-change: transform; }
+
+@keyframes cueDrop {
+  0%   { transform: scaleY(0); transform-origin: top; }
+  45%  { transform: scaleY(1); transform-origin: top; }
+  55%  { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+.cue-line { animation: cueDrop 2.4s var(--ease) infinite; }
+
+/* ---------- masonry loader ---------- */
+@keyframes loaderSlide {
+  0%   { transform: translateX(-110%); }
+  100% { transform: translateX(420%); }
+}
+.loader-slide { animation: loaderSlide 1.3s ease-in-out infinite; }
+
+/* ---------- journal track ---------- */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ---------- lightbox 3D states ---------- */
+#lbFloat { transition: transform .55s var(--ease), opacity .45s ease; will-change: transform, opacity; }
+.lb-open-from { transition: none; opacity: 0; transform: translateY(28px) rotateX(7deg) scale(.93); }
+.lb-from-r    { transition: none; opacity: 0; transform: translateX(60px) rotateY(-9deg) scale(.96); }
+.lb-from-l    { transition: none; opacity: 0; transform: translateX(-60px) rotateY(9deg) scale(.96); }
+.lb-exit-l    { opacity: 0; transform: translateX(-46px) rotateY(7deg) scale(.96); }
+.lb-exit-r    { opacity: 0; transform: translateX(46px) rotateY(-7deg) scale(.96); }
+.lb-close     { opacity: 0; transform: translateY(14px) scale(.94); }
+
+/* ---------- form ---------- */
+.field-input {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(244, 241, 234, .25);
+  padding: .65rem 0;
+  font-size: 1rem;
+  color: #F4F1EA;
+  transition: border-color .3s ease;
+}
+.field-input::placeholder { color: rgba(244, 241, 234, .28); }
+.field-input:focus { outline: none; border-bottom-color: #C9A97E; }
+.field-input[aria-invalid="true"] { border-bottom-color: #D0876B; }
+.field-error { color: #D0876B; font-size: .8rem; letter-spacing: .04em; margin-top: .45rem; min-height: 1.1em; }
+
+select.field-input { appearance: none; cursor: pointer; }
+select.field-input option { background: #131109; color: #F4F1EA; }
+
+/* ---------- nav states ---------- */
+#siteNav { transition: background-color .45s ease, color .45s ease, border-color .45s ease, backdrop-filter .45s ease; }
+#siteNav.nav-solid {
+  background: rgba(244, 241, 234, .88);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  color: #1B1813;
+  border-bottom: 1px solid #E1DAC9;
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+  .reveal { opacity: 1; transform: none; }
+}
+</style>
+</head>
+
+<body class="bg-ivory font-sans text-ink antialiased">
+
+<!-- ═══════════════════ NAV ═══════════════════ -->
+<nav id="siteNav" class="fixed inset-x-0 top-0 z-50 text-ivory">
+  <div class="mx-auto flex h-20 max-w-[88rem] items-center justify-between px-6">
+    <a href="#top" class="font-serif text-xl tracking-wide">
+      Elena Voss <span class="ml-1 hidden text-[0.68em] uppercase tracking-[0.3em] opacity-50 sm:inline">Photography</span>
+    </a>
+    <div class="flex items-center gap-8 text-[11px] uppercase tracking-[0.28em]">
+      <a href="#works"   class="hidden opacity-70 transition-opacity hover:opacity-100 md:inline">Works</a>
+      <a href="#about"   class="hidden opacity-70 transition-opacity hover:opacity-100 md:inline">About</a>
+      <a href="#journal" class="hidden opacity-70 transition-opacity hover:opacity-100 md:inline">Journal</a>
+      <a href="#contact" class="border border-current px-5 py-2.5 opacity-90 transition-opacity hover:opacity-100">Contact</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<header id="top" class="relative flex min-h-[640px] flex-col overflow-hidden bg-ink text-ivory" style="height:100svh">
+  <img src="https://picsum.photos/seed/ev-hero/2400/1500" alt="" fetchpriority="high"
+       class="kenburns absolute inset-0 h-full w-full object-cover opacity-95">
+  <div class="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/20 to-ink/25" aria-hidden="true"></div>
+  <div class="absolute inset-0 bg-gradient-to-r from-ink/45 via-transparent to-transparent" aria-hidden="true"></div>
+
+  <div class="relative z-10 mx-auto flex w-full max-w-[88rem] flex-1 flex-col justify-end gap-12 px-6 pb-24 pt-28 lg:flex-row lg:items-end lg:justify-between lg:gap-10 lg:pb-20">
+
+    <!-- headline block -->
+    <div class="max-w-2xl">
+      <p class="reveal is-in flex items-center gap-4 text-[11px] uppercase tracking-[0.4em] text-ivory/60">
+        <span class="h-px w-10 bg-sand/80" aria-hidden="true"></span>
+        Elena Voss · Photographs since 2013
+      </p>
+      <h1 class="reveal is-in mt-7 font-serif text-6xl font-light leading-[1.02] sm:text-7xl xl:text-8xl" style="--d:120ms">
+        Light,<br><em class="italic">held still.</em>
+      </h1>
+      <p class="reveal is-in mt-7 max-w-md text-[15px] font-light leading-relaxed text-ivory/70" style="--d:240ms">
+        Fine-art and documentary photography from the Atlantic edge — portraits,
+        places, and the pauses in between.
+      </p>
+      <div class="reveal is-in mt-10 flex flex-wrap items-center gap-8" style="--d:360ms">
+        <a href="#works"
+           class="rounded-full border border-ivory/40 px-8 py-3.5 text-[11px] uppercase tracking-[0.3em] transition-colors duration-300 hover:bg-ivory hover:text-ink">
+          View selected works
+        </a>
+        <a href="#about" class="border-b border-ivory/30 pb-1 text-[11px] uppercase tracking-[0.3em] text-ivory/70 transition-colors hover:border-sand hover:text-ivory">
+          About Elena
+        </a>
+      </div>
+    </div>
+
+    <!-- 3D floating frame -->
+    <div class="order-first mx-auto w-52 shrink-0 sm:w-64 lg:order-last lg:mx-0 lg:mb-4 lg:w-[390px]">
+      <div id="heroScene" style="perspective:1200px; perspective-origin:50% 20%;">
+        <div class="relative">
+          <div id="heroShadow" aria-hidden="true"
+               class="absolute inset-x-2 top-8 bottom-0 rounded-sm bg-black/50 blur-2xl"></div>
+          <figure id="heroFrame" class="relative bg-paper p-3 shadow-2xl will-change-transform md:p-4" style="transform-style:preserve-3d">
+            <img src="https://picsum.photos/seed/ev-main/1100/1400"
+                 alt="Framed photograph — morning light falling across a whitewashed wall in Óbidos"
+                 width="1100" height="1400" class="block aspect-[11/14] w-full object-cover">
+            <figcaption class="flex items-baseline justify-between pt-3 text-[9px] uppercase tracking-[0.28em] text-soft">
+              <span>Morning, Óbidos</span><span>2025</span>
+            </figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- scroll cue -->
+  <div class="absolute bottom-7 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-3 sm:flex" aria-hidden="true">
+    <span class="text-[9px] uppercase tracking-[0.4em] text-ivory/50">Scroll</span>
+    <span class="cue-line block h-10 w-px bg-ivory/50"></span>
+  </div>
+</header>
+
+<main>
+<!-- ═══════════════════ WORKS · infinite masonry ═══════════════════ -->
+<section id="works" class="mx-auto max-w-[88rem] px-6 py-28 md:py-40">
+  <header class="mb-16 flex flex-wrap items-end justify-between gap-8 md:mb-20">
+    <div>
+      <p class="reveal flex items-center gap-4 text-[11px] uppercase tracking-[0.4em] text-bronze">
+        <span class="kicker-rule" aria-hidden="true"></span> 01 — Selected works
+      </p>
+      <h2 class="reveal mt-6 font-serif text-5xl font-light leading-tight md:text-6xl" style="--d:100ms">
+        The quiet <em class="italic">archive</em>
+      </h2>
+    </div>
+    <p class="reveal max-w-xs text-sm font-light leading-relaxed text-soft" style="--d:200ms">
+      Thirty-three frames from twelve years of slow looking. New work is added as it
+      develops — keep scrolling to wander.
+    </p>
+  </header>
+
+  <div id="masonry" class="columns-1 gap-5 sm:columns-2 lg:columns-3 md:gap-6"></div>
+
+  <noscript>
+    <p class="py-16 text-center text-sm text-soft">Enable JavaScript to browse the archive.</p>
+  </noscript>
+
+  <div id="loader" class="hidden items-center justify-center gap-5 py-16 text-[10px] uppercase tracking-[0.35em] text-soft">
+    <span class="relative block h-px w-24 overflow-hidden bg-line" aria-hidden="true">
+      <span class="loader-slide absolute inset-y-0 left-0 w-1/3 bg-bronze"></span>
+    </span>
+    Developing more frames
+    <span class="relative block h-px w-24 overflow-hidden bg-line" aria-hidden="true">
+      <span class="loader-slide absolute inset-y-0 left-0 w-1/3 bg-bronze" style="animation-delay:.4s"></span>
+    </span>
+  </div>
+
+  <div id="sentinel" class="h-px" aria-hidden="true"></div>
+
+  <p id="endnote" class="hidden py-20 text-center font-serif text-xl italic text-soft">
+    The end of the archive, for now.
+    <a href="#contact" class="not-italic text-ink underline decoration-bronze/50 underline-offset-4 transition-colors hover:text-bronze">Commission the next frame</a>.
+  </p>
+</section>
+
+<!-- ═══════════════════ ABOUT · parallax ═══════════════════ -->
+<section id="about" class="border-y border-line bg-paper">
+  <div class="mx-auto grid max-w-[88rem] items-center gap-16 px-6 py-28 md:grid-cols-12 md:gap-10 md:py-40">
+
+    <div class="relative md:col-span-5">
+      <div class="absolute -left-4 -top-4 h-full w-full border border-line" data-parallax="-0.05" aria-hidden="true"></div>
+      <div class="relative aspect-[3/4] overflow-hidden bg-line/40">
+        <div class="absolute inset-0 scale-[1.18]">
+          <img src="https://picsum.photos/seed/ev-portrait/1000/1350"
+               alt="Elena Voss in her Lisbon studio, holding a medium-format camera"
+               width="1000" height="1350" loading="lazy" decoding="async"
+               data-parallax="0.09"
+               class="h-full w-full object-cover will-change-transform">
+        </div>
+      </div>
+      <p class="mt-4 text-[10px] uppercase tracking-[0.3em] text-soft">Lisbon studio, 2026</p>
+    </div>
+
+    <div class="md:col-span-6 md:col-start-7">
+      <p class="reveal flex items-center gap-4 text-[11px] uppercase tracking-[0.4em] text-bronze">
+        <span class="kicker-rule" aria-hidden="true"></span> 02 — About
+      </p>
+      <h2 class="reveal mt-6 font-serif text-4xl font-light leading-[1.12] md:text-5xl" style="--d:100ms">
+        I photograph the pause <em class="italic">between</em> moments.
+      </h2>
+      <p class="reveal mt-8 max-w-lg text-[15px] font-light leading-[1.9] text-soft" style="--d:180ms">
+        I am Elena Voss, a photographer based in Lisbon and working wherever the light
+        asks me to. For twelve years I have made slow, deliberate images — portraits
+        that wait, landscapes that breathe, still lifes of ordinary days.
+      </p>
+      <p class="reveal mt-5 max-w-lg text-[15px] font-light leading-[1.9] text-soft" style="--d:240ms">
+        My practice is analogue at heart: medium format, natural light, very few frames.
+        What I am after is not drama but presence — the instant a face forgets the
+        camera, or a room stops performing.
+      </p>
+
+      <dl class="reveal mt-12 grid grid-cols-3 gap-6 border-t border-line pt-8" style="--d:300ms">
+        <div>
+          <dt class="text-[10px] uppercase tracking-[0.28em] text-soft">Years</dt>
+          <dd class="mt-1 font-serif text-4xl font-light">12</dd>
+        </div>
+        <div>
+          <dt class="text-[10px] uppercase tracking-[0.28em] text-soft">Exhibitions</dt>
+          <dd class="mt-1 font-serif text-4xl font-light">34</dd>
+        </div>
+        <div>
+          <dt class="text-[10px] uppercase tracking-[0.28em] text-soft">Monographs</dt>
+          <dd class="mt-1 font-serif text-4xl font-light">4</dd>
+        </div>
+      </dl>
+
+      <p class="reveal mt-12 font-serif text-3xl italic text-ink/80" style="--d:360ms">— Elena</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ JOURNAL · horizontal scroll ═══════════════════ -->
+<section id="journal" class="overflow-hidden py-28 md:py-40">
+  <header class="mx-auto mb-14 flex max-w-[88rem] flex-wrap items-end justify-between gap-8 px-6">
+    <div>
+      <p class="reveal flex items-center gap-4 text-[11px] uppercase tracking-[0.4em] text-bronze">
+        <span class="kicker-rule" aria-hidden="true"></span> 03 — Journal
+      </p>
+      <h2 class="reveal mt-6 font-serif text-5xl font-light leading-tight md:text-6xl" style="--d:100ms">
+        Stories &amp; <em class="italic">notebooks</em>
+      </h2>
+      <p class="reveal mt-5 max-w-sm text-sm font-light leading-relaxed text-soft" style="--d:180ms">
+        Field notes from recent commissions. Full essays are shared by email —
+        ask below if you would like them.
+      </p>
+    </div>
+    <div class="reveal flex gap-3" style="--d:220ms">
+      <button id="jPrev" type="button" aria-label="Scroll journal backwards"
+              class="grid h-12 w-12 place-items-center rounded-full border border-ink/20 transition-colors hover:bg-ink hover:text-ivory disabled:pointer-events-none disabled:opacity-25">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <button id="jNext" type="button" aria-label="Scroll journal forwards"
+              class="grid h-12 w-12 place-items-center rounded-full border border-ink/20 transition-colors hover:bg-ink hover:text-ivory disabled:pointer-events-none disabled:opacity-25">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div id="journalTrack"
+       class="no-scrollbar flex snap-x snap-mandatory gap-6 overflow-x-auto px-6 pb-4 md:px-[max(1.5rem,calc((100vw-88rem)/2+1.5rem))]">
+
+    <article class="group w-[82vw] shrink-0 snap-start sm:w-[420px]">
+      <div class="overflow-hidden bg-line/40">
+        <img src="https://picsum.photos/seed/ev-j1/900/600" alt="Mist over the Cascais breakwater at dawn" width="900" height="600" loading="lazy" decoding="async"
+             class="aspect-[3/2] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]">
+      </div>
+      <p class="mt-6 text-[10px] uppercase tracking-[0.3em] text-soft">March 2026 · Cascais</p>
+      <h3 class="mt-2 font-serif text-3xl font-light">Notes from the Atlantic edge</h3>
+      <p class="mt-3 text-sm font-light leading-relaxed text-soft">Six mornings on the same breakwater, waiting for the fog to decide what it wanted to say.</p>
+    </article>
+
+    <article class="group w-[82vw] shrink-0 snap-start sm:w-[420px]">
+      <div class="overflow-hidden bg-line/40">
+        <img src="https://picsum.photos/seed/ev-j2/900/600" alt="Red safelight glow inside a darkroom" width="900" height="600" loading="lazy" decoding="async"
+             class="aspect-[3/2] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]">
+      </div>
+      <p class="mt-6 text-[10px] uppercase tracking-[0.3em] text-soft">January 2026 · Lisbon</p>
+      <h3 class="mt-2 font-serif text-3xl font-light">Printing in the dark, again</h3>
+      <p class="mt-3 text-sm font-light leading-relaxed text-soft">I returned to the darkroom after three years of screens. What the paper knew that the monitor forgot.</p>
+    </article>
+
+    <article class="group w-[82vw] shrink-0 snap-start sm:w-[420px]">
+      <div class="overflow-hidden bg-line/40">
+        <img src="https://picsum.photos/seed/ev-j3/900/600" alt="A ceramicist's hands at the wheel in Alentejo light" width="900" height="600" loading="lazy" decoding="async"
+             class="aspect-[3/2] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]">
+      </div>
+      <p class="mt-6 text-[10px] uppercase tracking-[0.3em] text-soft">November 2025 · Alentejo</p>
+      <h3 class="mt-2 font-serif text-3xl font-light">A week with Inês</h3>
+      <p class="mt-3 text-sm font-light leading-relaxed text-soft">Portrait sessions are slow conversations. Notes on photographing a ceramicist at her wheel.</p>
+    </article>
+
+    <article class="group w-[82vw] shrink-0 snap-start sm:w-[420px]">
+      <div class="overflow-hidden bg-line/40">
+        <img src="https://picsum.photos/seed/ev-j4/900/600" alt="Afternoon weather moving through a Porto window" width="900" height="600" loading="lazy" decoding="async"
+             class="aspect-[3/2] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]">
+      </div>
+      <p class="mt-6 text-[10px] uppercase tracking-[0.3em] text-soft">August 2025 · Porto</p>
+      <h3 class="mt-2 font-serif text-3xl font-light">The grammar of windows</h3>
+      <p class="mt-3 text-sm font-light leading-relaxed text-soft">Twelve windows, twelve hours. A study in how a room borrows the weather.</p>
+    </article>
+
+    <article class="group w-[82vw] shrink-0 snap-start sm:w-[420px]">
+      <div class="overflow-hidden bg-line/40">
+        <img src="https://picsum.photos/seed/ev-j5/900/600" alt="A single camera bag on a Dolomites ridge line" width="900" height="600" loading="lazy" decoding="async"
+             class="aspect-[3/2] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]">
+      </div>
+      <p class="mt-6 text-[10px] uppercase tracking-[0.3em] text-soft">May 2025 · Dolomites</p>
+      <h3 class="mt-2 font-serif text-3xl font-light">On carrying less</h3>
+      <p class="mt-3 text-sm font-light leading-relaxed text-soft">One body, one lens, forty kilograms of doubt. What a small kit taught me about looking.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ═══════════════════ CONTACT ═══════════════════ -->
+<section id="contact" class="bg-night text-ivory">
+  <div class="mx-auto grid max-w-[88rem] gap-16 px-6 py-28 md:grid-cols-12 md:gap-10 md:py-40">
+
+    <div class="md:col-span-5">
+      <p class="reveal flex items-center gap-4 text-[11px] uppercase tracking-[0.4em] text-sand">
+        <span class="kicker-rule" aria-hidden="true"></span> 04 — Contact
+      </p>
+      <h2 class="reveal mt-6 font-serif text-5xl font-light leading-[1.08] md:text-6xl" style="--d:100ms">
+        Let’s make something <em class="italic">quiet</em>.
+      </h2>
+      <p class="reveal mt-7 max-w-sm text-[15px] font-light leading-relaxed text-ivory/60" style="--d:180ms">
+        Commissions, print enquiries, and collaborations. I answer every note
+        myself, usually within two days.
+      </p>
+
+      <ul class="reveal mt-12 border-y border-ivory/10 text-sm" style="--d:240ms">
+        <li class="flex items-baseline justify-between gap-6 border-b border-ivory/10 py-4">
+          <span class="text-[10px] uppercase tracking-[0.3em] text-ivory/40">Email</span>
+          <a href="mailto:studio@elenavoss.com" class="transition-colors hover:text-sand">studio@elenavoss.com</a>
+        </li>
+        <li class="flex items-baseline justify-between gap-6 border-b border-ivory/10 py-4">
+          <span class="text-[10px] uppercase tracking-[0.3em] text-ivory/40">Telephone</span>
+          <a href="tel:+351210000000" class="transition-colors hover:text-sand">+351 21 000 000</a>
+        </li>
+        <li class="flex items-baseline justify-between gap-6 py-4">
+          <span class="text-[10px] uppercase tracking-[0.3em] text-ivory/40">Studio</span>
+          <span>Lisbon, Portugal — worldwide</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="md:col-span-6 md:col-start-7">
+      <form id="contactForm" novalidate class="reveal" style="--d:200ms">
+        <div class="grid gap-x-8 gap-y-9 sm:grid-cols-2">
+          <div>
+            <label for="fName" class="mb-1 block text-[10px] uppercase tracking-[0.3em] text-ivory/50">Name</label>
+            <input id="fName" name="name" type="text" autocomplete="name" placeholder="Your name" class="field-input">
+            <p class="field-error" id="errName" aria-live="polite"></p>
+          </div>
+          <div>
+            <label for="fEmail" class="mb-1 block text-[10px] uppercase tracking-[0.3em] text-ivory/50">Email</label>
+            <input id="fEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com" class="field-input">
+            <p class="field-error" id="errEmail" aria-live="polite"></p>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <label for="fType" class="mb-1 block text-[10px] uppercase tracking-[0.3em] text-ivory/50">What shall we make</label>
+          <div class="relative">
+            <select id="fType" name="type" class="field-input pr-8">
+              <option>Portrait session</option>
+              <option>Editorial commission</option>
+              <option>Print enquiry</option>
+              <option>Something else</option>
+            </select>
+            <svg class="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-ivory/50" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <label for="fMsg" class="mb-1 block text-[10px] uppercase tracking-[0.3em] text-ivory/50">Message</label>
+          <textarea id="fMsg" name="message" rows="4" placeholder="Tell me about the light you have in mind" class="field-input resize-none"></textarea>
+          <p class="field-error" id="errMsg" aria-live="polite"></p>
+        </div>
+
+        <div class="mt-9 flex flex-wrap items-center gap-6">
+          <button id="formBtn" type="submit"
+                  class="rounded-full bg-ivory px-10 py-4 text-[11px] uppercase tracking-[0.3em] text-ink transition-colors duration-300 hover:bg-sand disabled:opacity-50">
+            Send message
+          </button>
+          <p class="text-xs font-light tracking-wide text-ivory/40">Your note stays between us.</p>
+        </div>
+        <p id="formStatus" class="mt-6 font-serif text-lg italic text-sand" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer class="border-t border-ivory/10 bg-night text-ivory/50">
+  <div class="mx-auto flex max-w-[88rem] flex-col items-center justify-between gap-6 px-6 py-12 text-[10px] uppercase tracking-[0.3em] md:flex-row">
+    <span>© 2026 Elena Voss Photography</span>
+    <nav class="flex gap-8">
+      <a href="#works" class="transition-colors hover:text-sand">Works</a>
+      <a href="#about" class="transition-colors hover:text-sand">About</a>
+      <a href="#journal" class="transition-colors hover:text-sand">Journal</a>
+      <a href="#contact" class="transition-colors hover:text-sand">Contact</a>
+    </nav>
+    <span>Made with available light</span>
+  </div>
+</footer>
+
+<!-- ═══════════════════ 3D LIGHTBOX ═══════════════════ -->
+<div id="lightbox" class="fixed inset-0 z-[60] hidden" role="dialog" aria-modal="true" aria-label="Photograph viewer">
+  <div id="lbBackdrop" class="absolute inset-0 bg-[rgba(12,11,7,0.96)] opacity-0 transition-opacity duration-500"></div>
+
+  <figure class="absolute inset-0 m-0 flex items-center justify-center" style="perspective:1400px; perspective-origin:50% 45%;">
+    <div id="lbTilt" class="will-change-transform" style="transform-style:preserve-3d">
+      <div id="lbFloat">
+        <div id="lbShadow" aria-hidden="true" class="absolute -inset-4 bg-black/50 blur-3xl"></div>
+        <img id="lbImg" src="" alt="" class="relative block max-h-[76vh] max-w-[86vw] object-contain shadow-2xl md:max-w-[74vw]">
+      </div>
+    </div>
+  </figure>
+
+  <p id="lbCounter" class="absolute left-6 top-6 text-[11px] tracking-[0.35em] text-ivory/50 md:left-10 md:top-9">01 / 33</p>
+
+  <button id="lbClose" type="button" aria-label="Close viewer"
+          class="absolute right-5 top-5 grid h-12 w-12 place-items-center rounded-full border border-ivory/25 text-ivory transition-colors hover:bg-ivory/10 md:right-8 md:top-7">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+
+  <button id="lbPrev" type="button" aria-label="Previous photograph"
+          class="absolute left-3 top-1/2 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-ivory/20 text-ivory transition-colors hover:bg-ivory/10 sm:grid md:left-8">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+  <button id="lbNext" type="button" aria-label="Next photograph"
+          class="absolute right-3 top-1/2 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-ivory/20 text-ivory transition-colors hover:bg-ivory/10 sm:grid md:right-8">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+  </button>
+
+  <figcaption class="pointer-events-none absolute inset-x-0 bottom-7 px-6 text-center md:bottom-10">
+    <p id="lbTitle" class="font-serif text-2xl italic text-ivory">—</p>
+    <p id="lbMeta" class="mt-1.5 text-[10px] uppercase tracking-[0.35em] text-ivory/45">—</p>
+  </figcaption>
+</div>
+
+<!-- film grain -->
+<div aria-hidden="true" class="pointer-events-none fixed inset-0 z-[70] opacity-[0.05]"
+     style="background-image:url(&quot;data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.62'/></svg>&quot;)"></div>
+
+<script>
+(() => {
+'use strict';
+
+const $  = (s, c = document) => c.querySelector(s);
+const reduced     = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+/* ───────────────────────── data ───────────────────────── */
+const WORKS = [
+  { s:'ev-01', w:800, h:1067, t:'Tide Lines',           m:'Cascais — 2024' },
+  { s:'ev-02', w:800, h:533,  t:'North Window',         m:'Porto — 2023' },
+  { s:'ev-03', w:800, h:800,  t:'Salt & Stone',         m:'Azenhas do Mar — 2024' },
+  { s:'ev-04', w:800, h:1200, t:'The White Hour',       m:'Alentejo — 2025' },
+  { s:'ev-05', w:800, h:1000, t:'Inês at the Wheel',    m:'Monsaraz — 2025' },
+  { s:'ev-06', w:800, h:600,  t:'Fog Grammar',          m:'Sintra — 2023' },
+  { s:'ev-07', w:800, h:1067, t:'Room With Weather',    m:'Lisbon — 2024' },
+  { s:'ev-08', w:800, h:500,  t:'Two Pines',            m:'Comporta — 2022' },
+  { s:'ev-09', w:800, h:1143, t:'The Ferryman',         m:'Tagus — 2023' },
+  { s:'ev-10', w:800, h:800,  t:'August Static',        m:'Costa Nova — 2022' },
+  { s:'ev-11', w:800, h:533,  t:'Blue Interval',        m:'Nazaré — 2024' },
+  { s:'ev-12', w:800, h:1067, t:'Her Mother’s Garden',  m:'Évora — 2023' },
+  { s:'ev-13', w:800, h:600,  t:'Paper Sea',            m:'Faro — 2022' },
+  { s:'ev-14', w:800, h:450,  t:'The Long Field',       m:'Beja — 2025' },
+  { s:'ev-15', w:800, h:1200, t:'Quiet Machines',       m:'Lisbon — 2024' },
+  { s:'ev-16', w:800, h:533,  t:'Seventh Wave',         m:'Ericeira — 2023' },
+  { s:'ev-17', w:800, h:1000, t:'Interior With Lemon',  m:'Seville — 2024' },
+  { s:'ev-18', w:800, h:800,  t:'The Olive Press',      m:'Alqueva — 2022' },
+  { s:'ev-19', w:800, h:600,  t:'Winter Swimmers',      m:'Matosinhos — 2025' },
+  { s:'ev-20', w:800, h:1143, t:'Daughter of the Coast',m:'Setúbal — 2023' },
+  { s:'ev-21', w:800, h:500,  t:'Small Hours',          m:'Lisbon — 2025' },
+  { s:'ev-22', w:800, h:1067, t:'The Blue Shutters',    m:'Tavira — 2022' },
+  { s:'ev-23', w:800, h:800,  t:'Fog, Erased',          m:'Sintra — 2024' },
+  { s:'ev-24', w:800, h:1000, t:'The Potter’s Hands',   m:'Monsaraz — 2025' },
+  { s:'ev-25', w:800, h:533,  t:'Atlantic Ledger',      m:'Sagres — 2023' },
+  { s:'ev-26', w:800, h:1200, t:'A Study in White',     m:'Óbidos — 2025' },
+  { s:'ev-27', w:800, h:600,  t:'Harbor Nocturne',      m:'Vigo — 2022' },
+  { s:'ev-28', w:800, h:1067, t:'The Sisters',          m:'Comporta — 2024' },
+  { s:'ev-29', w:800, h:800,  t:'Salt Cathedral',       m:'Loulé — 2023' },
+  { s:'ev-30', w:800, h:500,  t:'Morning, Borrowed',    m:'Lisbon — 2026' },
+  { s:'ev-31', w:800, h:1143, t:'The Last Ferry',       m:'Cacilhas — 2024' },
+  { s:'ev-32', w:800, h:533,  t:'Dune Alphabet',        m:'São Jacinto — 2025' },
+  { s:'ev-33', w:800, h:1067, t:'Held Still',           m:'Óbidos — 2025' },
+];
+
+const thumbUrl = u => `https://picsum.photos/seed/${u.s}/${u.w}/${u.h}`;
+const largeUrl = u => `https://picsum.photos/seed/${u.s}/${Math.min(u.w * 2, 1920)}/${Math.min(u.h * 2, 1920)}`;
+
+/* ───────────────────────── nav state ───────────────────────── */
+const nav = $('#siteNav');
+const setNav = () => nav.classList.toggle('nav-solid', window.scrollY > 60);
+setNav();
+
+/* ───────────────────────── scroll reveal ───────────────────────── */
+const rio = new IntersectionObserver(es => es.forEach(e => {
+  if (e.isIntersecting) { e.target.classList.add('is-in'); rio.unobserve(e.target); }
+}), { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => rio.observe(el));
+
+/* ───────────────────────── parallax ───────────────────────── */
+const pEls = [...document.querySelectorAll('[data-parallax]')];
+const applyParallax = () => {
+  if (reduced) return;
+  const vh = window.innerHeight;
+  for (const el of pEls) {
+    const r = el.getBoundingClientRect();
+    if (r.bottom < -200 || r.top > vh + 200) continue;
+    const off = clamp(((r.top + r.height / 2) - vh / 2) * -parseFloat(el.dataset.parallax), -46, 46);
+    el.style.transform = `translate3d(0, ${off.toFixed(1)}px, 0)`;
+  }
+};
+
+let scrollTick = false;
+window.addEventListener('scroll', () => {
+  if (scrollTick) return;
+  scrollTick = true;
+  requestAnimationFrame(() => { setNav(); applyParallax(); scrollTick = false; });
+}, { passive: true });
+applyParallax();
+
+/* ───────────────────────── hero 3D frame ───────────────────────── */
+const heroEl    = $('#top');
+const heroFrame = $('#heroFrame');
+const heroShadow = $('#heroShadow');
+
+if (heroFrame && finePointer && !reduced) {
+  let hx = 0, hy = 0, cx = 0, cy = 0;
+  heroEl.addEventListener('pointermove', e => {
+    const r = heroEl.getBoundingClientRect();
+    hx = ((e.clientX - r.left) / r.width  - 0.5) * 2;
+    hy = ((e.clientY - r.top)  / r.height - 0.5) * 2;
+  });
+  heroEl.addEventListener('pointerleave', () => { hx = 0; hy = 0; });
+
+  const heroLoop = t => {
+    cx += (hx - cx) * 0.07;
+    cy += (hy - cy) * 0.07;
+    const bob  = Math.sin(t / 1600) * 8;
+    const sway = Math.sin(t / 2400) * 0.5;
+    heroFrame.style.transform =
+      `translateY(${bob.toFixed(1)}px) rotateX(${(-cy * 5.5).toFixed(2)}deg) rotateY(${(cx * 7).toFixed(2)}deg) rotateZ(${sway.toFixed(2)}deg)`;
+    heroShadow.style.transform =
+      `translate(${(-cx * 16).toFixed(1)}px, ${(26 - cy * 12).toFixed(1)}px)`;
+    requestAnimationFrame(heroLoop);
+  };
+  requestAnimationFrame(heroLoop);
+}
+
+/* ───────────────────────── masonry + infinite scroll ───────────────────────── */
+const grid     = $('#masonry');
+const loader   = $('#loader');
+const sentinel = $('#sentinel');
+const endnote  = $('#endnote');
+const FIRST = 9, BATCH = 6;
+let loaded = 0, loadingBatch = false;
+
+function addBatch(count) {
+  const slice = WORKS.slice(loaded, loaded + count);
+  const frag = document.createDocumentFragment();
+
+  slice.forEach((u, i) => {
+    const idx = loaded + i;
+    const fig = document.createElement('figure');
+    fig.className = 'mb-5 break-inside-avoid md:mb-6';
+    fig.style.opacity = '0';
+    fig.style.transform = 'translateY(30px)';
+    fig.style.transition = 'opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1)';
+    fig.style.transitionDelay = `${i * 90}ms`;
+    fig.innerHTML = `
+      <button type="button" data-idx="${idx}" aria-label="View ${u.t}, ${u.m}"
+              class="group relative block w-full cursor-zoom-in overflow-hidden bg-line/50 text-left">
+        <img src="${thumbUrl(u)}" alt="${u.t} — ${u.m}" width="${u.w}" height="${u.h}"
+             loading="lazy" decoding="async" style="aspect-ratio:${u.w}/${u.h}"
+             class="block h-auto w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.035]">
+        <span class="pointer-events-none absolute inset-x-0 bottom-0 flex translate-y-2 items-end justify-between gap-3 bg-gradient-to-t from-black/60 to-transparent px-4 pb-3 pt-12 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
+          <span class="font-serif text-lg italic text-white">${u.t}</span>
+          <span class="whitespace-nowrap text-[9px] uppercase tracking-[0.22em] text-white/60">${u.m}</span>
+        </span>
+      </button>`;
+    frag.appendChild(fig);
+
+    const img = fig.querySelector('img');
+    const show = () => requestAnimationFrame(() => { fig.style.opacity = '1'; fig.style.transform = 'none'; });
+    if (img.complete && img.naturalWidth) show();
+    else { img.addEventListener('load', show, { once: true }); img.addEventListener('error', show, { once: true }); }
+  });
+
+  grid.appendChild(frag);
+  loaded += slice.length;
+}
+
+function loadMore() {
+  if (loadingBatch || loaded >= WORKS.length) return;
+  loadingBatch = true;
+  loader.classList.remove('hidden');
+  loader.classList.add('flex');
+  setTimeout(() => {
+    addBatch(BATCH);
+    loader.classList.add('hidden');
+    loader.classList.remove('flex');
+    loadingBatch = false;
+    if (loaded >= WORKS.length) {
+      sio.disconnect();
+      sentinel.remove();
+      endnote.classList.remove('hidden');
+    }
+  }, 650);
+}
+
+const sio = new IntersectionObserver(es => { if (es[0].isIntersecting) loadMore(); }, { rootMargin: '700px 0px' });
+addBatch(FIRST);
+sio.observe(sentinel);
+
+/* ───────────────────────── 3D lightbox ───────────────────────── */
+const lbEl     = $('#lightbox');
+const lbBk     = $('#lbBackdrop');
+const lbTilt   = $('#lbTilt');
+const lbFloat  = $('#lbFloat');
+const lbImg    = $('#lbImg');
+const lbTitle  = $('#lbTitle');
+const lbMeta   = $('#lbMeta');
+const lbCount  = $('#lbCounter');
+const lbClose  = $('#lbClose');
+
+let cur = 0, lbOpen = false, busy = false, lastFocus = null;
+let tX = 0, tY = 0, cX = 0, cY = 0, lastMove = 0, lbRaf = null;
+
+const pad2 = n => String(n + 1).padStart(2, '0');
+
+function preload(i) {
+  const u = WORKS[(i + WORKS.length) % WORKS.length];
+  const im = new Image(); im.src = largeUrl(u);
+}
+
+function applyLB() {
+  const u = WORKS[cur];
+  lbImg.src = largeUrl(u);
+  lbImg.alt = `${u.t} — ${u.m}`;
+  lbTitle.textContent = u.t;
+  lbMeta.textContent  = u.m;
+  lbCount.textContent = `${pad2(cur)} / ${WORKS.length}`;
+  preload(cur + 1); preload(cur - 1);
+}
+
+function lbLoop(t) {
+  if (!lbOpen) return;
+  const idle = !finePointer || (t - lastMove > 2600);
+  const gx = idle ? Math.sin(t / 1500) * 3.2 : tX;
+  const gy = idle ? Math.sin(t / 1950) * 2.2 - Math.cos(t / 2400) * 1.1 : tY;
+  const bob = idle ? Math.sin(t / 1150) * 7 : 0;
+  cX += (gx - cX) * 0.06;
+  cY += (gy - cY) * 0.06;
+  lbTilt.style.transform =
+    `translateY(${bob.toFixed(1)}px) rotateX(${cY.toFixed(2)}deg) rotateY(${cX.toFixed(2)}deg)`;
+  lbRaf = requestAnimationFrame(lbLoop);
+}
+
+function openLB(i) {
+  cur = i;
+  applyLB();
+  lastFocus = document.activeElement;
+  lbEl.classList.remove('hidden');
+  document.documentElement.style.overflow = 'hidden';
+  requestAnimationFrame(() => { lbBk.style.opacity = '1'; });
+  lbFloat.classList.add('lb-open-from');
+  void lbFloat.offsetWidth;
+  lbFloat.classList.remove('lb-open-from');
+  lbOpen = true; lastMove = 0; cX = cY = tX = tY = 0;
+  if (reduced) { lbTilt.style.transform = 'none'; }
+  else { cancelAnimationFrame(lbRaf); lbRaf = requestAnimationFrame(lbLoop); }
+  lbClose.focus({ preventScroll: true });
+}
+
+function closeLB() {
+  if (!lbOpen) return;
+  lbOpen = false;
+  cancelAnimationFrame(lbRaf);
+  lbBk.style.opacity = '0';
+  lbFloat.classList.add('lb-close');
+  setTimeout(() => {
+    lbEl.classList.add('hidden');
+    lbFloat.classList.remove('lb-close');
+    lbTilt.style.transform = '';
+    document.documentElement.style.overflow = '';
+    if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+  }, reduced ? 0 : 320);
+}
+
+async function navLB(dir) {
+  if (busy || !lbOpen) return;
+  busy = true;
+  const ni = (cur + dir + WORKS.length) % WORKS.length;
+  const pre = new Image(); pre.src = largeUrl(WORKS[ni]);
+  lbFloat.classList.add(dir > 0 ? 'lb-exit-l' : 'lb-exit-r');
+  await Promise.all([
+    pre.decode ? pre.decode().catch(() => {}) : Promise.resolve(),
+    new Promise(r => setTimeout(r, reduced ? 0 : 250)),
+  ]);
+  cur = ni;
+  applyLB();
+  const from = dir > 0 ? 'lb-from-r' : 'lb-from-l';
+  lbFloat.classList.remove('lb-exit-l', 'lb-exit-r');
+  lbFloat.classList.add(from);
+  void lbFloat.offsetWidth;
+  lbFloat.classList.remove(from);
+  busy = false;
+}
+
+grid.addEventListener('click', e => {
+  const btn = e.target.closest('button[data-idx]');
+  if (btn) openLB(+btn.dataset.idx);
+});
+
+lbClose.addEventListener('click', closeLB);
+$('#lbPrev').addEventListener('click', () => navLB(-1));
+$('#lbNext').addEventListener('click', () => navLB(1));
+lbBk.addEventListener('click', closeLB);
+
+lbEl.addEventListener('pointermove', e => {
+  if (!finePointer || reduced) return;
+  tX = (e.clientX / window.innerWidth  - 0.5) * 8;
+  tY = -(e.clientY / window.innerHeight - 0.5) * 6;
+  lastMove = performance.now();
+});
+
+/* swipe on touch */
+let swipeX = null;
+lbEl.addEventListener('pointerdown', e => { if (!e.target.closest('button')) swipeX = e.clientX; });
+lbEl.addEventListener('pointerup', e => {
+  if (swipeX === null) return;
+  const dx = e.clientX - swipeX; swipeX = null;
+  if (Math.abs(dx) > 48) navLB(dx < 0 ? 1 : -1);
+});
+
+document.addEventListener('keydown', e => {
+  if (!lbOpen) return;
+  if (e.key === 'Escape') closeLB();
+  else if (e.key === 'ArrowRight') navLB(1);
+  else if (e.key === 'ArrowLeft') navLB(-1);
+});
+
+/* ───────────────────────── journal arrows ───────────────────────── */
+const track = $('#journalTrack');
+const jPrev = $('#jPrev');
+const jNext = $('#jNext');
+const step = () => (track.querySelector('article')?.offsetWidth || 380) + 24;
+
+jPrev.addEventListener('click', () => track.scrollBy({ left: -step(), behavior: reduced ? 'auto' : 'smooth' }));
+jNext.addEventListener('click', () => track.scrollBy({ left:  step(), behavior: reduced ? 'auto' : 'smooth' }));
+
+const updArrows = () => {
+  jPrev.disabled = track.scrollLeft < 20;
+  jNext.disabled = track.scrollLeft > track.scrollWidth - track.clientWidth - 20;
+};
+track.addEventListener('scroll', () => requestAnimationFrame(updArrows), { passive: true });
+updArrows();
+
+/* ───────────────────────── contact form ───────────────────────── */
+const form = $('#contactForm');
+const btn  = $('#formBtn');
+const status = $('#formStatus');
+
+const fields = [
+  { el: $('#fName'),  err: $('#errName'),  test: v => v.trim().length >= 2,           msg: 'Please tell me your name.' },
+  { el: $('#fEmail'), err: $('#errEmail'), test: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()), msg: 'That email doesn’t look right.' },
+  { el: $('#fMsg'),   err: $('#errMsg'),   test: v => v.trim().length >= 10,          msg: 'A sentence or two helps me reply well.' },
+];
+
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  status.textContent = '';
+  let firstBad = null;
+  for (const f of fields) {
+    const ok = f.test(f.el.value);
+    f.err.textContent = ok ? '' : f.msg;
+    f.el.setAttribute('aria-invalid', ok ? 'false' : 'true');
+    if (!ok && !firstBad) firstBad = f.el;
+  }
+  if (firstBad) { firstBad.focus(); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.textContent = 'Send message';
+    form.reset();
+    status.textContent = 'Thank you — your note is on its way. I reply within two working days.';
+  }, 900);
+});
+
+fields.forEach(f => f.el.addEventListener('input', () => {
+  if (f.el.getAttribute('aria-invalid') === 'true' && f.test(f.el.value)) {
+    f.el.setAttribute('aria-invalid', 'false');
+    f.err.textContent = '';
+  }
+}));
+
+})();
+</script>
+</body>
+</html>

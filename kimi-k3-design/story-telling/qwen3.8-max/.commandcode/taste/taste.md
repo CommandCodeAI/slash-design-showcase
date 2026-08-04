@@ -1,0 +1,1 @@
+- For benchmark/model-entry directories, create a readme.md documenting build metadata: pricing/cost, generation time, and token estimates. Confidence: 0.7

@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#060908">
+<meta name="description" content="LUNAR — an eco-luxury house. Luxury, returned to the earth.">
+<title>LUNAR — Luxury, returned to the earth</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Manrope:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        night:  '#060908',
+        ink:    '#0a0f0d',
+        pine:   '#0f1713',
+        moss:   '#16241c',
+        fern:   '#3e5a41',
+        lichen: '#8fae7e',
+        sage:   '#b9c9a8',
+        moon:   '#e9e4d3',
+        bone:   '#f4f1e6',
+        mist:   '#aab3a6',
+        ash:    '#77817a',
+        ember:  '#c26b3f',
+        sulfur: '#a8934f'
+      },
+      fontFamily: {
+        display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        body:    ['Manrope', 'system-ui', 'sans-serif'],
+        mono:    ['"Space Mono"', 'ui-monospace', 'monospace']
+      }
+    }
+  }
+};
+</script>
+
+<style>
+  html { scroll-behavior: smooth; }
+  html, body { overflow-x: clip; background: #060908; }
+  body { text-rendering: optimizeLegibility; }
+
+  ::selection { background: rgba(143,174,126,.35); color: #f4f1e6; }
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: #060908; }
+  ::-webkit-scrollbar-thumb { background: #1c2b22; border-radius: 8px; border: 2px solid #060908; }
+  ::-webkit-scrollbar-thumb:hover { background: #3e5a41; }
+
+  :focus-visible { outline: 2px dashed #e9e4d3; outline-offset: 4px; border-radius: 2px; }
+
+  .mono-label { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: .35em; text-transform: uppercase; }
+
+  .grain {
+    position: fixed; inset: -50%; z-index: 80; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+    opacity: .05; mix-blend-mode: overlay;
+    animation: grain-shift 1.2s steps(4) infinite;
+  }
+  @keyframes grain-shift {
+    0% { transform: translate(0,0); } 25% { transform: translate(-2%,3%); }
+    50% { transform: translate(3%,-2%); } 75% { transform: translate(-3%,-3%); }
+    100% { transform: translate(0,0); }
+  }
+
+  .vignette { position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 45%, transparent 52%, rgba(3,5,4,.62) 100%); }
+  .top-fade { position: fixed; left: 0; right: 0; top: 0; height: 130px; z-index: 30; pointer-events: none;
+    background: linear-gradient(to bottom, rgba(6,9,8,.78), transparent); }
+
+  .outline-text { color: transparent; -webkit-text-stroke: 1px rgba(244,241,230,.22); }
+
+  .mask { display: inline-block; overflow: hidden; vertical-align: bottom; }
+  .hero-letter { display: inline-block; will-change: transform; }
+
+  .cue-line { width: 1px; height: 64px; background: linear-gradient(to bottom, rgba(244,241,230,.7), transparent);
+    transform-origin: top; animation: cue 2.4s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes cue { 0% { transform: scaleY(0); opacity: 0; } 35% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1) translateY(40px); opacity: 0; } }
+
+  @keyframes float-y { from { transform: translateY(-7px); } to { transform: translateY(9px); } }
+  .float-a { animation: float-y 7.5s ease-in-out infinite alternate; }
+  .float-b { animation: float-y 8.5s ease-in-out -2.8s infinite alternate; }
+  .float-c { animation: float-y 9.5s ease-in-out -5.2s infinite alternate; }
+
+  @keyframes spin-cw  { to { transform: rotate(360deg); } }
+  @keyframes spin-ccw { to { transform: rotate(-360deg); } }
+  .spin-slow  { animation: spin-cw 90s linear infinite; }
+  .spin-slower { animation: spin-ccw 140s linear infinite; }
+
+  @keyframes core-breathe { 0%,100% { opacity: .75; } 50% { opacity: 1; } }
+  .core-breathe { animation: core-breathe 5s ease-in-out infinite; }
+
+  @keyframes marquee { to { transform: translateX(-50%); } }
+  .marquee-track { animation: marquee 30s linear infinite; }
+
+  @keyframes smoke-drift { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(60px,-40px) scale(1.15); } }
+  .smoke { animation: smoke-drift 14s ease-in-out infinite; }
+
+  .chapter-tag { writing-mode: vertical-rl; transform: rotate(180deg); }
+
+  .nav-dot .dot { transition: transform .4s cubic-bezier(.22,1,.36,1), background-color .4s; }
+  .nav-dot .nav-label { transition: opacity .4s; }
+  .nav-dot.is-active .dot { transform: scale(1.9); background-color: #f4f1e6; }
+  .nav-dot.is-active .nav-label { opacity: 1; }
+
+  input.email-field { caret-color: #8fae7e; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .grain, .cue-line, .float-a, .float-b, .float-c, .spin-slow, .spin-slower,
+    .core-breathe, .marquee-track, .smoke { animation: none !important; }
+    #journey-track { flex-wrap: wrap; width: 100%; }
+    #journey-track .phase { width: 100% !important; }
+  }
+</style>
+</head>
+
+<body class="bg-night text-bone font-body antialiased">
+
+<a href="#problem" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-bone focus:text-night focus:px-4 focus:py-2 focus:rounded-full">Skip to content</a>
+
+<!-- ============ FIXED SCENE ============ -->
+<canvas id="webgl" class="fixed inset-0 z-0 w-full h-full pointer-events-none" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+<div class="top-fade" aria-hidden="true"></div>
+<div id="progress-bar" class="fixed top-0 left-0 right-0 h-px z-[90] bg-lichen origin-left scale-x-0" aria-hidden="true"></div>
+
+<!-- ============ HEADER ============ -->
+<header class="fixed top-0 inset-x-0 z-50 px-6 md:px-12 py-6 flex items-center justify-between">
+  <a href="#hero" class="font-display text-xl md:text-2xl tracking-[0.45em] text-bone hover:text-moon transition-colors">LUNAR</a>
+  <nav class="hidden md:flex items-center gap-10" aria-label="Primary">
+    <a href="#problem"  class="mono-label text-mist hover:text-bone transition-colors">Story</a>
+    <a href="#solution" class="mono-label text-mist hover:text-bone transition-colors">Cycle</a>
+    <a href="#impact"   class="mono-label text-mist hover:text-bone transition-colors">Impact</a>
+  </nav>
+  <a href="#cta" class="mono-label text-bone border border-bone/25 rounded-full px-5 py-2.5 hover:bg-bone hover:text-night transition-colors">Join</a>
+</header>
+
+<!-- ============ SIDE CHAPTER NAV ============ -->
+<nav id="side-nav" class="fixed right-7 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col items-end gap-6" aria-label="Chapters">
+  <a href="#hero"     data-nav="hero"     class="nav-dot group flex items-center justify-end gap-3"><span class="nav-label mono-label text-ash opacity-0 group-hover:opacity-100">Prologue</span><span class="dot block w-1.5 h-1.5 rounded-full bg-bone/30"></span></a>
+  <a href="#problem"  data-nav="problem"  class="nav-dot group flex items-center justify-end gap-3"><span class="nav-label mono-label text-ash opacity-0 group-hover:opacity-100">The Problem</span><span class="dot block w-1.5 h-1.5 rounded-full bg-bone/30"></span></a>
+  <a href="#journey"  data-nav="journey"  class="nav-dot group flex items-center justify-end gap-3"><span class="nav-label mono-label text-ash opacity-0 group-hover:opacity-100">The Journey</span><span class="dot block w-1.5 h-1.5 rounded-full bg-bone/30"></span></a>
+  <a href="#solution" data-nav="solution" class="nav-dot group flex items-center justify-end gap-3"><span class="nav-label mono-label text-ash opacity-0 group-hover:opacity-100">The Solution</span><span class="dot block w-1.5 h-1.5 rounded-full bg-bone/30"></span></a>
+  <a href="#impact"   data-nav="impact"   class="nav-dot group flex items-center justify-end gap-3"><span class="nav-label mono-label text-ash opacity-0 group-hover:opacity-100">Impact</span><span class="dot block w-1.5 h-1.5 rounded-full bg-bone/30"></span></a>
+  <a href="#cta"      data-nav="cta"      class="nav-dot group flex items-center justify-end gap-3"><span class="nav-label mono-label text-ash opacity-0 group-hover:opacity-100">The Invitation</span><span class="dot block w-1.5 h-1.5 rounded-full bg-bone/30"></span></a>
+</nav>
+
+<div id="chapter-tag" class="chapter-tag fixed left-6 bottom-8 z-40 hidden md:block mono-label text-ash" aria-live="polite">00 · Prologue</div>
+
+<div class="grain" aria-hidden="true"></div>
+
+<main>
+
+<!-- ================================================================
+     HERO — forest to moon
+================================================================ -->
+<section id="hero" class="relative h-[118vh] overflow-hidden">
+  <!-- far ridge -->
+  <svg class="layer-far absolute inset-x-0 bottom-0 w-full h-[46vh] z-[1]" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
+    <path fill="#0d1712" d="M0,320 L0,208 Q90,168 180,190 T360,178 T540,200 T720,164 T900,190 T1080,158 T1260,184 T1440,166 L1440,320 Z"/>
+  </svg>
+  <!-- mid pine ridge -->
+  <svg class="layer-mid absolute inset-x-0 bottom-0 w-full h-[40vh] z-[2]" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
+    <path fill="#0a120d" d="M0,320 L0,238 L24,168 L44,232 L64,150 L86,226 L104,176 L126,240 L148,142 L170,228 L190,166 L212,244 L232,150 L254,232 L274,180 L296,246 L318,138 L340,230 L360,172 L382,248 L404,156 L426,236 L446,184 L468,250 L490,146 L512,234 L532,170 L554,242 L576,152 L598,238 L618,188 L640,252 L662,144 L684,232 L704,174 L726,246 L748,158 L770,236 L790,186 L812,250 L834,148 L856,234 L876,176 L898,244 L920,142 L942,230 L962,172 L984,248 L1006,154 L1028,238 L1048,188 L1070,252 L1092,146 L1114,232 L1134,176 L1156,246 L1178,158 L1200,236 L1220,184 L1242,250 L1264,144 L1286,230 L1306,172 L1328,244 L1350,156 L1372,238 L1394,182 L1416,248 L1440,190 L1440,320 Z"/>
+  </svg>
+  <!-- near pines -->
+  <svg class="layer-near absolute inset-x-0 -bottom-1 w-full h-[34vh] z-[3]" viewBox="-720 -260 1440 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <defs>
+      <g id="pine">
+        <path d="M0,-132 L15,-96 L7,-99 L24,-62 L13,-66 L32,-30 L17,-35 L38,4 L9,-4 L9,20 L-9,20 L-9,-4 L-38,4 L-17,-35 L-32,-30 L-13,-66 L-24,-62 L-7,-99 L-15,-96 Z"/>
+      </g>
+    </defs>
+    <g fill="#04080a">
+      <use href="#pine" transform="translate(-660,0) scale(0.9)"/>
+      <use href="#pine" transform="translate(-560,0) scale(1.35)"/>
+      <use href="#pine" transform="translate(-470,0) scale(0.75)"/>
+      <use href="#pine" transform="translate(-360,0) scale(1.1)"/>
+      <use href="#pine" transform="translate(-250,0) scale(1.5)"/>
+      <use href="#pine" transform="translate(-150,0) scale(0.85)"/>
+      <use href="#pine" transform="translate(-40,0) scale(1.25)"/>
+      <use href="#pine" transform="translate(80,0) scale(0.95)"/>
+      <use href="#pine" transform="translate(190,0) scale(1.45)"/>
+      <use href="#pine" transform="translate(300,0) scale(0.8)"/>
+      <use href="#pine" transform="translate(410,0) scale(1.2)"/>
+      <use href="#pine" transform="translate(520,0) scale(1.0)"/>
+      <use href="#pine" transform="translate(630,0) scale(1.4)"/>
+      <rect x="-720" y="16" width="1440" height="60"/>
+    </g>
+  </svg>
+
+  <div class="relative z-[4] flex flex-col justify-between min-h-full px-6 md:px-12 pt-32 pb-14 max-w-[1680px] mx-auto">
+    <div id="hero-kicker" class="flex items-center gap-6">
+      <span class="block w-16 md:w-28 h-px bg-bone/40" aria-hidden="true"></span>
+      <p class="mono-label text-mist">N 47&deg;18&prime; &mdash; the silent forest</p>
+    </div>
+
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-10">
+      <div>
+        <h1 id="hero-title" aria-label="LUNAR" class="font-display font-light text-bone leading-[0.9] tracking-[0.06em] text-[clamp(4.8rem,17vw,15rem)]">
+          <span class="mask" aria-hidden="true"><span class="hero-letter">L</span></span><span class="mask" aria-hidden="true"><span class="hero-letter">U</span></span><span class="mask" aria-hidden="true"><span class="hero-letter">N</span></span><span class="mask" aria-hidden="true"><span class="hero-letter">A</span></span><span class="mask" aria-hidden="true"><span class="hero-letter">R</span></span>
+        </h1>
+        <p id="hero-sub" class="mt-6 font-display italic font-light text-moon text-2xl md:text-4xl">Luxury, returned to the earth.</p>
+        <p id="hero-est" class="mt-4 mono-label text-ash">A circular house &middot; est. MMXXVI</p>
+      </div>
+
+      <div id="scroll-cue" class="hidden md:flex flex-col items-center gap-4 pb-2" aria-hidden="true">
+        <span class="mono-label text-ash" style="writing-mode:vertical-rl">Scroll to begin</span>
+        <span class="cue-line"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     CHAPTER 01 — THE PROBLEM
+================================================================ -->
+<section id="problem" class="relative min-h-screen py-32 md:py-44">
+  <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+    <div class="absolute inset-0 bg-gradient-to-b from-night via-night/60 to-night"></div>
+    <div class="smoke absolute left-[8%] top-[20%] w-[420px] h-[420px] rounded-full bg-ember/10 blur-3xl"></div>
+    <div class="smoke absolute right-[5%] top-[45%] w-[520px] h-[520px] rounded-full bg-sulfur/10 blur-3xl" style="animation-delay:-6s"></div>
+    <div class="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-[#1a0f08]/60 to-transparent"></div>
+  </div>
+
+  <div class="relative max-w-[1200px] mx-auto px-6 md:px-12">
+    <div class="flex items-center gap-6" data-reveal="fade">
+      <span class="block w-16 h-px bg-ember/60" aria-hidden="true"></span>
+      <p class="mono-label text-ember">Chapter 01 &mdash; The problem</p>
+    </div>
+
+    <h2 class="mt-12 font-display font-light text-bone leading-[1.04] text-[clamp(2.6rem,6.5vw,5.8rem)] max-w-4xl">
+      <span class="block" data-reveal="rise">We borrowed a world.</span>
+      <span class="block italic text-mist" data-reveal="rise" data-delay="0.15">And spent it like it was ours to burn.</span>
+    </h2>
+
+    <div class="mt-16 grid md:grid-cols-2 gap-12 md:gap-20 items-start">
+      <p class="text-mist leading-relaxed max-w-md text-lg" data-reveal="up" data-delay="0.2">
+        Every year the world cuts, dyes, and stitches a hundred billion garments,
+        then buries most of them within a season. The soil keeps the memory.
+        The rivers keep the color. The nights grow dimmer, and the forests grow thin.
+      </p>
+      <ul class="grid gap-6" data-reveal="right" data-delay="0.3">
+        <li class="flex items-baseline justify-between gap-8 border-t border-bone/10 pt-5">
+          <span class="font-display text-4xl md:text-5xl text-bone">100<span class="text-ember italic">B</span></span>
+          <span class="mono-label text-ash text-right">garments made each year</span>
+        </li>
+        <li class="flex items-baseline justify-between gap-8 border-t border-bone/10 pt-5">
+          <span class="font-display text-4xl md:text-5xl text-bone">92<span class="text-ember italic">M</span></span>
+          <span class="mono-label text-ash text-right">tonnes of textile waste</span>
+        </li>
+        <li class="flex items-baseline justify-between gap-8 border-t border-bone/10 pt-5">
+          <span class="font-display text-4xl md:text-5xl text-bone">&times;2</span>
+          <span class="mono-label text-ash text-right">production since 2000</span>
+        </li>
+      </ul>
+    </div>
+
+    <p class="mt-24 md:mt-32 font-display italic text-2xl md:text-3xl text-sulfur max-w-2xl" data-reveal="fade" data-delay="0.1">
+      We refused to build a house on that ground.
+    </p>
+  </div>
+</section>
+
+<!-- ================================================================
+     CHAPTER 02 — THE JOURNEY  (pinned, transforming)
+================================================================ -->
+<section id="journey" class="relative overflow-hidden bg-[#0a0e0c]">
+  <div class="h-screen flex flex-col justify-center relative">
+    <div class="absolute top-0 inset-x-0 px-6 md:px-12 pt-28 flex items-center gap-6">
+      <span class="block w-16 h-px bg-lichen/50" aria-hidden="true"></span>
+      <p class="mono-label text-lichen">Chapter 02 &mdash; The journey</p>
+      <p class="mono-label text-ash ml-auto hidden md:block">Keep scrolling &mdash; the ground changes</p>
+    </div>
+
+    <div id="journey-viewport" class="overflow-hidden mt-10">
+      <div id="journey-track" class="flex w-max will-change-transform">
+
+        <article class="phase relative w-screen shrink-0 flex items-center px-6 md:px-24">
+          <span class="absolute right-4 md:right-20 top-1/2 -translate-y-1/2 font-display text-[36vmin] leading-none text-bone/[0.04] select-none" aria-hidden="true">01</span>
+          <div class="phase-inner relative max-w-2xl">
+            <p class="mono-label text-mist mb-8">Phase 01 &mdash; The question</p>
+            <h3 class="font-display font-light text-4xl md:text-6xl leading-[1.05] text-bone">
+              It began with a question:<br>
+              <em class="italic text-lichen">what if luxury healed</em> the ground it came from?
+            </h3>
+          </div>
+        </article>
+
+        <article class="phase relative w-screen shrink-0 flex items-center px-6 md:px-24">
+          <span class="absolute right-4 md:right-20 top-1/2 -translate-y-1/2 font-display text-[36vmin] leading-none text-bone/[0.04] select-none" aria-hidden="true">02</span>
+          <div class="phase-inner relative max-w-2xl">
+            <p class="mono-label text-mist mb-8">Phase 02 &mdash; The search</p>
+            <h3 class="font-display font-light text-4xl md:text-6xl leading-[1.05] text-bone">
+              Seven years in the field. <em class="italic text-sage">Zero shortcuts.</em>
+            </h3>
+            <p class="mt-8 text-mist leading-relaxed max-w-md">
+              We lived with the growers who would grow our materials, and learned the pace of soil.
+            </p>
+            <p class="mt-6 mono-label text-ash">2019&mdash;2026 &middot; 14 regenerative farms &middot; 3 continents</p>
+          </div>
+        </article>
+
+        <article class="phase relative w-screen shrink-0 flex items-center px-6 md:px-24">
+          <span class="absolute right-4 md:right-20 top-1/2 -translate-y-1/2 font-display text-[36vmin] leading-none text-bone/[0.04] select-none" aria-hidden="true">03</span>
+          <div class="phase-inner relative flex flex-col lg:flex-row items-start lg:items-center gap-14 lg:gap-24">
+            <div class="max-w-xl">
+              <p class="mono-label text-mist mb-8">Phase 03 &mdash; The method</p>
+              <h3 class="font-display font-light text-4xl md:text-6xl leading-[1.05] text-bone">
+                A closed loop, <em class="italic text-lichen">tuned like a phase of the moon.</em>
+              </h3>
+              <p class="mt-8 text-mist leading-relaxed max-w-md">
+                Nothing is taken that cannot be given back. Every thread knows its way home.
+              </p>
+            </div>
+            <div class="relative w-56 h-56 md:w-72 md:h-72 rounded-full border border-bone/20 shrink-0" aria-hidden="true">
+              <span class="absolute left-1/2 -translate-x-1/2 -top-7 mono-label text-lichen">Forage</span>
+              <span class="absolute top-1/2 -translate-y-1/2 -right-7 mono-label text-lichen">Weave</span>
+              <span class="absolute left-1/2 -translate-x-1/2 -bottom-7 mono-label text-lichen">Wear</span>
+              <span class="absolute top-1/2 -translate-y-1/2 -left-9 mono-label text-lichen">Return</span>
+              <span class="absolute inset-6 rounded-full border border-bone/10 spin-slow flex items-start justify-center">
+                <span class="block w-2 h-2 mt-[-4px] rounded-full bg-lichen"></span>
+              </span>
+            </div>
+          </div>
+        </article>
+
+        <article class="phase relative w-screen shrink-0 flex items-center px-6 md:px-24">
+          <span class="absolute right-4 md:right-20 top-1/2 -translate-y-1/2 font-display text-[36vmin] leading-none text-bone/[0.04] select-none" aria-hidden="true">04</span>
+          <div class="phase-inner relative max-w-2xl">
+            <p class="mono-label text-mist mb-8">Phase 04 &mdash; The vow</p>
+            <h3 class="font-display font-light text-4xl md:text-6xl leading-[1.05] text-bone">
+              Nothing leaves the cycle. <em class="italic text-sage">Ever.</em>
+            </h3>
+            <p class="mt-10 mono-label text-lichen">Scroll on &mdash; the cycle opens below</p>
+          </div>
+        </article>
+
+      </div>
+    </div>
+
+    <div class="absolute bottom-10 inset-x-0 px-6 md:px-24" aria-hidden="true">
+      <div class="h-px bg-bone/10 relative">
+        <div id="rail-fill" class="absolute inset-y-0 left-0 w-full bg-lichen origin-left scale-x-0"></div>
+      </div>
+      <div class="mt-3 flex justify-between mono-label text-ash">
+        <span>Question</span><span class="hidden sm:inline">Search</span><span class="hidden sm:inline">Method</span><span>Vow</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     CHAPTER 03 — THE SOLUTION  (orbiting ecosystem)
+================================================================ -->
+<section id="solution" class="relative py-32 md:py-40">
+  <div class="absolute inset-0 bg-gradient-to-b from-[#0a0e0c] via-transparent to-transparent pointer-events-none" aria-hidden="true"></div>
+
+  <div class="relative max-w-[1400px] mx-auto px-6 md:px-12">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-10">
+      <div>
+        <div class="flex items-center gap-6" data-reveal="fade">
+          <span class="block w-16 h-px bg-lichen/60" aria-hidden="true"></span>
+          <p class="mono-label text-lichen">Chapter 03 &mdash; The solution</p>
+        </div>
+        <h2 class="mt-10 font-display font-light text-bone leading-[1.04] text-[clamp(2.6rem,6.5vw,5.8rem)]">
+          <span class="block" data-reveal="rise">One collection.</span>
+          <span class="block italic text-sage" data-reveal="rise" data-delay="0.15">A whole ecosystem.</span>
+        </h2>
+      </div>
+      <p class="text-mist leading-relaxed max-w-sm md:text-right" data-reveal="up" data-delay="0.25">
+        Three objects, grown rather than manufactured. Each carries a seed
+        of what made it. Return it, and the next cycle begins.
+      </p>
+    </div>
+  </div>
+
+  <div class="relative max-w-[1400px] mx-auto px-6 md:px-12 mt-10 md:mt-0">
+    <div class="relative h-auto md:h-[96vh] flex flex-col gap-10 md:block">
+
+      <!-- orbit rings + core (desktop) -->
+      <div class="hidden md:block absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[56vmin] h-[56vmin]">
+          <div class="w-full h-full rounded-full border border-bone/10 spin-slow flex items-start justify-center">
+            <span class="block w-2 h-2 mt-[-4px] rounded-full bg-lichen"></span>
+          </div>
+        </div>
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[82vmin] h-[82vmin]">
+          <div class="w-full h-full rounded-full border border-bone/[0.06] spin-slower flex items-center justify-start">
+            <span class="block w-1.5 h-1.5 ml-[-3px] rounded-full bg-moon/70"></span>
+          </div>
+        </div>
+        <div class="core-breathe absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full"
+             style="background: radial-gradient(circle, rgba(236,231,216,.85) 0%, rgba(143,174,126,.3) 42%, transparent 70%);"></div>
+      </div>
+
+      <!-- N°01 -->
+      <div class="float-a relative md:absolute md:left-[3%] md:top-[9%] md:w-[31%]" data-reveal="scale">
+        <article data-tilt class="relative border border-bone/15 bg-ink p-8 md:p-10">
+          <div class="flex items-center justify-between mb-8">
+            <span class="mono-label text-lichen">N&deg;01</span>
+            <span class="block w-8 h-px bg-bone/30" aria-hidden="true"></span>
+          </div>
+          <h3 class="font-display font-light text-4xl md:text-5xl text-bone tracking-wide">SELENE</h3>
+          <p class="mt-2 font-display italic text-mist text-xl">the night vessel</p>
+          <p class="mt-6 text-mist text-sm leading-relaxed">
+            Hand-blown from reclaimed obsidian glass, cradled in grown mycelium.
+            Twenty-one days in the making, a lifetime in the keeping.
+          </p>
+          <p class="mt-8 pt-5 border-t border-bone/10 mono-label text-ash">Carbon &minus;4.2 kg &middot; grown, not mined</p>
+        </article>
+      </div>
+
+      <!-- N°02 -->
+      <div class="float-b relative md:absolute md:right-[4%] md:top-[16%] md:w-[30%]" data-reveal="scale" data-delay="0.15">
+        <article data-tilt class="relative border border-bone/15 bg-ink p-8 md:p-10">
+          <div class="flex items-center justify-between mb-8">
+            <span class="mono-label text-lichen">N&deg;02</span>
+            <span class="block w-8 h-px bg-bone/30" aria-hidden="true"></span>
+          </div>
+          <h3 class="font-display font-light text-4xl md:text-5xl text-bone tracking-wide">UMBRA</h3>
+          <p class="mt-2 font-display italic text-mist text-xl">the living light</p>
+          <p class="mt-6 text-mist text-sm leading-relaxed">
+            A luminaire of bioluminescent algae that breathes with the room.
+            Fed on rainwater, it glows the color of moonrise.
+          </p>
+          <p class="mt-8 pt-5 border-t border-bone/10 mono-label text-ash">Zero wiring &middot; fed on rain</p>
+        </article>
+      </div>
+
+      <!-- N°03 -->
+      <div class="float-c relative md:absolute md:left-[26%] md:bottom-[3%] md:w-[34%]" data-reveal="scale" data-delay="0.3">
+        <article data-tilt class="relative border border-bone/15 bg-ink p-8 md:p-10">
+          <div class="flex items-center justify-between mb-8">
+            <span class="mono-label text-lichen">N&deg;03</span>
+            <span class="block w-8 h-px bg-bone/30" aria-hidden="true"></span>
+          </div>
+          <h3 class="font-display font-light text-4xl md:text-5xl text-bone tracking-wide">TESSERA</h3>
+          <p class="mt-2 font-display italic text-mist text-xl">the woven soil</p>
+          <p class="mt-6 text-mist text-sm leading-relaxed">
+            A coat woven from regenerative nettle and moon-cured flax.
+            When its long life ends, it composts into next spring.
+          </p>
+          <p class="mt-8 pt-5 border-t border-bone/10 mono-label text-ash">Composts in 90 days</p>
+        </article>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- cycle marquee -->
+  <div class="mt-24 md:mt-16 border-y border-bone/10 py-5 overflow-hidden" aria-hidden="true">
+    <div class="marquee-track flex w-max whitespace-nowrap">
+      <span class="mono-label text-ash pr-8">Forage &middot; Weave &middot; Wear &middot; Return &middot; Forage &middot; Weave &middot; Wear &middot; Return &middot; Forage &middot; Weave &middot; Wear &middot; Return &middot;&nbsp;</span>
+      <span class="mono-label text-ash pr-8">Forage &middot; Weave &middot; Wear &middot; Return &middot; Forage &middot; Weave &middot; Wear &middot; Return &middot; Forage &middot; Weave &middot; Wear &middot; Return &middot;&nbsp;</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     CHAPTER 04 — IMPACT
+================================================================ -->
+<section id="impact" class="relative py-32 md:py-44 overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+    <div class="absolute bottom-[-20%] left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-lichen/[0.06] blur-3xl"></div>
+  </div>
+
+  <div class="relative max-w-[1200px] mx-auto px-6 md:px-12">
+    <div class="flex items-center gap-6" data-reveal="fade">
+      <span class="block w-16 h-px bg-lichen/60" aria-hidden="true"></span>
+      <p class="mono-label text-lichen">Chapter 04 &mdash; Impact</p>
+    </div>
+
+    <h2 class="mt-10 font-display font-light text-bone leading-[1.04] text-[clamp(2.6rem,6.5vw,5.8rem)]">
+      <span class="block" data-reveal="rise">Numbers that</span>
+      <span class="block italic text-sage" data-reveal="rise" data-delay="0.15">still breathe.</span>
+    </h2>
+
+    <div class="mt-20 md:mt-28 grid md:grid-cols-2 gap-x-20 gap-y-16">
+      <div class="stat border-t border-bone/15 pt-8" data-reveal="fly-left">
+        <p class="font-display font-medium text-bone leading-none text-[clamp(4rem,9vw,8.5rem)]">
+          <span data-count="312">312</span><span class="text-lichen italic text-[0.45em] align-baseline ml-2">ha</span>
+        </p>
+        <p class="mt-5 mono-label text-ash">old-growth forest, now under our protection</p>
+      </div>
+      <div class="stat md:mt-12 border-t border-bone/15 pt-8" data-reveal="fly-right" data-delay="0.12">
+        <p class="font-display font-medium text-bone leading-none text-[clamp(4rem,9vw,8.5rem)]">
+          <span data-count="12480">12,480</span>
+        </p>
+        <p class="mt-5 mono-label text-ash">trees planted by the first collection alone</p>
+      </div>
+      <div class="stat border-t border-bone/15 pt-8" data-reveal="fly-left" data-delay="0.24">
+        <p class="font-display font-medium text-bone leading-none text-[clamp(4rem,9vw,8.5rem)]">
+          <span data-count="94">94</span><span class="text-lichen italic text-[0.45em] align-baseline ml-2">%</span>
+        </p>
+        <p class="mt-5 mono-label text-ash">of every piece is circular by mass</p>
+      </div>
+      <div class="stat md:mt-12 border-t border-bone/15 pt-8" data-reveal="fly-up" data-delay="0.36">
+        <p class="font-display font-medium text-bone leading-none text-[clamp(4rem,9vw,8.5rem)]">
+          <span data-count="0">0</span><span class="text-lichen italic text-[0.45em] align-baseline ml-2">g</span>
+        </p>
+        <p class="mt-5 mono-label text-ash">sent to landfill since the first day</p>
+      </div>
+    </div>
+
+    <p class="mt-24 md:mt-32 mono-label text-ash" data-reveal="fade">
+      Audited annually by the Moonlight Trust &mdash; because promises deserve witnesses.
+    </p>
+  </div>
+</section>
+
+<!-- ================================================================
+     CHAPTER 05 — THE INVITATION (CTA)
+================================================================ -->
+<section id="cta" class="relative min-h-[110vh] flex flex-col justify-center py-32">
+  <div class="relative max-w-[1000px] mx-auto px-6 md:px-12 text-center">
+    <div class="flex items-center justify-center gap-6" data-reveal="fade">
+      <span class="block w-10 h-px bg-bone/40" aria-hidden="true"></span>
+      <p class="mono-label text-mist">The invitation</p>
+      <span class="block w-10 h-px bg-bone/40" aria-hidden="true"></span>
+    </div>
+
+    <h2 class="mt-12 font-display font-light text-bone leading-[1.06] text-[clamp(2.8rem,7vw,6.5rem)]">
+      <span class="block" data-reveal="rise">The moon keeps no secrets.</span>
+      <span class="block italic text-moon" data-reveal="rise" data-delay="0.15">Neither do we.</span>
+    </h2>
+
+    <p class="mt-10 text-mist text-lg leading-relaxed max-w-xl mx-auto" data-reveal="up" data-delay="0.25">
+      Join the first Lunar Cycle. One hundred pieces. One hundred stewards.
+      When the next full moon rises, the circle opens.
+    </p>
+
+    <form id="join-form" class="mt-14 flex flex-col sm:flex-row items-stretch gap-4 max-w-lg mx-auto" data-reveal="up" data-delay="0.35">
+      <label for="email" class="sr-only">Email address</label>
+      <input id="email" name="email" type="email" required autocomplete="email"
+             placeholder="you@somewhere.earth"
+             class="email-field flex-1 bg-transparent border-b border-bone/30 focus:border-lichen text-base text-bone placeholder:text-ash/70 px-2 py-3.5 transition-colors">
+      <button type="submit"
+              class="mono-label bg-bone text-night rounded-full px-8 py-4 hover:bg-moon hover:tracking-[0.42em] transition-all duration-300">
+        Request invitation
+      </button>
+    </form>
+    <p id="join-ok" class="hidden mt-14 font-display italic text-2xl text-lichen" role="status">
+      You are on the list. The next full moon brings word.
+    </p>
+
+    <p class="mt-10 mono-label text-ash" data-reveal="fade" data-delay="0.45">No noise &mdash; two letters per moon cycle</p>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="relative border-t border-bone/10 pt-20 pb-10 overflow-hidden">
+  <p class="outline-text font-display text-center leading-none select-none text-[clamp(5rem,20vw,20rem)] tracking-[0.1em]" aria-hidden="true">LUNAR</p>
+  <div class="mt-12 max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-6 mono-label text-ash">
+    <p>Lunar &mdash; est. MMXXVI</p>
+    <nav class="flex gap-8" aria-label="Footer">
+      <a href="#journey" class="hover:text-bone transition-colors">Manifesto</a>
+      <a href="#solution" class="hover:text-bone transition-colors">The Cycle</a>
+      <a href="#cta" class="hover:text-bone transition-colors">Contact</a>
+    </nav>
+    <p>N 47&deg;18&prime; &middot; crafted under moonlight</p>
+  </div>
+</footer>
+
+<!-- ============ LIBRARIES ============ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<script>
+(function () {
+  'use strict';
+
+  var $  = function (s, c) { return (c || document).querySelector(s); };
+  var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
+  var motionOK = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function keyTrack(p, keys) {
+    if (!keys || !keys.length) return 0;
+    if (p <= keys[0][0]) return keys[0][1];
+    for (var i = 0; i < keys.length - 1; i++) {
+      var p0 = keys[i][0], v0 = keys[i][1], p1 = keys[i + 1][0], v1 = keys[i + 1][1];
+      if (p >= p0 && p <= p1) return lerp(v0, v1, (p - p0) / Math.max(0.0001, p1 - p0));
+    }
+    return keys[keys.length - 1][1];
+  }
+  function fmt(n, d) {
+    return n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+
+  /* =========================================================
+     THREE.JS SCENE — stars, moon, earth
+  ========================================================= */
+  var threeOK = false;
+  var renderer, scene, camera, halfH = 4.1, halfW = 7;
+  var stars, moonGroup, moonMesh, moonGlow, earthGroup, earthMesh, cloudMesh, atmoMesh;
+  var deadColor, liveColor;
+  var keys = null;
+  var pointer = { x: 0, y: 0 };
+  var camX = 0, camY = 0;
+
+  function makeCanvasTexture(w, h, draw) {
+    var c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    draw(c.getContext('2d'), w, h);
+    return new THREE.CanvasTexture(c);
+  }
+
+  function moonTexture() {
+    return makeCanvasTexture(1024, 512, function (x, w, h) {
+      x.fillStyle = '#cfcabd';
+      x.fillRect(0, 0, w, h);
+      var i, r, cx, cy;
+      for (i = 0; i < 26; i++) {
+        x.fillStyle = 'rgba(118,116,103,' + (0.05 + Math.random() * 0.08).toFixed(3) + ')';
+        r = 40 + Math.random() * 110;
+        x.beginPath();
+        x.ellipse(Math.random() * w, Math.random() * h, r, r * (0.6 + Math.random() * 0.5), Math.random() * Math.PI, 0, Math.PI * 2);
+        x.fill();
+      }
+      for (i = 0; i < 240; i++) {
+        r = 1 + Math.random() * 9; cx = Math.random() * w; cy = Math.random() * h;
+        x.fillStyle = 'rgba(90,88,78,' + (0.08 + Math.random() * 0.18).toFixed(3) + ')';
+        x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fill();
+        x.fillStyle = 'rgba(230,226,210,' + (0.05 + Math.random() * 0.10).toFixed(3) + ')';
+        x.beginPath(); x.arc(cx - r * 0.3, cy - r * 0.3, r * 0.5, 0, Math.PI * 2); x.fill();
+      }
+    });
+  }
+
+  function earthTexture() {
+    return makeCanvasTexture(1024, 512, function (x, w, h) {
+      var g = x.createLinearGradient(0, 0, 0, h);
+      g.addColorStop(0, '#0d2f2b'); g.addColorStop(0.5, '#103a30'); g.addColorStop(1, '#0c2b26');
+      x.fillStyle = g; x.fillRect(0, 0, w, h);
+      var greens = ['#2e4d33', '#3b5f3c', '#54754a', '#6b8a55', '#87a066'];
+      for (var i = 0; i < 34; i++) {
+        var cx = Math.random() * w, cy = 80 + Math.random() * 350;
+        x.fillStyle = greens[i % greens.length];
+        for (var j = 0; j < 26; j++) {
+          var r = 8 + Math.random() * 34;
+          cx += (Math.random() - 0.5) * 46; cy += (Math.random() - 0.5) * 30;
+          x.beginPath();
+          x.ellipse(cx, cy, r, r * (0.5 + Math.random() * 0.7), Math.random() * Math.PI, 0, Math.PI * 2);
+          x.fill();
+        }
+      }
+      x.fillStyle = 'rgba(228,232,220,0.85)';
+      x.fillRect(0, 0, w, 24); x.fillRect(0, h - 24, w, 24);
+    });
+  }
+
+  function cloudTexture() {
+    return makeCanvasTexture(1024, 512, function (x, w, h) {
+      for (var i = 0; i < 140; i++) {
+        var r = 6 + Math.random() * 26;
+        x.fillStyle = 'rgba(255,255,255,' + (0.05 + Math.random() * 0.16).toFixed(3) + ')';
+        x.beginPath();
+        x.ellipse(Math.random() * w, 60 + Math.random() * (h - 120), r, r * 0.42, Math.random() * 0.6 - 0.3, 0, Math.PI * 2);
+        x.fill();
+      }
+    });
+  }
+
+  function glowTexture() {
+    return makeCanvasTexture(256, 256, function (x) {
+      var g = x.createRadialGradient(128, 128, 0, 128, 128, 128);
+      g.addColorStop(0, 'rgba(236,231,216,0.9)');
+      g.addColorStop(0.35, 'rgba(236,231,216,0.32)');
+      g.addColorStop(1, 'rgba(236,231,216,0)');
+      x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+    });
+  }
+
+  function initThree() {
+    var canvas = $('#webgl');
+    if (!canvas || !window.THREE) return;
+
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 0, 10);
+
+    scene.add(new THREE.AmbientLight(0x2a3a30, 1.6));
+    var sun = new THREE.DirectionalLight(0xf4efe0, 1.6); sun.position.set(4, 3, 6); scene.add(sun);
+    var rim = new THREE.DirectionalLight(0x8fae7e, 0.5); rim.position.set(-6, -2, -4); scene.add(rim);
+
+    // stars
+    var N = 1300, pos = new Float32Array(N * 3);
+    for (var i = 0; i < N; i++) {
+      pos[i * 3]     = (Math.random() - 0.5) * 72;
+      pos[i * 3 + 1] = (Math.random() - 0.5) * 46;
+      pos[i * 3 + 2] = -6 - Math.random() * 22;
+    }
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    stars = new THREE.Points(geo, new THREE.PointsMaterial({
+      color: 0xdfe3d6, size: 0.07, sizeAttenuation: true, transparent: true, opacity: 0.9, depthWrite: false
+    }));
+    scene.add(stars);
+
+    // moon + glow
+    moonGroup = new THREE.Group();
+    moonMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(1, 64, 64),
+      new THREE.MeshStandardMaterial({ map: moonTexture(), roughness: 1, metalness: 0 })
+    );
+    moonGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: glowTexture(), transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending
+    }));
+    moonGlow.scale.set(6.5, 6.5, 1);
+    moonGroup.add(moonMesh); moonGroup.add(moonGlow);
+    scene.add(moonGroup);
+
+    // earth + clouds + atmosphere
+    earthGroup = new THREE.Group();
+    earthMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(1.55, 64, 64),
+      new THREE.MeshStandardMaterial({ map: earthTexture(), roughness: 0.9, metalness: 0 })
+    );
+    cloudMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(1.585, 48, 48),
+      new THREE.MeshStandardMaterial({ map: cloudTexture(), transparent: true, opacity: 0.5, depthWrite: false })
+    );
+    atmoMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(1.55, 48, 48),
+      new THREE.MeshBasicMaterial({ color: 0x9fc48c, transparent: true, opacity: 0.05, side: THREE.BackSide, blending: THREE.AdditiveBlending })
+    );
+    atmoMesh.scale.setScalar(1.08);
+    earthGroup.add(earthMesh); earthGroup.add(cloudMesh); earthGroup.add(atmoMesh);
+    scene.add(earthGroup);
+
+    deadColor = new THREE.Color(0x7d7666);
+    liveColor = new THREE.Color(0xffffff);
+
+    threeOK = true;
+  }
+
+  function resizeThree() {
+    if (!threeOK) return;
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    halfH = Math.tan(THREE.MathUtils.degToRad(21)) * 10;
+    halfW = halfH * camera.aspect;
+  }
+
+  function renderAt(p, time) {
+    if (!threeOK || !keys) return;
+    var t = time || 0;
+
+    moonGroup.position.set(keyTrack(p, keys.mx), keyTrack(p, keys.my), 0);
+    moonGroup.scale.setScalar(keyTrack(p, keys.ms));
+    moonMesh.rotation.y = t * 0.02 + p * 1.5;
+    moonGlow.material.opacity = keyTrack(p, keys.mg);
+
+    var lush = keyTrack(p, keys.lush);
+    earthGroup.position.set(keyTrack(p, keys.ex), keyTrack(p, keys.ey), 0);
+    earthGroup.scale.setScalar(keyTrack(p, keys.es));
+    earthMesh.material.color.copy(deadColor).lerp(liveColor, lush);
+    atmoMesh.material.opacity = 0.04 + lush * 0.16;
+    earthMesh.rotation.y = t * 0.05 + p * 2.2;
+    cloudMesh.rotation.y = t * 0.07 + p * 2.6;
+
+    stars.material.opacity = keyTrack(p, keys.star);
+
+    if (motionOK) {
+      camX += (pointer.x * 0.4 - camX) * 0.04;
+      camY += (-pointer.y * 0.3 - camY) * 0.04;
+      camera.position.x = camX;
+      camera.position.y = camY;
+      camera.lookAt(0, 0, 0);
+    }
+    renderer.render(scene, camera);
+  }
+
+  function scrollProgress() {
+    var doc = document.documentElement;
+    var max = Math.max(1, doc.scrollHeight - window.innerHeight);
+    return clamp01(window.scrollY / max);
+  }
+
+  /* =========================================================
+     SCROLL CHOREOGRAPHY KEYS (fractions of the whole page)
+  ========================================================= */
+  var measures = {};
+
+  function setupMeasures() {
+    if (!window.ScrollTrigger) return;
+    ['hero', 'problem', 'journey', 'solution', 'impact', 'cta'].forEach(function (id) {
+      measures[id] = {
+        top: ScrollTrigger.create({ trigger: '#' + id, start: 'top top' }),
+        bottom: ScrollTrigger.create({ trigger: '#' + id, start: 'bottom bottom' })
+      };
+    });
+  }
+
+  function computeKeys() {
+    if (!window.ScrollTrigger || !measures.hero) return;
+    var max = Math.max(1, ScrollTrigger.maxScroll(window));
+    var f = function (pos) { return clamp01(pos / max); };
+
+    var hb = f(measures.hero.bottom.start);
+    var ps = f(measures.problem.top.start),   pe = f(measures.problem.bottom.start);
+    var js = f(measures.journey.top.start),   je = f(measures.journey.bottom.start);
+    var ss = f(measures.solution.top.start),  se = f(measures.solution.bottom.start);
+    var is = f(measures.impact.top.start),    ie = f(measures.impact.bottom.start);
+    var cs = f(measures.cta.top.start);
+
+    keys = {
+      mx: [[0, halfW * 0.46], [hb, halfW * 0.5], [pe, halfW * 0.4], [ss, -halfW * 0.66], [cs, -halfW * 0.06]],
+      my: [[0, halfH * 0.36], [hb, halfH * 0.42], [ps, halfH * 1.3], [pe, halfH * 1.8], [ss, halfH * 0.78], [cs, -halfH * 0.05]],
+      ms: [[0, 1.25], [hb, 1.3], [ps, 1.05], [pe, 0.9], [ss, 0.34], [is, 0.34], [cs, 0.6], [1, 1.4]],
+      mg: [[0, 0.5], [hb, 0.55], [ps, 0.12], [pe, 0], [ss, 0.22], [cs, 0.3], [1, 0.65]],
+      ex: [[0, -halfW * 1.5], [ps, -halfW * 0.55], [pe, -halfW * 0.5], [js, -halfW * 0.2], [ss, halfW * 0.02], [se, halfW * 0.08], [is, -halfW * 0.35], [ie, -halfW * 0.62], [cs, -halfW * 0.1]],
+      ey: [[0, -halfH * 1.6], [ps, -halfH * 0.08], [pe, -halfH * 0.05], [js, -halfH * 0.5], [je, -halfH * 1.8], [ss, -halfH * 0.06], [se, 0], [ie, halfH * 0.1], [cs, -halfH * 1.9]],
+      es: [[0, 1], [ps, 1.05], [pe, 1.1], [ss, 1.45], [ie, 0.95], [cs, 0.8]],
+      lush: [[0, 0], [ps, 0], [js, 0.15], [ss, 0.75], [se, 1], [ie, 1], [cs, 0.7]],
+      star: [[0, 1], [ps, 0.5], [pe, 0.35], [js, 0], [je, 0], [ss, 0.8], [ie, 0.9], [cs, 1]]
+    };
+  }
+
+  /* =========================================================
+     GSAP — intro, hero parallax, journey pin, progress
+  ========================================================= */
+  function buildAnimations() {
+    // top progress hairline
+    gsap.to('#progress-bar', {
+      scaleX: 1, ease: 'none',
+      scrollTrigger: { start: 0, end: 'max', scrub: 0.3 }
+    });
+
+    // hero parallax out
+    gsap.timeline({
+      scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true }
+    })
+      .to('#hero-title', { yPercent: 46, autoAlpha: 0, ease: 'none' }, 0)
+      .to('#hero-sub, #hero-est, #hero-kicker', { yPercent: 30, autoAlpha: 0, ease: 'none' }, 0)
+      .to('.layer-far',  { yPercent: -14, ease: 'none' }, 0)
+      .to('.layer-mid',  { yPercent: -26, ease: 'none' }, 0)
+      .to('.layer-near', { yPercent: -42, ease: 'none' }, 0)
+      .to('#scroll-cue', { autoAlpha: 0, ease: 'none' }, 0);
+
+    // journey — pinned horizontal transform + ground color shift
+    var track = $('#journey-track');
+    var dist = function () { return Math.max(0, track.scrollWidth - window.innerWidth); };
+
+    var jtl = gsap.timeline({
+      scrollTrigger: {
+        trigger: '#journey', start: 'top top',
+        end: function () { return '+=' + dist(); },
+        pin: true, scrub: 1, invalidateOnRefresh: true
+      }
+    });
+    jtl.to(track, { x: function () { return -dist(); }, ease: 'none', duration: 3 }, 0);
+    jtl.fromTo('#journey', { backgroundColor: '#0a0e0c' }, { backgroundColor: '#20362a', ease: 'none', duration: 3 }, 0);
+    jtl.fromTo('#rail-fill', { scaleX: 0 }, { scaleX: 1, ease: 'none', duration: 3 }, 0);
+    $$('#journey-track .phase-inner').forEach(function (p, i) {
+      if (i === 0) return;
+      jtl.fromTo(p, { autoAlpha: 0.15 }, { autoAlpha: 1, ease: 'none', duration: 0.5 }, i * 0.85);
+    });
+  }
+
+  function playIntro() {
+    var tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+    tl.from('.hero-letter', { yPercent: 115, duration: 1.3, stagger: 0.07 }, 0.15)
+      .from('#hero-kicker', { autoAlpha: 0, y: -14, duration: 1.2 }, 0.25)
+      .from('#hero-sub', { autoAlpha: 0, y: 26, duration: 1.1 }, 0.95)
+      .from('#hero-est', { autoAlpha: 0, duration: 1 }, 1.2)
+      .from('#scroll-cue', { autoAlpha: 0, duration: 1 }, 1.4)
+      .from('header, #side-nav, #chapter-tag', { autoAlpha: 0, duration: 1.2, stagger: 0.12 }, 1.2);
+  }
+
+  /* =========================================================
+     REVEALS — Intersection Observer + GSAP
+  ========================================================= */
+  var VARIANTS = {
+    fade: {},
+    up: { y: 64 },
+    rise: { y: 110 },
+    left: { x: -96 },
+    right: { x: 96 },
+    'fly-left':  { x: -170, y: 90, rotation: -5 },
+    'fly-right': { x: 170, y: 90, rotation: 5 },
+    'fly-up':    { y: 190, rotation: 3 },
+    scale: { scale: 0.86, y: 40 }
+  };
+
+  function setupReveals() {
+    var targets = $$('[data-reveal]');
+    if (!motionOK || !window.gsap) return;
+
+    targets.forEach(function (el) { gsap.set(el, { autoAlpha: 0 }); });
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var el = entry.target;
+        io.unobserve(el);
+        var v = VARIANTS[el.getAttribute('data-reveal')] || {};
+        var delay = parseFloat(el.getAttribute('data-delay') || '0', 10);
+        var from = { autoAlpha: 0, filter: 'blur(10px)' };
+        Object.keys(v).forEach(function (k) { from[k] = v[k]; });
+        gsap.fromTo(el, from, {
+          autoAlpha: 1, x: 0, y: 0, rotation: 0, scale: 1,
+          filter: 'blur(0px)',
+          duration: 1.3, ease: 'expo.out', delay: delay,
+          clearProps: 'filter,transform,will-change'
+        });
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+
+    targets.forEach(function (el) { io.observe(el); });
+  }
+
+  /* =========================================================
+     COUNTERS — fly in, count up
+  ========================================================= */
+  function setupCounters() {
+    var counters = $$('[data-count]');
+    if (motionOK) counters.forEach(function (el) { el.textContent = '0'; });
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var el = entry.target;
+        io.unobserve(el);
+        var target = parseFloat(el.getAttribute('data-count')) || 0;
+        var d = parseInt(el.getAttribute('data-decimals') || '0', 10);
+        if (!motionOK || !window.gsap) { el.textContent = fmt(target, d); return; }
+        var o = { v: 0 };
+        gsap.to(o, {
+          v: target, duration: 2.4, ease: 'power3.out',
+          onUpdate: function () { el.textContent = fmt(o.v, d); }
+        });
+      });
+    }, { threshold: 0.4 });
+
+    counters.forEach(function (el) { io.observe(el); });
+  }
+
+  /* =========================================================
+     CHAPTER TRACKING — side nav + vertical tag
+  ========================================================= */
+  var CHAPTER_NAMES = {
+    hero: '00 · Prologue', problem: '01 · The problem', journey: '02 · The journey',
+    solution: '03 · The solution', impact: '04 · Impact', cta: '05 · The invitation'
+  };
+
+  function setChapter(id) {
+    var tag = $('#chapter-tag');
+    if (tag && tag.textContent !== CHAPTER_NAMES[id]) {
+      tag.textContent = CHAPTER_NAMES[id];
+      if (window.gsap && motionOK) gsap.fromTo(tag, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5 });
+    }
+    $$('#side-nav .nav-dot').forEach(function (a) {
+      a.classList.toggle('is-active', a.getAttribute('data-nav') === id);
+    });
+  }
+
+  function setupChapterTracking() {
+    var ids = Object.keys(CHAPTER_NAMES);
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) setChapter(entry.target.id);
+      });
+    }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+    ids.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) io.observe(el);
+    });
+  }
+
+  /* =========================================================
+     TILT — product nodes respond to the pointer
+  ========================================================= */
+  function setupTilt() {
+    if (!window.gsap || !motionOK) return;
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    $$('[data-tilt]').forEach(function (card) {
+      card.style.transformStyle = 'preserve-3d';
+      card.addEventListener('pointermove', function (e) {
+        var r = card.getBoundingClientRect();
+        var px = (e.clientX - r.left) / r.width - 0.5;
+        var py = (e.clientY - r.top) / r.height - 0.5;
+        gsap.to(card, { rotateY: px * 9, rotateX: -py * 7, transformPerspective: 900, duration: 0.4, ease: 'power2.out' });
+      });
+      card.addEventListener('pointerleave', function () {
+        gsap.to(card, { rotateX: 0, rotateY: 0, duration: 0.7, ease: 'elastic.out(1,0.5)' });
+      });
+    });
+  }
+
+  /* =========================================================
+     FORM — the invitation
+  ========================================================= */
+  function setupForm() {
+    var form = $('#join-form');
+    if (!form) return;
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email = $('#email');
+      if (!email.checkValidity()) { email.reportValidity(); return; }
+      form.classList.add('hidden');
+      var ok = $('#join-ok');
+      ok.classList.remove('hidden');
+      if (window.gsap && motionOK) gsap.from(ok, { autoAlpha: 0, y: 18, duration: 0.9, ease: 'power3.out' });
+    });
+  }
+
+  /* =========================================================
+     BOOT
+  ========================================================= */
+  try { initThree(); } catch (err) { threeOK = false; }
+  resizeThree();
+
+  if (window.gsap && window.ScrollTrigger) {
+    gsap.registerPlugin(ScrollTrigger);
+    setupMeasures();
+    if (motionOK) buildAnimations();
+    ScrollTrigger.addEventListener('refresh', computeKeys);
+    ScrollTrigger.refresh();
+    computeKeys();
+  }
+
+  setupReveals();
+  setupCounters();
+  setupChapterTracking();
+  setupTilt();
+  setupForm();
+  setChapter('hero');
+
+  if (window.gsap && motionOK) playIntro();
+
+  if (threeOK) {
+    if (motionOK) {
+      window.addEventListener('pointermove', function (e) {
+        pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+        pointer.y = (e.clientY / window.innerHeight) * 2 - 1;
+      }, { passive: true });
+
+      var frame = function (t) {
+        requestAnimationFrame(frame);
+        renderAt(scrollProgress(), t * 0.001);
+      };
+      requestAnimationFrame(frame);
+    } else {
+      renderAt(scrollProgress(), 0);
+      window.addEventListener('resize', function () { resizeThree(); computeKeys(); renderAt(scrollProgress(), 0); });
+    }
+  }
+
+  var resizeTimer = null;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      resizeThree();
+      if (window.ScrollTrigger) ScrollTrigger.refresh();
+      computeKeys();
+    }, 180);
+  });
+
+  window.addEventListener('load', function () {
+    if (window.ScrollTrigger) ScrollTrigger.refresh();
+    computeKeys();
+    if (threeOK && !motionOK) renderAt(scrollProgress(), 0);
+  });
+})();
+</script>
+</body>
+</html>

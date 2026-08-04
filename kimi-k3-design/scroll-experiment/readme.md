@@ -22,19 +22,20 @@ Create the most creative experimental single-file HTML landing page for a multid
 
 https://commandcode.ai/share/15f62a1d
 
-## Benchmark
+## Models
 
-| Metric | Kimi K3 | Opus 5 |
-|---|---|---|
-| Dir | `kimi-k3/` | `opus-5/` |
-| $/MTok in/out | n/a (user-reported) | $5 / $25 |
-| Prompts sent | 3 (build → continue → "scroll feels jumpy, make it smooth") | 1 (one-shot) |
-| Output size (final) | 40,734 bytes / 960 LOC | 59,494 bytes / 1,277 LOC |
-| Est. cost, floor (final file only) | ~$0.15 | ~$0.37 |
-| **Est. cost, full session** | **~$0.24** | **~$0.37** |
+| Model | Dir | LOC | Est. cost |
+|---|---|---:|---:|
+| Kimi K3 | `kimi-k3/` | 960 | ~$0.24* |
+| Opus 5 | `opus-5/` | 1,277 | ~$0.37 |
+| qwen3.8-max | `qwen3.8-max/` | 1,205 | ~$0.065 |
 
-Two numbers on purpose for Kimi K3. The **floor** is the same formula used for kimi's cost elsewhere in this repo (final kept file's output bytes ÷ 4 × Kimi K3's $15/MTok output price) — it only counts the last file you'd actually keep. Opus 5's build was a single one-shot generation with no follow-up turns, so its floor and full-session cost are the same figure: final output bytes ÷ 4 × Opus 5's $25/MTok output price (~$0.37) — a modeled estimate from output size, not a metered bill.
+One prompt-thread per model, no re-rolls. Kimi K3 sent 3 prompts (build → continue → "scroll feels jumpy, make it smooth"); Opus 5 and qwen3.8-max were each a single `/design` invocation.
 
-The Kimi K3 **full-session estimate** reflects what actually happened, read back from the real conversation: the `--continue` turn carried an unusually long upfront reasoning pass working out the six-"dimension" camera-depth math, custom GLSL shaders for the particle text and the portal, and procedural cube-face textures, before the single large `write_file` (the JS alone ran to ~27,500 characters) and a `node --check` syntax verification. No full-file rewrites and no browser-screenshot verification loop were needed here (unlike some of the other builds) — the fix turn diagnosed the jumpy scroll as a mismatch between stepped native wheel input and the lerped 3D camera, then applied 3 small targeted edits (adding Lenis smooth-scroll and retuning the lerp) with another syntax check. Modeling total output at ~1.5× the final code's size and input mostly at Kimi K3's cached rate ($0.30/MTok) gives ~$0.24 — a modeled estimate, not a metered bill, but a much closer read than the floor above.
+\* Kimi K3's ~$0.24 is a full-session estimate, not just the final file (the floor alone is ~$0.15). It's modeled from what actually happened in the conversation — a long upfront reasoning pass on the `--continue` turn, then a later turn that diagnosed and fixed the jumpy scroll — at Kimi K3's $15/MTok output / $0.30/MTok cached-input rates. Modeled, not metered.
 
-**Kimi K3 wins on cost**: even counting the full three-prompt session — build, continue, and the jumpy-scroll fix pass — Kimi K3 lands at ~$0.24, about a third less than Opus 5's single one-shot cost of ~$0.37. On the apples-to-apples "final file" floor the gap is wider still (~$0.15 vs ~$0.37, under half the price), and Kimi K3 ships a leaner file (960 LOC / 40.7KB vs 1,277 LOC / 59.5KB) at a lower per-byte output rate ($15/MTok vs $25/MTok) for the same brief.
+Opus 5's ~$0.37 is a straight floor from its single one-shot generation (59,494 bytes ÷ 4 × $25/MTok) — no follow-up turns, so floor and full-session are the same number.
+
+† qwen3.8-max's ~$0.04 is a floor only (56,230 bytes ÷ 4 × the repo-implied ~$2.91/MTok output rate) and isn't comparable to the two figures above. This repo's one actually-metered qwen3.8-max `/design` run, `creative-portfolio/qwen3.8-max`, billed a real $6.70 for a similarly-sized file — driven by call count and accumulated input context (35 API calls, 2.7M input tokens, mostly cache reads), not by output size. This build's own call count wasn't logged, so treat ~$0.04 as a lower bound, not the real cost.
+
+**On the numbers that are actually comparable, Kimi K3 wins on cost**: ~$0.24 vs Opus 5's ~$0.37, while shipping a leaner file (960 LOC / 40.7KB vs 1,277 LOC / 59.5KB) at a lower per-byte output rate ($15/MTok vs $25/MTok) for the same brief.

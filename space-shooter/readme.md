@@ -35,7 +35,6 @@
 | Opus 5 (Claude) | `opus-5/` | 1M | $5 / $25 | 990 | ~$0.24 |
 | Fable 5 (Claude) | `Fable-5/` | 1M | $10 / $50 | 982 | ~$0.38 |
 
-
 ## Scorecard
 
 | Model | Spec fidelity | Collision | Polish | Mobile/touch | Mean | Cost | Quality/$ |

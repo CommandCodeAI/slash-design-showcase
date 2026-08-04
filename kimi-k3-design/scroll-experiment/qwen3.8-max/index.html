@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KAEL THORN — A Scroll Journey in Five Dimensions</title>
+<meta name="description" content="Kael Thorn, multidisciplinary artist. Sculpting light, code and matter. Scroll to cross five dimensions." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Grotesk:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        void: '#040308',
+        bone: '#f2efe6',
+        acc: 'var(--acc)'
+      },
+      fontFamily: {
+        disp: ['Syne', 'sans-serif'],
+        body: ['"Space Grotesk"', 'sans-serif'],
+        mono: ['"Space Mono"', 'monospace']
+      }
+    }
+  }
+}
+</script>
+
+<style>
+  :root { --acc: #f2efe6; }
+  html { scroll-behavior: auto; }
+  html, body { background: #040308; }
+  body { overflow-x: clip; cursor: none; }
+  a, button { cursor: none; }
+  ::selection { background: var(--acc); color: #040308; }
+  a:focus-visible { outline: 2px dashed var(--acc); outline-offset: 4px; }
+
+  @media (pointer: coarse) {
+    body, a, button { cursor: auto; }
+    #curDot, #curRing { display: none; }
+  }
+
+  .sr-glow { text-shadow: 0 0 24px color-mix(in srgb, var(--acc) 55%, transparent); }
+
+  #rail-fill { transform-origin: top; background: var(--acc); }
+
+  .dim-card { will-change: transform, opacity; }
+
+  .fw { display: inline-block; will-change: transform, opacity; }
+
+  .lnk { position: relative; }
+  .lnk::after {
+    content: ''; position: absolute; left: 0; bottom: -4px;
+    width: 100%; height: 1px; background: var(--acc);
+    transform: scaleX(0); transform-origin: right;
+    transition: transform .45s cubic-bezier(.22,1,.36,1);
+  }
+  .lnk:hover::after, .lnk:focus-visible::after { transform: scaleX(1); transform-origin: left; }
+
+  #grain {
+    position: fixed; inset: -120%; z-index: 60; pointer-events: none; opacity: .055;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: grain 7s steps(9) infinite;
+  }
+  @keyframes grain {
+    0% { transform: translate(0,0); } 12% { transform: translate(-4%,-7%); }
+    25% { transform: translate(3%,-9%); } 38% { transform: translate(-6%,4%); }
+    50% { transform: translate(5%,8%); } 62% { transform: translate(-3%,6%); }
+    75% { transform: translate(7%,-3%); } 88% { transform: translate(-5%,-5%); }
+    100% { transform: translate(0,0); }
+  }
+
+  #vignette {
+    position: fixed; inset: 0; z-index: 55; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 50%, transparent 52%, rgba(2,1,6,.62) 100%);
+  }
+
+  #boot { transition: opacity .9s ease .15s, visibility .9s ease .15s; }
+  #boot.gone { opacity: 0; visibility: hidden; }
+  .boot-bar { animation: bootpulse 1.1s ease-in-out infinite; }
+  @keyframes bootpulse { 0%,100% { opacity: .25; } 50% { opacity: 1; } }
+
+  #cue { animation: cuefloat 2.2s ease-in-out infinite; }
+  @keyframes cuefloat { 0%,100% { transform: translateY(0); opacity:.75; } 50% { transform: translateY(9px); opacity:.3; } }
+
+  #flash { transition: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    #grain { animation: none; }
+    #cue { animation: none; }
+  }
+</style>
+</head>
+
+<body class="bg-void text-bone font-body antialiased">
+
+<canvas id="scene" class="fixed inset-0 z-0 block" aria-hidden="true"></canvas>
+<div id="vignette" aria-hidden="true"></div>
+<div id="grain" aria-hidden="true"></div>
+<div id="flash" class="fixed inset-0 z-[70] bg-bone pointer-events-none opacity-0" aria-hidden="true"></div>
+
+<!-- ═══════════════ HUD ═══════════════ -->
+<header class="fixed top-0 inset-x-0 z-[80] flex items-start justify-between px-5 md:px-8 pt-5 pointer-events-none mix-blend-difference">
+  <div class="font-disp font-bold tracking-[0.22em] text-sm md:text-base select-none">
+    KAEL&nbsp;THORN<span class="text-acc">✳</span>
+  </div>
+  <div class="text-right font-mono text-[10px] md:text-[11px] leading-relaxed tracking-[0.28em] text-bone/80 select-none">
+    <div id="hud-dim">00 / SINGULARITY</div>
+    <div id="hud-pct" class="text-bone/45">000%</div>
+  </div>
+</header>
+
+<div class="fixed left-4 md:left-6 top-1/2 -translate-y-1/2 z-[80] pointer-events-none mix-blend-difference" aria-hidden="true">
+  <div class="w-px h-44 bg-bone/15 relative overflow-hidden">
+    <div id="rail-fill" class="absolute inset-0"></div>
+  </div>
+</div>
+
+<div class="fixed bottom-5 right-5 md:right-8 z-[80] pointer-events-none mix-blend-difference font-mono text-[10px] tracking-[0.24em] text-bone/50 select-none hidden sm:block" aria-hidden="true">
+  <span id="hud-tele">Z +040.0 · V 0.00 · Φ 0.00</span>
+</div>
+
+<!-- custom cursor -->
+<div id="curDot" class="fixed z-[95] w-[5px] h-[5px] rounded-full bg-bone pointer-events-none -translate-x-1/2 -translate-y-1/2 mix-blend-difference" aria-hidden="true"></div>
+<div id="curRing" class="fixed z-[95] w-9 h-9 rounded-full border border-bone/70 pointer-events-none -translate-x-1/2 -translate-y-1/2 mix-blend-difference transition-[width,height] duration-300" aria-hidden="true"></div>
+
+<!-- ═══════════════ SCROLL JOURNEY ═══════════════ -->
+<main class="relative z-10">
+
+  <!-- DIM 00 · SINGULARITY -->
+  <section class="panel" data-dim="0" style="height:240vh" aria-label="Dimension zero, singularity">
+    <div class="sticky top-0 h-screen flex flex-col items-center justify-between py-[9vh] pointer-events-none">
+      <p class="font-mono text-[10px] md:text-xs tracking-[0.5em] text-bone/55">A SCROLL JOURNEY IN FIVE DIMENSIONS</p>
+      <h1 class="sr-only">Kael Thorn, multidisciplinary artist</h1>
+      <div class="text-center px-6 mt-[26vh]">
+        <p class="font-mono text-[10px] md:text-xs tracking-[0.4em] text-acc mb-4">00 / SINGULARITY</p>
+        <p class="font-body font-light text-sm md:text-lg text-bone/70 max-w-md mx-auto leading-relaxed">
+          multidisciplinary artist · sculpting light, code and matter<br class="hidden md:block" />
+          <span class="text-bone/40">keep scrolling and the name comes apart</span>
+        </p>
+      </div>
+      <div id="cue" class="flex flex-col items-center gap-3">
+        <span class="font-mono text-[10px] tracking-[0.5em] text-bone/50">SCROLL TO COLLAPSE</span>
+        <span class="block w-px h-8 bg-gradient-to-b from-acc to-transparent"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- DIM 01 · FLATLAND -->
+  <section class="panel" data-dim="1" style="height:220vh" aria-label="Dimension one, flatland">
+    <div class="sticky top-0 h-screen flex items-end pointer-events-none">
+      <div class="px-6 md:px-14 pb-[12vh] max-w-xl">
+        <p class="font-mono text-[10px] md:text-xs tracking-[0.4em] text-acc mb-5">01 / FLATLAND</p>
+        <h2 class="font-disp font-bold text-3xl md:text-5xl leading-[1.05] mb-5 sr-glow">The plane<br />remembers depth.</h2>
+        <p class="font-body font-light text-bone/60 text-sm md:text-base leading-relaxed">
+          Every drawing is a collapsed sculpture. A sketch is a universe pressed flat,
+          waiting for someone to stand it back up. Scroll, and the grid obeys.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DIM 02 · WORLDLINE -->
+  <section class="panel" data-dim="2" style="height:340vh" aria-label="Dimension two, worldline timeline">
+    <div class="sticky top-0 h-screen pointer-events-none overflow-hidden">
+      <div class="absolute top-[9vh] left-6 md:left-14">
+        <p class="font-mono text-[10px] md:text-xs tracking-[0.4em] text-acc">02 / WORLDLINE</p>
+        <p class="font-mono text-[10px] tracking-[0.3em] text-bone/35 mt-2">TEN YEARS, ONE TRAJECTORY · SCROLL WARPS THE PATH</p>
+      </div>
+      <div id="timeline-stage" class="absolute inset-0"></div>
+    </div>
+  </section>
+
+  <!-- DIM 03 · RELIQUARY -->
+  <section class="panel" data-dim="3" style="height:260vh" aria-label="Dimension three, reliquary, selected works">
+    <div class="sticky top-0 h-screen flex flex-col justify-between py-[9vh] px-6 md:px-14 pointer-events-none">
+      <div class="max-w-xl">
+        <p class="font-mono text-[10px] md:text-xs tracking-[0.4em] text-acc mb-5">03 / RELIQUARY</p>
+        <h2 class="font-disp font-bold text-3xl md:text-5xl leading-[1.05] sr-glow">Six objects that<br />survived the collapse.</h2>
+      </div>
+      <div class="flex items-end justify-between gap-6">
+        <div id="caption" class="border-l-2 border-acc pl-4 md:pl-5 py-1 bg-void/40 backdrop-blur-sm min-h-[74px] max-w-sm">
+          <p id="cap-title" class="font-disp font-bold text-base md:text-xl tracking-wide">RELIQUARY</p>
+          <p id="cap-meta" class="font-mono text-[10px] md:text-[11px] tracking-[0.18em] text-bone/50 mt-1.5">HOVER AN ARTIFACT TO READ IT · GRAB ONE TO SPIN IT</p>
+        </div>
+        <p class="font-mono text-[10px] tracking-[0.3em] text-bone/35 hidden md:block">DRAG TO ROTATE</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DIM 04 · CREED -->
+  <section class="panel" data-dim="4" style="height:240vh" aria-label="Dimension four, creed, artist statement">
+    <div class="sticky top-0 h-screen flex items-center justify-center pointer-events-none">
+      <div class="absolute top-[9vh] left-6 md:left-14">
+        <p class="font-mono text-[10px] md:text-xs tracking-[0.4em] text-acc">04 / CREED</p>
+        <p class="font-mono text-[10px] tracking-[0.3em] text-bone/35 mt-2">RECOVERED TRANSMISSION · FRAGMENTS REASSEMBLING</p>
+      </div>
+      <div id="creed" class="px-6 max-w-3xl text-center space-y-7 md:space-y-9">
+        <p class="frag font-disp font-bold text-2xl md:text-5xl leading-[1.12] sr-glow">I make objects that remember being light.</p>
+        <p class="frag font-mono text-[11px] md:text-sm tracking-[0.5em] text-acc">FORM IS A VERB</p>
+        <p class="frag font-disp font-semibold text-xl md:text-3xl leading-snug text-bone/85">Beauty is information that survived.</p>
+        <p class="frag font-body font-light text-sm md:text-base text-bone/55 leading-relaxed max-w-xl mx-auto">Every medium is a door. I do not walk through doors. I live in the doorframe, where both rooms are true at once.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DIM 05 · EVENT HORIZON -->
+  <section class="panel" data-dim="5" style="height:280vh" aria-label="Dimension five, event horizon, contact">
+    <div class="sticky top-0 h-screen flex items-center justify-center pointer-events-none">
+      <div id="door-scrim" class="absolute inset-0" aria-hidden="true" style="opacity:0;background:radial-gradient(ellipse 62% 56% at 50% 50%, rgba(4,3,9,0.94) 0%, rgba(4,3,9,0.7) 40%, transparent 66%);"></div>
+      <div id="door" class="relative text-center px-6 py-10 will-change-transform">
+        <p class="font-mono text-[10px] md:text-xs tracking-[0.5em] text-acc mb-6">05 / EVENT HORIZON</p>
+        <h2 class="font-disp font-extrabold text-5xl md:text-8xl leading-[0.95] tracking-tight sr-glow">CROSS<br/>OVER</h2>
+        <div class="mt-9 md:mt-12 space-y-4 pointer-events-auto inline-block">
+          <a href="mailto:studio@kaelthorn.art" data-mag class="lnk font-mono text-sm md:text-lg tracking-[0.22em] text-bone">STUDIO@KAELTHORN.ART</a>
+          <p class="font-mono text-[10px] md:text-[11px] tracking-[0.28em] text-bone/45">
+            INSTAGRAM @KAEL.THORN&nbsp;&nbsp;·&nbsp;&nbsp;ARE.NA /KAELTHORN&nbsp;&nbsp;·&nbsp;&nbsp;GITHUB /KAEL-THORN
+          </p>
+          <p class="font-mono text-[10px] tracking-[0.28em] text-bone/35">REPRESENTED BY NOWHERE GALLERY · BERLIN / TOKYO</p>
+          <p class="font-mono text-[10px] tracking-[0.28em] text-bone/35">52.5200° N, 13.4050° E</p>
+        </div>
+        <p class="mt-10 font-body font-light italic text-bone/40 text-xs md:text-sm">the portal opens both ways. see you on the other side.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="relative z-10 py-6 px-6 flex justify-between font-mono text-[10px] tracking-[0.24em] text-bone/30 border-t border-bone/10">
+    <span>© 2026 KAEL THORN</span>
+    <span>BUILT INSIDE THE ARTWORK</span>
+  </footer>
+</main>
+
+<!-- boot screen -->
+<div id="boot" class="fixed inset-0 z-[90] bg-void flex flex-col items-center justify-center gap-5">
+  <p class="font-disp font-bold tracking-[0.3em] text-sm">KAEL THORN<span class="text-acc">✳</span></p>
+  <p class="font-mono text-[10px] tracking-[0.4em] text-bone/50">CALIBRATING DIMENSIONS</p>
+  <div class="flex gap-1.5" aria-hidden="true">
+    <span class="boot-bar block w-1.5 h-4 bg-acc" style="animation-delay:0s"></span>
+    <span class="boot-bar block w-1.5 h-4 bg-acc" style="animation-delay:.15s"></span>
+    <span class="boot-bar block w-1.5 h-4 bg-acc" style="animation-delay:.3s"></span>
+    <span class="boot-bar block w-1.5 h-4 bg-acc" style="animation-delay:.45s"></span>
+  </div>
+</div>
+
+<noscript>
+  <div class="fixed inset-0 z-[99] bg-void flex items-center justify-center p-8 text-center">
+    <p class="font-mono text-sm leading-relaxed">This journey needs JavaScript to fold space.<br/>Please enable it and reload.</p>
+  </div>
+</noscript>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ───────────────────────── helpers ───────────────────────── */
+  var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
+  var lerp = function (a, b, t) { return a + (b - a) * t; };
+  var sstep = function (a, b, x) { var t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+  var RM = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var COARSE = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  var MOBILE = window.innerWidth < 760;
+  var has3D = !!window.THREE;
+
+  /* ───────────────────────── dom refs ───────────────────────── */
+  var panels = Array.prototype.slice.call(document.querySelectorAll('.panel'));
+  var hudDim = document.getElementById('hud-dim');
+  var hudPct = document.getElementById('hud-pct');
+  var hudTele = document.getElementById('hud-tele');
+  var railFill = document.getElementById('rail-fill');
+  var cue = document.getElementById('cue');
+  var doorScrim = document.getElementById('door-scrim');
+  var flash = document.getElementById('flash');
+  var boot = document.getElementById('boot');
+  var door = document.getElementById('door');
+  var capTitle = document.getElementById('cap-title');
+  var capMeta = document.getElementById('cap-meta');
+  var curDot = document.getElementById('curDot');
+  var curRing = document.getElementById('curRing');
+
+  var DIMS = [
+    { key: '00', name: 'SINGULARITY', acc: '#f2efe6' },
+    { key: '01', name: 'FLATLAND', acc: '#7df9d8' },
+    { key: '02', name: 'WORLDLINE', acc: '#b18cff' },
+    { key: '03', name: 'RELIQUARY', acc: '#ffb454' },
+    { key: '04', name: 'CREED', acc: '#ff5ea8' },
+    { key: '05', name: 'EVENT HORIZON', acc: '#ffffff' }
+  ];
+
+  /* ───────────────────────── timeline cards (DIM 02) ───────────────────────── */
+  var MILESTONES = [
+    { y: '2016', t: 'FIRST LIGHT', d: 'a warehouse, nine projectors, one held breath', m: 'IMMERSIVE PROJECTION · LEIPZIG' },
+    { y: '2018', t: 'STATIC BLOOM', d: 'kinetic steel flowers that open to noise', m: 'KINETIC SCULPTURE · VIENNA' },
+    { y: '2020', t: 'GHOST IN THE MACHINE', d: 'forty seven minutes of machine dreaming', m: 'GENERATIVE AUDIOVISUAL · ONLINE' },
+    { y: '2022', t: 'TERRAFORM', d: 'an artificial mind gardening a hectare of sand', m: 'AI LAND ART · DUBAI' },
+    { y: '2024', t: 'EVENT HORIZON', d: 'a vr ritual for one body at a time', m: 'VR INSTALLATION · TOKYO' },
+    { y: '2026', t: 'YOU ARE HERE', d: 'this page, right now, you inside the work', m: 'DIMENSIONAL WEBSITE · EVERYWHERE' }
+  ];
+  var tlStage = document.getElementById('timeline-stage');
+  var tlCards = MILESTONES.map(function (ms, i) {
+    var right = i % 2 === 1;
+    var el = document.createElement('article');
+    el.className = 'dim-card absolute top-1/2 ' + (right ? 'right-[6vw] md:right-[10vw] text-right' : 'left-[6vw] md:left-[10vw] text-left');
+    el.style.visibility = 'hidden';
+    el.innerHTML =
+      '<p class="font-disp font-extrabold leading-none select-none" style="font-size:clamp(4rem,13vw,9rem);color:transparent;-webkit-text-stroke:1px color-mix(in srgb, var(--acc) 45%, transparent);">' + ms.y + '</p>' +
+      '<h3 class="font-disp font-bold text-2xl md:text-4xl mt-2">' + ms.t + '</h3>' +
+      '<p class="font-body font-light text-bone/60 text-sm md:text-base mt-2 max-w-xs ' + (right ? 'ml-auto' : '') + '">' + ms.d + '</p>' +
+      '<p class="font-mono text-[9px] md:text-[10px] tracking-[0.3em] text-acc mt-3" style="opacity:.8">' + ms.m + '</p>';
+    tlStage.appendChild(el);
+    return el;
+  });
+
+  /* ───────────────────────── creed fragments (DIM 04) ───────────────────────── */
+  var fragWords = [];
+  Array.prototype.forEach.call(document.querySelectorAll('.frag'), function (line) {
+    var words = line.textContent.trim().split(/\s+/);
+    line.textContent = '';
+    words.forEach(function (w, wi) {
+      var s = document.createElement('span');
+      s.className = 'fw';
+      s.textContent = w;
+      var ang = Math.random() * Math.PI * 2;
+      var dist = 0.55 + Math.random() * 0.45;
+      fragWords.push({
+        el: s,
+        dx: Math.cos(ang) * dist * 46,
+        dy: Math.sin(ang) * dist * 34,
+        dr: (Math.random() - 0.5) * 150,
+        idx: fragWords.length
+      });
+      line.appendChild(s);
+      if (wi < words.length - 1) line.appendChild(document.createTextNode(' '));
+    });
+  });
+
+  /* ───────────────────────── scroll state ───────────────────────── */
+  var vw = window.innerWidth, vh = window.innerHeight;
+  var maxScroll = 1;
+  var panelGeo = [];
+  function measure() {
+    vw = window.innerWidth; vh = window.innerHeight;
+    maxScroll = Math.max(1, document.documentElement.scrollHeight - vh);
+    panelGeo = panels.map(function (p) { return { top: p.offsetTop, h: p.offsetHeight }; });
+  }
+  measure();
+
+  var targetScroll = window.scrollY || 0;
+  var smooth = targetScroll;
+  var vel = 0, velN = 0;
+  var mx = 0, my = 0, smx = 0, smy = 0;
+
+  window.addEventListener('scroll', function () { targetScroll = window.scrollY || 0; }, { passive: true });
+  window.addEventListener('mousemove', function (e) {
+    mx = (e.clientX / vw) * 2 - 1;
+    my = -((e.clientY / vh) * 2 - 1);
+    cursorTX = e.clientX; cursorTY = e.clientY;
+  }, { passive: true });
+
+  var cursorTX = vw / 2, cursorTY = vh / 2, cursorX = cursorTX, cursorY = cursorTY;
+
+  document.addEventListener('mouseover', function (e) {
+    if (e.target.closest && e.target.closest('a, button, [data-mag]')) document.body.dataset.mag = '1';
+  });
+  document.addEventListener('mouseout', function (e) {
+    if (e.target.closest && e.target.closest('a, button, [data-mag]')) {
+      if (!hovered) delete document.body.dataset.mag;
+    }
+  });
+
+  function dimState() {
+    var f = 0, local = 0, i;
+    for (i = 0; i < panelGeo.length; i++) {
+      var g = panelGeo[i];
+      if (smooth >= g.top - vh * 0.001) {
+        f = i;
+        local = clamp((smooth - g.top) / Math.max(1, g.h - vh), 0, 1);
+      }
+    }
+    return { f: clamp(f + local, 0, 5), local: local, idx: Math.round(clamp(f, 0, 5)) };
+  }
+  function panelLocal(i) {
+    var g = panelGeo[i];
+    if (!g) return 0;
+    return clamp((smooth - g.top) / Math.max(1, g.h - vh), 0, 1);
+  }
+  function influence(i, f) {
+    var t = clamp(1 - Math.abs(f - i), 0, 1);
+    return t * t * (3 - 2 * t);
+  }
+
+  /* ═══════════════════════════ THREE SCENE ═══════════════════════════ */
+  var renderer, scene, camera;
+  var stars, heroPts, terrain, terrainGroup, gateGroup, gates = [], streamPts;
+  var cubeCluster, cubes = [], creedPts, creedGroup, portalGroup, vortexPts, portalRings = [], coreSprite, rimSprite;
+  var accColor, fogBase;
+  var camPos, lookTarget, roll = 0, fov = 60;
+
+  var uHero = { uDissolve: { value: 0 }, uTime: { value: 0 }, uOpacity: { value: 0 }, uPixelRatio: { value: 1 }, uColorA: { value: null }, uColorB: { value: null } };
+  var uStars = { uTime: { value: 0 }, uBoost: { value: 0 }, uPixelRatio: { value: 1 }, uOpacity: { value: 0.75 }, uColor: { value: null } };
+  var uTerrain = { uAmp: { value: 0 }, uTime: { value: 0 }, uOpacity: { value: 0 }, uColor: { value: null } };
+  var uCreed = { uAssemble: { value: 0 }, uTime: { value: 0 }, uOpacity: { value: 0 }, uPixelRatio: { value: 1 }, uColor: { value: null } };
+  var uVortex = { uTime: { value: 0 }, uSpin: { value: 0.6 }, uPull: { value: 0 }, uOpacity: { value: 0 }, uPixelRatio: { value: 1 }, uColor: { value: null } };
+
+  function glowTexture() {
+    var c = document.createElement('canvas'); c.width = 128; c.height = 128;
+    var g = c.getContext('2d');
+    var grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grd.addColorStop(0, 'rgba(255,255,255,1)');
+    grd.addColorStop(0.35, 'rgba(255,255,255,0.55)');
+    grd.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
+    var tex = new THREE.CanvasTexture(c);
+    return tex;
+  }
+
+  function holeTexture() {
+    var c = document.createElement('canvas'); c.width = 256; c.height = 256;
+    var g = c.getContext('2d');
+    var grd = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+    grd.addColorStop(0, 'rgba(3,2,8,1)');
+    grd.addColorStop(0.55, 'rgba(3,2,8,0.96)');
+    grd.addColorStop(0.74, 'rgba(3,2,8,0.55)');
+    grd.addColorStop(1, 'rgba(3,2,8,0)');
+    g.fillStyle = grd; g.fillRect(0, 0, 256, 256);
+    return new THREE.CanvasTexture(c);
+  }
+
+  function rimTexture() {
+    var c = document.createElement('canvas'); c.width = 256; c.height = 256;
+    var g = c.getContext('2d');
+    var grd = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+    grd.addColorStop(0, 'rgba(255,255,255,0)');
+    grd.addColorStop(0.62, 'rgba(255,255,255,0)');
+    grd.addColorStop(0.74, 'rgba(255,255,255,0.9)');
+    grd.addColorStop(0.84, 'rgba(255,255,255,0.35)');
+    grd.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = grd; g.fillRect(0, 0, 256, 256);
+    return new THREE.CanvasTexture(c);
+  }
+
+  function buildStars() {
+    var n = MOBILE ? 900 : 1700;
+    var pos = new Float32Array(n * 3), aSize = new Float32Array(n), aSpeed = new Float32Array(n), aRand = new Float32Array(n);
+    for (var i = 0; i < n; i++) {
+      pos[i * 3] = (Math.random() - 0.5) * 220;
+      pos[i * 3 + 1] = (Math.random() - 0.5) * 150;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 240;
+      aSize[i] = 0.7 + Math.random() * 1.9;
+      aSpeed[i] = 0.3 + Math.random() * 1.4;
+      aRand[i] = Math.random();
+    }
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('aSize', new THREE.BufferAttribute(aSize, 1));
+    geo.setAttribute('aSpeed', new THREE.BufferAttribute(aSpeed, 1));
+    geo.setAttribute('aRand', new THREE.BufferAttribute(aRand, 1));
+    var mat = new THREE.ShaderMaterial({
+      uniforms: uStars,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: [
+        'attribute float aSize; attribute float aSpeed; attribute float aRand;',
+        'uniform float uTime; uniform float uBoost; uniform float uPixelRatio;',
+        'varying float vA;',
+        'void main(){',
+        '  vec3 p = position;',
+        '  float range = 240.0;',
+        '  float speed = aSpeed * (1.0 + uBoost * 14.0);',
+        '  p.z = mod(p.z + uTime * speed * 3.0 + range * 0.5, range) - range * 0.5;',
+        '  vec4 mv = modelViewMatrix * vec4(p, 1.0);',
+        '  gl_PointSize = aSize * uPixelRatio * (120.0 / -mv.z);',
+        '  float tw = 0.55 + 0.45 * sin(uTime * (1.0 + aRand * 3.0) + aRand * 40.0);',
+        '  vA = tw * smoothstep(190.0, 60.0, -mv.z);',
+        '  gl_Position = projectionMatrix * mv;',
+        '}'
+      ].join('\n'),
+      fragmentShader: [
+        'uniform vec3 uColor; uniform float uOpacity; varying float vA;',
+        'void main(){',
+        '  vec2 uv = gl_PointCoord - 0.5; float d = length(uv);',
+        '  if (d > 0.5) discard;',
+        '  float g = smoothstep(0.5, 0.05, d);',
+        '  gl_FragColor = vec4(uColor, g * vA * uOpacity);',
+        '}'
+      ].join('\n')
+    });
+    stars = new THREE.Points(geo, mat);
+    stars.frustumCulled = false;
+    scene.add(stars);
+  }
+
+  /* hero name as sampled glyph particles */
+  function buildHeroText() {
+    var lines = ['KAEL', 'THORN'];
+    var fs = 240, gap = MOBILE ? 6 : 4;
+    var cv = document.createElement('canvas'), cx = cv.getContext('2d');
+    var fontStr = function () { return '800 ' + fs + 'px Syne, "Arial Black", sans-serif'; };
+    cx.font = fontStr();
+    var wMax = 0;
+    lines.forEach(function (ln) { wMax = Math.max(wMax, cx.measureText(ln).width); });
+    var lineH = fs * 1.14;
+    cv.width = Math.ceil(wMax) + 60;
+    cv.height = Math.ceil(lines.length * lineH) + 60;
+    cx.font = fontStr();
+    cx.fillStyle = '#fff'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+    lines.forEach(function (ln, li) {
+      cx.fillText(ln, cv.width / 2, 30 + lineH * li + lineH / 2);
+    });
+    var img = cx.getImageData(0, 0, cv.width, cv.height).data;
+    var homes = [];
+    for (var y = 0; y < cv.height; y += gap) {
+      for (var x = 0; x < cv.width; x += gap) {
+        if (img[(y * cv.width + x) * 4 + 3] > 120) homes.push(x, y);
+      }
+    }
+    var n = homes.length / 2;
+    var scale = (MOBILE ? 30 : 46) / cv.width;
+    var pos = new Float32Array(n * 3), tgt = new Float32Array(n * 3);
+    var spd = new Float32Array(n), siz = new Float32Array(n), rnd = new Float32Array(n);
+    for (var i = 0; i < n; i++) {
+      var hx = (homes[i * 2] - cv.width / 2) * scale;
+      var hy = (cv.height / 2 - homes[i * 2 + 1]) * scale;
+      pos[i * 3] = hx; pos[i * 3 + 1] = hy; pos[i * 3 + 2] = (Math.random() - 0.5) * 0.6;
+      var th = Math.random() * Math.PI * 2, ph = Math.acos(2 * Math.random() - 1);
+      var r = 0.55 + Math.random();
+      tgt[i * 3] = Math.sin(ph) * Math.cos(th) * r;
+      tgt[i * 3 + 1] = Math.sin(ph) * Math.sin(th) * r;
+      tgt[i * 3 + 2] = Math.cos(ph) * r * 1.35 + 0.35;
+      spd[i] = 0.35 + Math.random() * 0.65;
+      siz[i] = 1.1 + Math.random() * 1.7;
+      rnd[i] = Math.random();
+    }
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('aTarget', new THREE.BufferAttribute(tgt, 3));
+    geo.setAttribute('aSpeed', new THREE.BufferAttribute(spd, 1));
+    geo.setAttribute('aSize', new THREE.BufferAttribute(siz, 1));
+    geo.setAttribute('aRand', new THREE.BufferAttribute(rnd, 1));
+    var mat = new THREE.ShaderMaterial({
+      uniforms: uHero,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: [
+        'attribute vec3 aTarget; attribute float aSpeed; attribute float aSize; attribute float aRand;',
+        'uniform float uDissolve; uniform float uTime; uniform float uPixelRatio;',
+        'varying float vAlpha; varying float vRand;',
+        'void main(){',
+        '  vRand = aRand;',
+        '  vec3 p = position;',
+        '  float d = clamp(uDissolve, 0.0, 1.0);',
+        '  float e = d * d * (3.0 - 2.0 * d);',
+        '  float travel = e * e * (0.35 + 0.65 * aSpeed);',
+        '  p += aTarget * travel * 60.0;',
+        '  float t = uTime * (0.4 + 0.6 * aSpeed);',
+        '  p.x += sin(p.y * 0.55 + t + aRand * 6.283) * e * 3.2;',
+        '  p.y += cos(p.x * 0.55 + t + aRand * 6.283) * e * 3.2;',
+        '  p.z += sin(t * 0.9 + aRand * 6.283) * e * 7.0;',
+        '  p += (1.0 - e) * 0.07 * vec3(sin(uTime * 0.8 + aRand * 31.0), cos(uTime * 0.7 + aRand * 17.0), sin(uTime * 0.9 + aRand * 43.0));',
+        '  vec4 mv = modelViewMatrix * vec4(p, 1.0);',
+        '  gl_PointSize = aSize * uPixelRatio * (130.0 / -mv.z);',
+        '  vAlpha = 1.0 - e * 0.94;',
+        '  gl_Position = projectionMatrix * mv;',
+        '}'
+      ].join('\n'),
+      fragmentShader: [
+        'uniform vec3 uColorA; uniform vec3 uColorB; uniform float uOpacity;',
+        'varying float vAlpha; varying float vRand;',
+        'void main(){',
+        '  vec2 uv = gl_PointCoord - 0.5; float d = length(uv);',
+        '  if (d > 0.5) discard;',
+        '  float g = smoothstep(0.5, 0.08, d);',
+        '  vec3 col = mix(uColorA, uColorB, step(0.86, vRand));',
+        '  gl_FragColor = vec4(col, g * g * vAlpha * uOpacity);',
+        '}'
+      ].join('\n')
+    });
+    heroPts = new THREE.Points(geo, mat);
+    heroPts.frustumCulled = false;
+    heroPts.position.y = 2.5;
+    scene.add(heroPts);
+  }
+
+  /* flatland terrain: a grid that stands up and grows mountains */
+  function buildTerrain() {
+    terrainGroup = new THREE.Group();
+    var geo = new THREE.PlaneGeometry(150, 100, MOBILE ? 56 : 92, MOBILE ? 38 : 62);
+    var mat = new THREE.ShaderMaterial({
+      uniforms: uTerrain, wireframe: true, transparent: true, depthWrite: false,
+      vertexShader: [
+        'uniform float uAmp; uniform float uTime;',
+        'varying float vH; varying float vDist;',
+        'float hgt(vec2 v){',
+        '  float h = sin(v.x * 0.16 + uTime * 0.18) * cos(v.y * 0.14 - uTime * 0.12);',
+        '  h += 0.55 * sin(v.x * 0.4 + uTime * 0.22) * cos(v.y * 0.36 + uTime * 0.16);',
+        '  h += 0.28 * sin(v.x * 0.9) * cos(v.y * 1.05);',
+        '  return h;',
+        '}',
+        'void main(){',
+        '  vec3 p = position;',
+        '  float h = hgt(p.xy);',
+        '  p.z += h * uAmp;',
+        '  vH = h;',
+        '  vec4 mv = modelViewMatrix * vec4(p, 1.0);',
+        '  vDist = -mv.z;',
+        '  gl_Position = projectionMatrix * mv;',
+        '}'
+      ].join('\n'),
+      fragmentShader: [
+        'uniform vec3 uColor; uniform float uOpacity;',
+        'varying float vH; varying float vDist;',
+        'void main(){',
+        '  float fade = 1.0 - smoothstep(55.0, 145.0, vDist);',
+        '  vec3 col = mix(uColor * 0.25, uColor, clamp(vH * 0.5 + 0.5, 0.0, 1.0));',
+        '  gl_FragColor = vec4(col, fade * uOpacity * 0.55);',
+        '}'
+      ].join('\n')
+    });
+    terrain = new THREE.Mesh(geo, mat);
+    terrainGroup.add(terrain);
+    terrainGroup.position.y = -6;
+    scene.add(terrainGroup);
+  }
+
+  /* worldline: rings flying past as time */
+  var pathX = function (z) { return Math.sin(z * 0.075) * 9.5; };
+  var pathY = function (z) { return Math.cos(z * 0.06) * 4.6; };
+
+  function buildGates() {
+    gateGroup = new THREE.Group();
+    var ringGeo = new THREE.TorusGeometry(8, 0.05, 8, 72);
+    var innerGeo = new THREE.TorusGeometry(5.6, 0.03, 6, 60);
+    for (var i = 0; i < 16; i++) {
+      var z = -10 - i * 11;
+      var mat = new THREE.MeshBasicMaterial({ color: 0xb18cff, transparent: true, opacity: 0.34, blending: THREE.AdditiveBlending, depthWrite: false });
+      var mat2 = mat.clone(); mat2.opacity = 0.2;
+      var ring = new THREE.Mesh(ringGeo, mat);
+      var inner = new THREE.Mesh(innerGeo, mat2);
+      ring.position.set(pathX(z), pathY(z), z);
+      inner.position.copy(ring.position);
+      ring.userData = { z: z, spd: (0.15 + Math.random() * 0.3) * (i % 2 ? 1 : -1), inner: inner, base: ring.position.clone() };
+      inner.userData = { spd: -ring.userData.spd * 1.6 };
+      gateGroup.add(ring); gateGroup.add(inner);
+      gates.push(ring);
+    }
+    /* stream of dust along the path */
+    var n = MOBILE ? 400 : 800;
+    var sp = new Float32Array(n * 3);
+    for (var j = 0; j < n; j++) {
+      var zz = -Math.random() * 185;
+      sp[j * 3] = pathX(zz) + (Math.random() - 0.5) * 9;
+      sp[j * 3 + 1] = pathY(zz) + (Math.random() - 0.5) * 6;
+      sp[j * 3 + 2] = zz;
+    }
+    var sgeo = new THREE.BufferGeometry();
+    sgeo.setAttribute('position', new THREE.BufferAttribute(sp, 3));
+    var smat = new THREE.PointsMaterial({ color: 0xb18cff, size: 0.16, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true });
+    streamPts = new THREE.Points(sgeo, smat);
+    streamPts.frustumCulled = false;
+    gateGroup.add(streamPts);
+    gateGroup.visible = false;
+    scene.add(gateGroup);
+  }
+
+  /* reliquary cubes */
+  var WORKS = [
+    { t: 'CHROMATIC DRIFT', m: 'LIGHT INSTALLATION · 2021' },
+    { t: 'FERROFLUID HYMN', m: 'KINETIC SCULPTURE · 2019' },
+    { t: 'LATENT GARDEN', m: 'AI ECOSYSTEM · 2023' },
+    { t: 'SIGNAL DECAY', m: 'AUDIOVISUAL · 2020' },
+    { t: 'MONOLITH, SOFTENED', m: 'VR SCULPTURE · 2024' },
+    { t: 'THE LAST FREQUENCY', m: 'SOUND ART · 2017' }
+  ];
+
+  function buildCubes() {
+    cubeCluster = new THREE.Group();
+    var box = new THREE.BoxGeometry(4.2, 4.2, 4.2);
+    var edges = new THREE.EdgesGeometry(box);
+    var hitGeo = new THREE.BoxGeometry(5.0, 5.0, 5.0);
+    WORKS.forEach(function (w, i) {
+      var ang = (i / WORKS.length) * Math.PI * 2;
+      var g = new THREE.Group();
+      g.position.set(Math.cos(ang) * 11, Math.sin(i * 2.3) * 3.2, Math.sin(ang) * 11 - 4);
+      var eMat = new THREE.LineBasicMaterial({ color: 0xf2efe6, transparent: true, opacity: 0.75 });
+      var fMat = new THREE.MeshBasicMaterial({ color: 0x0a0912, transparent: true, opacity: 0.5, depthWrite: false });
+      var wire = new THREE.LineSegments(edges, eMat);
+      var faces = new THREE.Mesh(box, fMat);
+      var hit = new THREE.Mesh(hitGeo, new THREE.MeshBasicMaterial({ visible: false }));
+      var core = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: 0xffb454, transparent: true, opacity: 0.32, blending: THREE.AdditiveBlending, depthWrite: false }));
+      core.scale.setScalar(2.6);
+      g.add(faces); g.add(wire); g.add(core); g.add(hit);
+      g.userData = { idx: i, work: w, vx: 0, vy: 0, idle: 0.12 + Math.random() * 0.18, hover: 0, hit: hit, eMat: eMat, core: core, baseScale: 1 };
+      cubeCluster.add(g);
+      cubes.push(g);
+    });
+    cubeCluster.visible = false;
+    scene.add(cubeCluster);
+  }
+
+  /* creed sphere of converging sparks */
+  function buildCreed() {
+    creedGroup = new THREE.Group();
+    var n = MOBILE ? 800 : 1400;
+    var home = new Float32Array(n * 3), scat = new Float32Array(n * 3);
+    var rnd = new Float32Array(n), siz = new Float32Array(n);
+    var R = 9.5;
+    for (var i = 0; i < n; i++) {
+      var yy = 1 - (i / (n - 1)) * 2;
+      var rr = Math.sqrt(1 - yy * yy);
+      var th = i * 2.39996323;
+      home[i * 3] = Math.cos(th) * rr * R;
+      home[i * 3 + 1] = yy * R;
+      home[i * 3 + 2] = Math.sin(th) * rr * R;
+      scat[i * 3] = (Math.random() - 0.5) * 95;
+      scat[i * 3 + 1] = (Math.random() - 0.5) * 60;
+      scat[i * 3 + 2] = (Math.random() - 0.5) * 95;
+      rnd[i] = Math.random();
+      siz[i] = 0.8 + Math.random() * 1.6;
+    }
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(home, 3));
+    geo.setAttribute('aScatter', new THREE.BufferAttribute(scat, 3));
+    geo.setAttribute('aRand', new THREE.BufferAttribute(rnd, 1));
+    geo.setAttribute('aSize', new THREE.BufferAttribute(siz, 1));
+    var mat = new THREE.ShaderMaterial({
+      uniforms: uCreed,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: [
+        'attribute vec3 aScatter; attribute float aRand; attribute float aSize;',
+        'uniform float uAssemble; uniform float uTime; uniform float uPixelRatio;',
+        'varying float vA;',
+        'void main(){',
+        '  float k = clamp(uAssemble * 1.35 - aRand * 0.35, 0.0, 1.0);',
+        '  float e = k * k * (3.0 - 2.0 * k);',
+        '  vec3 s = aScatter;',
+        '  float ang = uTime * 0.05;',
+        '  s.xz = mat2(cos(ang), -sin(ang), sin(ang), cos(ang)) * s.xz;',
+        '  vec3 p = mix(s, position, e);',
+        '  p += (1.0 - e) * vec3(sin(uTime * 0.5 + aRand * 50.0), cos(uTime * 0.4 + aRand * 30.0), sin(uTime * 0.6 + aRand * 70.0)) * 1.5;',
+        '  p += e * 0.12 * vec3(sin(uTime + aRand * 20.0), cos(uTime * 1.1 + aRand * 26.0), sin(uTime * 0.9 + aRand * 33.0));',
+        '  vec4 mv = modelViewMatrix * vec4(p, 1.0);',
+        '  gl_PointSize = aSize * uPixelRatio * (110.0 / -mv.z);',
+        '  vA = 0.35 + 0.65 * e;',
+        '  gl_Position = projectionMatrix * mv;',
+        '}'
+      ].join('\n'),
+      fragmentShader: [
+        'uniform vec3 uColor; uniform float uOpacity; varying float vA;',
+        'void main(){',
+        '  vec2 uv = gl_PointCoord - 0.5; float d = length(uv);',
+        '  if (d > 0.5) discard;',
+        '  float g = smoothstep(0.5, 0.05, d);',
+        '  gl_FragColor = vec4(uColor, g * vA * uOpacity);',
+        '}'
+      ].join('\n')
+    });
+    creedPts = new THREE.Points(geo, mat);
+    creedPts.frustumCulled = false;
+    creedGroup.add(creedPts);
+    creedGroup.position.set(MOBILE ? 0 : 13, MOBILE ? 9 : 2, -6);
+    creedGroup.visible = false;
+    scene.add(creedGroup);
+  }
+
+  /* event horizon portal */
+  function buildPortal() {
+    portalGroup = new THREE.Group();
+    var n = MOBILE ? 900 : 1700;
+    var aR = new Float32Array(n), aA = new Float32Array(n), aZ = new Float32Array(n);
+    var spd = new Float32Array(n), siz = new Float32Array(n);
+    for (var i = 0; i < n; i++) {
+      aR[i] = 3.6 + Math.random() * 5.4;
+      aA[i] = Math.random() * Math.PI * 2;
+      aZ[i] = (Math.random() - 0.5) * 1.4;
+      spd[i] = Math.random();
+      siz[i] = 0.9 + Math.random() * 2.0;
+    }
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    geo.setAttribute('aR', new THREE.BufferAttribute(aR, 1));
+    geo.setAttribute('aA', new THREE.BufferAttribute(aA, 1));
+    geo.setAttribute('aZ', new THREE.BufferAttribute(aZ, 1));
+    geo.setAttribute('aSpd', new THREE.BufferAttribute(spd, 1));
+    geo.setAttribute('aSize', new THREE.BufferAttribute(siz, 1));
+    var mat = new THREE.ShaderMaterial({
+      uniforms: uVortex,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: [
+        'attribute float aR; attribute float aA; attribute float aZ; attribute float aSpd; attribute float aSize;',
+        'uniform float uTime; uniform float uSpin; uniform float uPull; uniform float uPixelRatio;',
+        'varying float vA;',
+        'void main(){',
+        '  float ang = aA + uTime * uSpin * (0.25 + aSpd * 0.9);',
+        '  float r = aR * (1.0 - uPull * 0.3) - uPull * aSpd * 1.6;',
+        '  vec3 p = vec3(cos(ang) * r, sin(ang) * r, aZ + sin(uTime * 1.6 + aA * 3.0) * 0.35);',
+        '  vec4 mv = modelViewMatrix * vec4(p, 1.0);',
+        '  gl_PointSize = aSize * uPixelRatio * (120.0 / -mv.z);',
+        '  vA = 0.4 + 0.6 * aSpd;',
+        '  gl_Position = projectionMatrix * mv;',
+        '}'
+      ].join('\n'),
+      fragmentShader: [
+        'uniform vec3 uColor; uniform float uOpacity; varying float vA;',
+        'void main(){',
+        '  vec2 uv = gl_PointCoord - 0.5; float d = length(uv);',
+        '  if (d > 0.5) discard;',
+        '  float g = smoothstep(0.5, 0.04, d);',
+        '  gl_FragColor = vec4(uColor, g * vA * uOpacity);',
+        '}'
+      ].join('\n')
+    });
+    vortexPts = new THREE.Points(geo, mat);
+    vortexPts.frustumCulled = false;
+    portalGroup.add(vortexPts);
+
+    var ringRadii = [5.2, 7.1, 9.2];
+    ringRadii.forEach(function (r, i) {
+      var rg = new THREE.TorusGeometry(r, 0.035, 6, 90);
+      var rm = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false });
+      var ring = new THREE.Mesh(rg, rm);
+      ring.userData = { spd: (0.2 + i * 0.14) * (i % 2 ? -1 : 1) };
+      portalGroup.add(ring);
+      portalRings.push(ring);
+    });
+
+    coreSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: holeTexture(), transparent: true, opacity: 0, depthWrite: false, depthTest: false }));
+    coreSprite.scale.setScalar(2);
+    coreSprite.renderOrder = 20;
+    portalGroup.add(coreSprite);
+
+    rimSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: rimTexture(), color: 0xffffff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false }));
+    rimSprite.scale.setScalar(3);
+    rimSprite.renderOrder = 19;
+    portalGroup.add(rimSprite);
+
+    portalGroup.position.z = -6;
+    portalGroup.visible = false;
+    scene.add(portalGroup);
+  }
+
+  function init3D() {
+    renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('scene'), antialias: true, alpha: false, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(vw, vh);
+    renderer.setClearColor(0x040308, 1);
+
+    scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x040308, 0.011);
+    camera = new THREE.PerspectiveCamera(60, vw / vh, 0.1, 400);
+    camera.position.set(0, 0, 40);
+
+    accColor = new THREE.Color(DIMS[0].acc);
+    fogBase = new THREE.Color(0x040308);
+    uHero.uColorA.value = new THREE.Color('#f2efe6');
+    uHero.uColorB.value = new THREE.Color('#7df9d8');
+    uStars.uColor.value = new THREE.Color('#cfc8ff');
+    uTerrain.uColor.value = new THREE.Color('#7df9d8');
+    uCreed.uColor.value = new THREE.Color('#ff5ea8');
+    uVortex.uColor.value = new THREE.Color('#ffffff');
+    var pr = Math.min(window.devicePixelRatio || 1, 2);
+    uHero.uPixelRatio.value = pr; uStars.uPixelRatio.value = pr;
+    uCreed.uPixelRatio.value = pr; uVortex.uPixelRatio.value = pr;
+
+    camPos = new THREE.Vector3(0, 0, 40);
+    lookTarget = new THREE.Vector3(0, 0, 0);
+
+    buildStars();
+    buildHeroText();
+    buildTerrain();
+    buildGates();
+    buildCubes();
+    buildCreed();
+    buildPortal();
+  }
+
+  /* ───────────────────────── cube interaction ───────────────────────── */
+  var raycaster, dragging = null, dragMoved = 0, lastPX = 0, lastPY = 0, hovered = null;
+
+  function initPicking() {
+    if (!has3D || COARSE) return;
+    raycaster = new THREE.Raycaster();
+
+    window.addEventListener('pointerdown', function (e) {
+      if (influence(3, dimState().f) < 0.45) return;
+      var hit = pickCube(e.clientX, e.clientY);
+      if (hit) {
+        dragging = hit; dragMoved = 0; lastPX = e.clientX; lastPY = e.clientY;
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    window.addEventListener('pointermove', function (e) {
+      if (dragging) {
+        var dx = e.clientX - lastPX, dy = e.clientY - lastPY;
+        dragMoved += Math.abs(dx) + Math.abs(dy);
+        dragging.userData.vy = dx * 0.008;
+        dragging.userData.vx = dy * 0.008;
+        dragging.rotation.y += dx * 0.008;
+        dragging.rotation.x += dy * 0.008;
+        lastPX = e.clientX; lastPY = e.clientY;
+      } else if (influence(3, dimState().f) > 0.25) {
+        var h = pickCube(e.clientX, e.clientY);
+        if (h !== hovered) {
+          hovered = h;
+          if (h) {
+            capTitle.textContent = h.userData.work.t;
+            capMeta.textContent = h.userData.work.m + ' · ARTIFACT 0' + (h.userData.idx + 1);
+            document.body.dataset.mag = '1';
+          } else {
+            capTitle.textContent = 'RELIQUARY';
+            capMeta.textContent = 'HOVER AN ARTIFACT TO READ IT · GRAB ONE TO SPIN IT';
+            delete document.body.dataset.mag;
+          }
+        }
+      }
+    }, { passive: true });
+
+    window.addEventListener('pointerup', function () {
+      if (dragging) { dragging = null; }
+    });
+  }
+
+  function pickCube(cx, cy) {
+    var v = new THREE.Vector2((cx / vw) * 2 - 1, -((cy / vh) * 2 - 1));
+    raycaster.setFromCamera(v, camera);
+    var hits = raycaster.intersectObjects(cubes.map(function (c) { return c.userData.hit; }), false);
+    if (!hits.length) return null;
+    var hitObj = hits[0].object;
+    for (var i = 0; i < cubes.length; i++) if (cubes[i].userData.hit === hitObj) return cubes[i];
+    return null;
+  }
+
+  /* ───────────────────────── accent + hud ───────────────────────── */
+  var accA = new THREE.Color(DIMS[0].acc), accB = new THREE.Color(DIMS[0].acc), accOut = new THREE.Color();
+  var fogOut = new THREE.Color();
+  var lastHudText = 0;
+
+  function updateAccent(f) {
+    var i0 = Math.floor(clamp(f, 0, 4.999));
+    var i1 = Math.min(5, i0 + 1);
+    var t = clamp(f - i0, 0, 1);
+    accA.set(DIMS[i0].acc); accB.set(DIMS[i1].acc);
+    accOut.copy(accA).lerp(accB, t);
+    document.documentElement.style.setProperty('--acc', '#' + accOut.getHexString());
+    uHero.uColorB.value.copy(accOut);
+    uTerrain.uColor.value.copy(accOut);
+    uCreed.uColor.value.copy(accOut);
+    uVortex.uColor.value.copy(accOut);
+    streamPts.material.color.copy(accOut);
+    gates.forEach(function (g) { g.material.color.copy(accOut); g.userData.inner.material.color.copy(accOut); });
+    fogOut.copy(fogBase).lerp(accOut, 0.07);
+    scene.fog.color.copy(fogOut);
+    renderer.setClearColor(fogOut, 1);
+  }
+
+  /* ───────────────────────── main loop ───────────────────────── */
+  var clock = { last: performance.now(), t: 0 };
+  var booted = false;
+
+  function frame(now) {
+    requestAnimationFrame(frame);
+    var dt = Math.min(0.05, (now - clock.last) / 1000);
+    clock.last = now;
+    clock.t += dt;
+    var time = clock.t;
+
+    smooth += (targetScroll - smooth) * (RM ? 0.3 : 0.085);
+    vel = (smooth - (frame.prev || smooth));
+    frame.prev = smooth;
+    velN = lerp(velN, clamp(Math.abs(vel) / 55, 0, 1), 0.1);
+    smx = lerp(smx, mx, 0.06); smy = lerp(smy, my, 0.06);
+
+    var ds = dimState();
+    var f = ds.f;
+    var gp = clamp(smooth / maxScroll, 0, 1);
+
+    /* hud */
+    railFill.style.transform = 'scaleY(' + gp.toFixed(4) + ')';
+    if (now - lastHudText > 90) {
+      lastHudText = now;
+      var di = DIMS[clamp(Math.floor(f + 0.0001), 0, 5)];
+      hudDim.textContent = di.key + ' / ' + di.name;
+      hudPct.textContent = String(Math.round(gp * 100)).padStart(3, '0') + '%';
+      if (hudTele) hudTele.textContent = 'Z ' + (camera ? (camera.position.z >= 0 ? '+' : '') + camera.position.z.toFixed(1) : '+040.0') + ' · V ' + velN.toFixed(2) + ' · Φ ' + f.toFixed(2);
+    }
+    cue.style.opacity = String(clamp(1 - panelLocal(0) * 9, 0, 1));
+
+    /* cursor */
+    cursorX = lerp(cursorX, cursorTX, 0.35);
+    cursorY = lerp(cursorY, cursorTY, 0.35);
+    curDot.style.transform = 'translate(' + cursorX + 'px,' + cursorY + 'px) translate(-50%,-50%)';
+    var ringScale = (document.body.dataset.mag || hovered || dragging) ? 1.9 : 1;
+    curRing.style.width = (36 * ringScale) + 'px';
+    curRing.style.height = (36 * ringScale) + 'px';
+    curRing.style.transform = 'translate(' + cursorX + 'px,' + cursorY + 'px) translate(-50%,-50%)';
+
+    /* creed words always (DOM, no 3D needed) */
+    var inf4 = influence(4, f);
+    if (inf4 > 0.01) {
+      var p4 = panelLocal(4);
+      var total = fragWords.length;
+      for (var wi = 0; wi < total; wi++) {
+        var w = fragWords[wi];
+        var k = clamp((p4 * 1.7 - (w.idx / total) * 0.7) / 0.45, 0, 1);
+        var e = k * k * (3 - 2 * k);
+        w.el.style.opacity = String(0.08 + 0.92 * e);
+        w.el.style.transform = 'translate(' + (w.dx * (1 - e)).toFixed(1) + 'vw,' + (w.dy * (1 - e)).toFixed(1) + 'vh) rotate(' + (w.dr * (1 - e)).toFixed(1) + 'deg)';
+      }
+    }
+
+    /* timeline cards */
+    var inf2 = influence(2, f);
+    var p2 = panelLocal(2);
+    for (var ci = 0; ci < tlCards.length; ci++) {
+      var c = (ci + 0.5) / tlCards.length;
+      var vis = clamp(1 - Math.abs(p2 - c) / (0.62 / tlCards.length), 0, 1);
+      vis = vis * vis * (3 - 2 * vis) * clamp(inf2 * 1.4, 0, 1);
+      var card = tlCards[ci];
+      if (vis < 0.01) { card.style.visibility = 'hidden'; continue; }
+      card.style.visibility = 'visible';
+      card.style.opacity = String(vis);
+      card.style.transform = 'translateY(calc(-50% + ' + ((p2 - c) * -560).toFixed(1) + 'px))';
+    }
+
+    /* door content */
+    var p5 = panelLocal(5);
+    var de = sstep(0.22, 0.5, p5);
+    door.style.opacity = String(de);
+    door.style.transform = 'translateY(' + ((1 - de) * 46).toFixed(1) + 'px) scale(' + (0.94 + de * 0.06).toFixed(3) + ')';
+    doorScrim.style.opacity = String(sstep(0.16, 0.44, p5));
+    flash.style.opacity = String(sstep(0.96, 1, p5) * (RM ? 0.08 : 0.16));
+
+    if (!has3D) return;
+
+    /* ── scene ── */
+    updateAccent(f);
+
+    var inf0 = influence(0, f), inf1 = influence(1, f), inf3 = influence(3, f), inf5 = influence(5, f);
+
+    uStars.uTime.value = time;
+    uStars.uBoost.value = RM ? velN * 0.3 : velN;
+
+    /* hero */
+    var p0 = panelLocal(0);
+    uHero.uTime.value = time;
+    uHero.uDissolve.value = RM ? sstep(0.05, 0.6, p0) * 0.55 : sstep(0.04, 0.82, p0);
+    uHero.uOpacity.value = inf0;
+    if (heroPts) heroPts.visible = inf0 > 0.01;
+    if (heroPts) {
+      heroPts.rotation.y = smx * 0.12;
+      heroPts.rotation.x = -smy * 0.08;
+    }
+
+    /* terrain: flat grid stands up into 3D country */
+    uTerrain.uTime.value = time;
+    var p1 = panelLocal(1);
+    var rise = sstep(0.08, 0.85, p1);
+    uTerrain.uAmp.value = rise * (RM ? 2.2 : 5.2);
+    uTerrain.uOpacity.value = inf1;
+    terrainGroup.visible = inf1 > 0.01;
+    terrainGroup.rotation.x = -rise * 1.32;
+    terrainGroup.position.y = -6 + rise * 3.5;
+    terrainGroup.position.z = -14 - rise * 8;
+
+    /* gates */
+    gateGroup.visible = inf2 > 0.01;
+    if (gateGroup.visible) {
+      var warp = RM ? 0.15 : clamp(velN * 2.4, 0.12, 1.4);
+      gateGroup.position.z = 12 + p2 * 195;
+      gateGroup.rotation.z = Math.sin(time * 0.16) * 0.05 + smx * 0.04;
+      for (var gi = 0; gi < gates.length; gi++) {
+        var gate = gates[gi];
+        gate.rotation.z += gate.userData.spd * dt * (1 + warp * 3);
+        gate.userData.inner.rotation.z += gate.userData.inner.userData.spd * dt * (1 + warp * 3);
+        var wob = Math.sin(time * 1.1 + gi * 0.8) * warp;
+        gate.position.x = gate.userData.base.x + wob * 2.2;
+        gate.position.y = gate.userData.base.y + Math.cos(time * 0.9 + gi) * warp * 1.6;
+        gate.userData.inner.position.copy(gate.position);
+        var sc = 1 + Math.sin(time * 2 + gi * 1.3) * 0.03 + warp * 0.12;
+        gate.scale.setScalar(sc);
+        gate.userData.inner.scale.setScalar(sc);
+        gate.material.opacity = 0.16 + warp * 0.2;
+        gate.userData.inner.material.opacity = 0.1 + warp * 0.12;
+      }
+      streamPts.material.opacity = 0.2 + warp * 0.3;
+    }
+
+    /* cubes */
+    cubeCluster.visible = inf3 > 0.01;
+    if (cubeCluster.visible) {
+      if (!dragging && !RM) cubeCluster.rotation.y += dt * 0.1;
+      cubeCluster.rotation.x = lerp(cubeCluster.rotation.x, -smy * 0.1, 0.05);
+      for (var bi = 0; bi < cubes.length; bi++) {
+        var cube = cubes[bi], cu = cube.userData;
+        cube.rotation.x += cu.vx + dt * cu.idle * (RM ? 0.3 : 1);
+        cube.rotation.y += cu.vy + dt * cu.idle * 0.7 * (RM ? 0.3 : 1);
+        cu.vx *= 0.95; cu.vy *= 0.95;
+        var isH = (hovered === cube || dragging === cube);
+        cu.hover = lerp(cu.hover, isH ? 1 : 0, 0.12);
+        cube.scale.setScalar(1 + cu.hover * 0.18);
+        cu.eMat.opacity = 0.55 + cu.hover * 0.45;
+        cu.eMat.color.copy(accOut).lerp(new THREE.Color('#f2efe6'), 0.4);
+        cu.core.material.opacity = 0.18 + cu.hover * 0.4;
+        cube.position.y = Math.sin(bi * 2.3 + time * 0.55) * 0.9 + Math.sin(bi * 1.1) * 2.2;
+      }
+      cubeCluster.position.y = Math.sin(time * 0.3) * 0.6;
+    }
+
+    /* creed sphere */
+    creedGroup.visible = inf4 > 0.01;
+    if (creedGroup.visible) {
+      uCreed.uTime.value = time;
+      uCreed.uAssemble.value = sstep(0.1, 0.75, p4);
+      uCreed.uOpacity.value = inf4 * 0.85;
+      creedGroup.rotation.y += dt * (RM ? 0.03 : 0.12);
+    }
+
+    /* portal */
+    portalGroup.visible = inf5 > 0.01;
+    if (portalGroup.visible) {
+      uVortex.uTime.value = time;
+      uVortex.uSpin.value = 0.5 + p5 * (RM ? 1.2 : 3.2);
+      uVortex.uPull.value = sstep(0.4, 0.95, p5);
+      uVortex.uOpacity.value = inf5;
+      portalRings.forEach(function (r, ri) {
+        r.rotation.z += r.userData.spd * dt * (1 + p5 * 4);
+        r.rotation.x = Math.sin(time * 0.4 + ri) * 0.22 * (1 + p5);
+        r.scale.setScalar(1 + Math.sin(time * 1.4 + ri * 2.1) * 0.02 + p5 * 0.28);
+      });
+      var grow = sstep(0.12, 0.85, p5);
+      coreSprite.material.opacity = inf5 * (0.55 + grow * 0.45);
+      coreSprite.scale.setScalar(4 + grow * 34);
+      rimSprite.material.opacity = inf5 * (0.35 + grow * 0.6);
+      rimSprite.scale.setScalar(6 + grow * 40);
+      portalGroup.rotation.z += dt * 0.05;
+    }
+
+    /* camera choreography */
+    var cx0 = smx * 1.5, cy0 = smy * 1.0;
+    var tz = 40 - inf5 * 12 - inf2 * 2;
+    var ty = cy0 + inf1 * 7.5;
+    var tx = cx0;
+    camPos.set(tx, ty, tz);
+    camera.position.lerp(camPos, 0.07);
+    lookTarget.set(smx * 2, smy * 1.2 - inf1 * 5, 0);
+    camera.lookAt(lookTarget);
+    var targetRoll = RM ? 0 : clamp(-vel * 0.0012, -0.055, 0.055) + smx * 0.02;
+    roll = lerp(roll, targetRoll, 0.06);
+    camera.rotateZ(roll);
+    var targetFov = 60 + inf5 * sstep(0.3, 1, p5) * 22 + velN * 4;
+    if (Math.abs(targetFov - fov) > 0.05) { fov = targetFov; camera.fov = fov; camera.updateProjectionMatrix(); }
+
+    renderer.render(scene, camera);
+  }
+
+  /* ───────────────────────── resize ───────────────────────── */
+  var rT;
+  window.addEventListener('resize', function () {
+    clearTimeout(rT);
+    rT = setTimeout(function () {
+      measure();
+      if (!has3D || !renderer) return;
+      vw = window.innerWidth; vh = window.innerHeight;
+      renderer.setSize(vw, vh);
+      camera.aspect = vw / vh;
+      camera.updateProjectionMatrix();
+      if (cubeCluster) cubeCluster.scale.setScalar(clamp(vw / 1280, 0.58, 1));
+    }, 120);
+  });
+
+  /* ───────────────────────── boot ───────────────────────── */
+  function start() {
+    if (has3D) {
+      try {
+        init3D();
+        initPicking();
+        if (cubeCluster) cubeCluster.scale.setScalar(clamp(vw / 1280, 0.58, 1));
+      } catch (err) {
+        has3D = false;
+        var cv = document.getElementById('scene');
+        if (cv) cv.style.display = 'none';
+      }
+    }
+    requestAnimationFrame(function (now) { clock.last = now; frame(now); });
+    setTimeout(function () { boot.classList.add('gone'); }, 500);
+    setTimeout(function () { if (boot.parentNode) boot.parentNode.removeChild(boot); }, 2200);
+  }
+
+  if (document.fonts && document.fonts.load) {
+    var fontsDone = false;
+    var go = function () { if (!fontsDone) { fontsDone = true; start(); } };
+    Promise.all([
+      document.fonts.load('800 240px Syne'),
+      document.fonts.load('400 16px "Space Mono"')
+    ]).then(go).catch(go);
+    setTimeout(go, 2400);
+  } else {
+    start();
+  }
+})();
+</script>
+</body>
+</html>
