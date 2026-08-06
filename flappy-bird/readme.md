@@ -40,6 +40,8 @@
 | qwen-3.7-flash | `qwen-3.7-flash/` | $0.006 (8 prompts) | 482 |
 | deepseek-v4-flash | `deepseek-v4-flash/` | $0.0005 (2 prompts) | 781 |
 | step-3.7-flash | `step-3.7-flash/` | $0.009 (4 prompts) | 643 |
+| muse-spark-1.2 | `muse-spark-1.2/` | $0.0187 | 949 |
+| muse-spark-1.2-contributor | `muse-spark-1.2-contributor/` | $0.0037 | 1,002 |
 
 
 ## Method

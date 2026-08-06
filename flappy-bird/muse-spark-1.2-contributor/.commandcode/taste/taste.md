@@ -1,0 +1,1 @@
+- Prefers casual game physics to feel smooth, floaty and forgiving rather than punishing — wants lighter gravity, softer flap, wider pipe gaps, slower pipe speed, terminal velocity cap, and generous hitbox forgiveness so the bird glides and soars instead of dropping like a brick. Confidence: 0.88
