@@ -31,12 +31,12 @@
 |---|---|---:|---:|
 | Fable 5 (Claude) | `Fable-5/` | $0.4200 | 641 |
 | GLM 5.2 | `GLM-5.2/` | $0.0480 | 799 |
-| kimi-k3 | `kimi-k3/` | $0.1200 | 880 |
+| kimi-k3 | `kimi-k3/` | $0.0740 | 880 |
 | qwen-3.8-max | `qwen-3.8-max/` | $0.0248 | 1,124 |
 | Opus 5 (Claude) | `opus-5/` | ~$0.2539 | 497 |
 | GPT-5.6 Sol | `gp-5.6-sol/` | ~$0.1500 | 631 |
 | DeepSeek | `DeepSeek-V4-Pro/` | $0.0008 | 748 |
-| DeepSeek | `DeepSeek-V4-Pro 0813` | $0.00055 | 748 |
+| DeepSeek | `DeepSeek-V4-Pro 0813` | $0.00055 | 739 |
 | Gemini 3.6 Flash | `gemini-3.6-flash/` | $0.1500 (5-6 prompts) | 1,411 |
 | qwen-3.7-flash | `qwen-3.7-flash/` | $0.006 (8 prompts) | 482 |
 | deepseek-v4-flash | `deepseek-v4-flash/` | $0.0005 (2 prompts) | 781 |
