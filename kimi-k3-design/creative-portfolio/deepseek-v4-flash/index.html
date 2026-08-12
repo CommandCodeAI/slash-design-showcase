@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Arden Vale — Frontend Developer &amp; Creative</title>
+  <meta name="description" content="Portfolio of Arden Vale, a frontend developer and creative in Amsterdam building fast, calm, beautiful software.">
+  <meta name="theme-color" content="#0e0d0b">
+  <meta property="og:title" content="Arden Vale — Frontend Developer &amp; Creative">
+  <meta property="og:description" content="Crafting interfaces with feeling. Eight years turning complex products into calm, fast, beautiful software.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230e0d0b'/%3E%3Ctext x='32' y='44' font-family='Georgia,serif' font-style='italic' font-size='34' fill='%23d99c5b' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#work">Skip to content</a>
+
+  <div class="grain" aria-hidden="true"></div>
+  <div class="cursor" aria-hidden="true">
+    <span class="cursor-dot"></span>
+    <span class="cursor-ring"></span>
+    <span class="cursor-label"></span>
+  </div>
+
+  <div class="preloader" id="preloader" aria-hidden="true">
+    <div class="preloader-inner">
+      <span class="preloader-meta">Portfolio</span>
+      <span class="preloader-count" id="preloaderCount">00</span>
+    </div>
+  </div>
+
+  <div class="scroll-progress" aria-hidden="true"><span id="scrollProgressBar"></span></div>
+
+  <header class="nav" id="nav">
+    <a class="nav-logo" href="#top" data-cursor="Home">Arden Vale<span class="nav-dot">.</span></a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#work" class="nav-link" data-nav="work"><span class="nav-index">01</span>Work</a>
+      <a href="#about" class="nav-link" data-nav="about"><span class="nav-index">02</span>About</a>
+      <a href="#contact" class="nav-link" data-nav="contact"><span class="nav-index">03</span>Contact</a>
+    </nav>
+    <div class="nav-side">
+      <span class="nav-availability"><span class="pulse-dot" aria-hidden="true"></span>Available — Q3 26</span>
+      <a class="nav-cta" href="#contact" data-magnetic><span>Start a project</span><span class="nav-cta-arrow" aria-hidden="true">→</span></a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-label="Introduction">
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="hero-wrap">
+        <div class="hero-top">
+          <p class="hero-kicker" data-reveal><span class="rule" aria-hidden="true"></span>Frontend developer &amp; creative</p>
+          <p class="hero-locale" data-reveal>Amsterdam, NL — 52.37°N 4.90°E</p>
+        </div>
+
+        <h1 class="hero-title" data-split aria-label="Interfaces with feeling">
+          <span class="hero-line">Interfaces with</span>
+          <span class="hero-line"><em>feeling</em>.</span>
+        </h1>
+
+        <div class="hero-sub" data-reveal>
+          <p>I'm Arden Vale. For eight years I've turned complex products into fast, calm, beautiful software — the kind that gets used every day and feels inevitable.</p>
+        </div>
+
+        <div class="hero-bottom">
+          <div class="hero-scroll" data-reveal>
+            <span class="hero-scroll-text">Scroll to explore</span>
+            <span class="hero-scroll-line" aria-hidden="true"></span>
+          </div>
+          <div class="hero-meta" data-reveal>
+            <span class="hero-meta-item">Based in <strong>Amsterdam</strong></span>
+            <span class="hero-meta-item"><span class="pulse-dot" aria-hidden="true"></span>Open for commissions</span>
+            <span class="hero-meta-item"><time id="heroClock">--:--:--</time><span class="hero-meta-suffix">CEST</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track">
+        <span>Creative development</span><i>✦</i>
+        <span>Interface design</span><i>✦</i>
+        <span>Motion &amp; interaction</span><i>✦</i>
+        <span>Design systems</span><i>✦</i>
+        <span>Performance</span><i>✦</i>
+        <span>Accessibility</span><i>✦</i>
+        <span>Creative development</span><i>✦</i>
+        <span>Interface design</span><i>✦</i>
+        <span>Motion &amp; interaction</span><i>✦</i>
+        <span>Design systems</span><i>✦</i>
+        <span>Performance</span><i>✦</i>
+        <span>Accessibility</span><i>✦</i>
+      </div>
+    </div>
+
+    <section class="work" id="work" aria-labelledby="work-heading">
+      <header class="section-head" data-reveal>
+        <div>
+          <p class="section-kicker">01 — Selected work</p>
+          <h2 class="section-title" id="work-heading" data-split>Projects with <em>purpose</em>.</h2>
+        </div>
+        <p class="section-note">2023 — 2026, a few favorites. Hover to peek inside.</p>
+      </header>
+
+      <ul class="work-list" id="workList">
+        <li class="work-item" data-project="monolith" data-cursor="View">
+          <button class="work-row" type="button" aria-haspopup="dialog" data-open="monolith">
+            <span class="work-index">01</span>
+            <span class="work-title">Monolith</span>
+            <span class="work-meta">Design system<span class="work-meta-sep" aria-hidden="true">—</span>2025</span>
+            <span class="work-arrow" aria-hidden="true">↗</span>
+          </button>
+          <div class="work-card" data-card="monolith" aria-hidden="true">
+            <div class="card-window">
+              <div class="card-bar"><span class="card-dot"></span><span class="card-dot"></span><span class="card-dot"></span><span class="card-name">monolith / tokens</span></div>
+              <div class="card-art"><img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=640&h=400&q=60" alt="Design system analytics interface" width="640" height="400" loading="lazy"></div>
+              <div class="card-body card-sidebar">
+                <span class="card-sidebar-item"></span><span class="card-sidebar-item"></span><span class="card-sidebar-item card-active"></span><span class="card-sidebar-item"></span>
+                <div class="card-content">
+                  <div class="card-swatch-row"><span class="card-swatch" style="background:#d99c5b"></span><span class="card-swatch" style="background:#3b3a36"></span><span class="card-swatch" style="background:#b9b0a0"></span><span class="card-swatch" style="background:#191613"></span></div>
+                  <div class="card-type"><span class="card-type-aa">Aa</span><span class="card-type-meta">Fraunces / 12px</span></div>
+                  <div class="card-lines"><span class="card-line card-line-w"></span><span class="card-line"></span><span class="card-line"></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li class="work-item" data-project="helio" data-cursor="View">
+          <button class="work-row" type="button" aria-haspopup="dialog" data-open="helio">
+            <span class="work-index">02</span>
+            <span class="work-title">Helio</span>
+            <span class="work-meta">Analytics<span class="work-meta-sep" aria-hidden="true">—</span>2025</span>
+            <span class="work-arrow" aria-hidden="true">↗</span>
+          </button>
+          <div class="work-card" data-card="helio" aria-hidden="true">
+            <div class="card-window">
+              <div class="card-bar"><span class="card-dot"></span><span class="card-dot"></span><span class="card-dot"></span><span class="card-name">helio / overview</span></div>
+              <div class="card-art"><img src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=640&h=400&q=60" alt="Code on a screen" width="640" height="400" loading="lazy"></div>
+              <div class="card-body card-dash">
+                <div class="card-metrics"><span class="card-metric"><span class="card-metric-label">Nodes</span><span class="card-metric-value">212k</span></span><span class="card-metric"><span class="card-metric-label">P95</span><span class="card-metric-value">38ms</span></span><span class="card-metric"><span class="card-metric-label">Uptime</span><span class="card-metric-value">99.9</span></span></div>
+                <div class="card-chart"><span class="bar bar-1"></span><span class="bar bar-2"></span><span class="bar bar-3"></span><span class="bar bar-4"></span><span class="bar bar-5"></span><span class="bar bar-6"></span><span class="bar bar-7"></span></div>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li class="work-item" data-project="sable" data-cursor="View">
+          <button class="work-row" type="button" aria-haspopup="dialog" data-open="sable">
+            <span class="work-index">03</span>
+            <span class="work-title">Sable</span>
+            <span class="work-meta">Commerce<span class="work-meta-sep" aria-hidden="true">—</span>2024</span>
+            <span class="work-arrow" aria-hidden="true">↗</span>
+          </button>
+          <div class="work-card" data-card="sable" aria-hidden="true">
+            <div class="card-window">
+              <div class="card-bar"><span class="card-dot"></span><span class="card-dot"></span><span class="card-dot"></span><span class="card-name">sable / product</span></div>
+              <div class="card-art"><img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=640&h=400&q=60" alt="Fashion retail rack" width="640" height="400" loading="lazy"></div>
+              <div class="card-body card-shop">
+                <div class="card-shop-meta"><span class="card-shop-name">Arc Coat</span><span class="card-shop-price">€ 289</span></div>
+                <span class="card-shop-btn">Add to cart</span>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li class="work-item" data-project="tide" data-cursor="View">
+          <button class="work-row" type="button" aria-haspopup="dialog" data-open="tide">
+            <span class="work-index">04</span>
+            <span class="work-title">Tide</span>
+            <span class="work-meta">Editorial<span class="work-meta-sep" aria-hidden="true">—</span>2024</span>
+            <span class="work-arrow" aria-hidden="true">↗</span>
+          </button>
+          <div class="work-card" data-card="tide" aria-hidden="true">
+            <div class="card-window">
+              <div class="card-bar"><span class="card-dot"></span><span class="card-dot"></span><span class="card-dot"></span><span class="card-name">tide / reading</span></div>
+              <div class="card-art"><img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=640&h=400&q=60" alt="Ocean shoreline" width="640" height="400" loading="lazy"></div>
+              <div class="card-body card-editorial">
+                <span class="card-editorial-kicker">The long read — 11 min</span>
+                <span class="card-editorial-head">The quiet weight of the sea</span>
+                <div class="card-editorial-lines"><span class="card-line card-line-w"></span><span class="card-line"></span><span class="card-line"></span><span class="card-line"></span><span class="card-line card-line-w"></span></div>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li class="work-item" data-project="kite" data-cursor="View">
+          <button class="work-row" type="button" aria-haspopup="dialog" data-open="kite">
+            <span class="work-index">05</span>
+            <span class="work-title">Kite</span>
+            <span class="work-meta">Audio<span class="work-meta-sep" aria-hidden="true">—</span>2023</span>
+            <span class="work-arrow" aria-hidden="true">↗</span>
+          </button>
+          <div class="work-card" data-card="kite" aria-hidden="true">
+            <div class="card-window">
+              <div class="card-bar"><span class="card-dot"></span><span class="card-dot"></span><span class="card-dot"></span><span class="card-name">kite / now playing</span></div>
+              <div class="card-art"><img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=640&h=400&q=60" alt="Vinyl record and headphones" width="640" height="400" loading="lazy"></div>
+              <div class="card-body card-player">
+                <div class="card-album" aria-hidden="true"><span class="card-album-spin"></span></div>
+                <div class="card-wave" aria-hidden="true"><span class="wave wave-1"></span><span class="wave wave-2"></span><span class="wave wave-3"></span><span class="wave wave-4"></span><span class="wave wave-5"></span><span class="wave wave-6"></span><span class="wave wave-7"></span></div>
+                <div class="card-player-meta"><span class="card-player-name">Kite — Rework</span><span class="card-player-time">02:14 / 04:36</span></div>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="about" id="about" aria-labelledby="about-heading">
+      <header class="section-head" data-reveal>
+        <div>
+          <p class="section-kicker">02 — About</p>
+          <h2 class="section-title" id="about-heading" data-split>The web deserves <em>more</em> than templates.</h2>
+        </div>
+      </header>
+
+      <div class="about-grid">
+        <div class="about-statement" data-reveal>
+          <p>I build interfaces with intent. Every pixel placed, every frame earned, every millisecond accounted for. I work where design meets engineering — translating the way a product should feel into the way it actually behaves.</p>
+        </div>
+        <dl class="about-stats" data-reveal>
+          <div class="stat"><dt>Years of practice</dt><dd>08</dd></div>
+          <div class="stat"><dt>Projects shipped</dt><dd>40+</dd></div>
+          <div class="stat"><dt>Design awards</dt><dd>12</dd></div>
+          <div class="stat"><dt>Lighthouse score</dt><dd>100</dd></div>
+        </dl>
+      </div>
+
+      <div class="capabilities" data-reveal>
+        <p class="section-kicker">What I do</p>
+        <ul class="cap-list">
+          <li class="cap-item"><span class="cap-index">01</span><span class="cap-name">Creative development</span><span class="cap-tags">WebGL, shaders, canvas</span></li>
+          <li class="cap-item"><span class="cap-index">02</span><span class="cap-name">Interface design</span><span class="cap-tags">Systems, type, art direction</span></li>
+          <li class="cap-item"><span class="cap-index">03</span><span class="cap-name">Motion &amp; interaction</span><span class="cap-tags">Micro-interactions, scroll</span></li>
+          <li class="cap-item"><span class="cap-index">04</span><span class="cap-name">Design systems</span><span class="cap-tags">Tokens, components, docs</span></li>
+          <li class="cap-item"><span class="cap-index">05</span><span class="cap-name">Performance &amp; a11y</span><span class="cap-tags">Core Web Vitals, WCAG</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="contact" id="contact" aria-labelledby="contact-heading">
+      <header class="section-head" data-reveal>
+        <p class="section-kicker">03 — Contact</p>
+        <h2 class="contact-title" id="contact-heading" data-split>Let's build something worth <em>feeling</em>.</h2>
+      </header>
+
+      <div class="contact-row" data-reveal>
+        <button class="email-btn" type="button" id="emailBtn" data-cursor="Copy" data-copy="hello@ardenvale.studio">
+          <span class="email-btn-label" id="emailBtnLabel">hello@ardenvale.studio</span>
+          <span class="email-btn-hint" id="emailBtnHint" aria-live="polite">Click to copy</span>
+        </button>
+        <ul class="socials">
+          <li><a href="https://github.com" target="_blank" rel="noopener" data-cursor="Open">GitHub</a></li>
+          <li><a href="https://read.cv" target="_blank" rel="noopener" data-cursor="Open">Read.cv</a></li>
+          <li><a href="https://x.com" target="_blank" rel="noopener" data-cursor="Open">X</a></li>
+          <li><a href="https://www.linkedin.com" target="_blank" rel="noopener" data-cursor="Open">LinkedIn</a></li>
+        </ul>
+      </div>
+
+      <p class="contact-note" data-reveal>Currently booking projects for Q3 2026. Commissions, collaborations, and good conversations welcome.</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-row">
+      <p>© 2026 Arden Vale</p>
+      <p id="footerClock">Amsterdam — --:--:--</p>
+      <button class="back-top" type="button" data-cursor="Top">Back to top <span aria-hidden="true">↑</span></button>
+    </div>
+  </footer>
+
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="overlayTitle" aria-hidden="true">
+    <button class="overlay-close" type="button" data-close aria-label="Close project">
+      <span aria-hidden="true">Close</span><span class="overlay-close-x" aria-hidden="true">×</span>
+    </button>
+    <div class="overlay-inner">
+      <p class="overlay-index" id="overlayIndex"></p>
+      <h2 class="overlay-title" id="overlayTitle"></h2>
+      <dl class="overlay-meta" id="overlayMeta"></dl>
+      <p class="overlay-body" id="overlayBody"></p>
+      <p class="overlay-foot" id="overlayFoot"></p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

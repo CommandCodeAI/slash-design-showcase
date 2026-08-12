@@ -1,0 +1,1 @@
+- Prefers Unsplash-hosted real photos over custom SVG illustrations for card/portfolio imagery. Confidence: 0.8

@@ -36,6 +36,7 @@
 | Opus 5 (Claude) | `opus-5/` | ~$0.2539 | 497 |
 | GPT-5.6 Sol | `gp-5.6-sol/` | ~$0.1500 | 631 |
 | DeepSeek | `DeepSeek-V4-Pro/` | $0.0008 | 748 |
+| DeepSeek | `DeepSeek-V4-Pro 0813` | $0.00055 | 748 |
 | Gemini 3.6 Flash | `gemini-3.6-flash/` | $0.1500 (5-6 prompts) | 1,411 |
 | qwen-3.7-flash | `qwen-3.7-flash/` | $0.006 (8 prompts) | 482 |
 | deepseek-v4-flash | `deepseek-v4-flash/` | $0.0005 (2 prompts) | 781 |

@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MIRA VALE — Frontend Developer & Creative Technologist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        ink: '#070709',
+        paper: '#F5F3EF',
+        muted: '#8A8680',
+        line: '#1A1A1E',
+        acid: '#D6FF2A',
+        peach: '#FF4D1A'
+      },
+      fontFamily: {
+        display: ['Syne', 'sans-serif'],
+        serif: ['Instrument Serif', 'serif'],
+        sans: ['Space Grotesk', 'sans-serif'],
+      }
+    }
+  }
+}
+</script>
+<style>
+*{scrollbar-width: thin; scrollbar-color:#1A1A1E transparent}
+html{scroll-behavior:auto}
+body{background:#070709;color:#F5F3EF;font-family:'Space Grotesk',sans-serif;overflow-x:hidden}
+::selection{background:#D6FF2A;color:#070709}
+#progress{transform-origin:left;transform:scaleX(0)}
+.grain{position:fixed;inset:0;pointer-events:none;opacity:.045;z-index:9999;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")}
+.outline-text{ -webkit-text-stroke:1px rgba(245,243,239,.22); color:transparent}
+.outline-text.accent-stroke{ -webkit-text-stroke:1px #D6FF2A; color:transparent}
+.reveal{clip-path:inset(0 0 100% 0);transition:clip-path 1.1s cubic-bezier(.77,0,.175,1)}
+.reveal.in{clip-path:inset(0 0 0 0)}
+.char{opacity:0;transform:translateY(110%);display:inline-block}
+.char.in{opacity:1;transform:translateY(0);transition:transform .8s cubic-bezier(.16,1,.3,1),opacity .6s ease}
+.cursor{position:fixed;left:0;top:0;width:22px;height:22px;border:1px solid rgba(245,243,239,.9);border-radius:50%;pointer-events:none;z-index:99999;mix-blend-mode:difference;transition:width .2s,height .2s,background .2s,border-color .2s;transform:translate(-50%,-50%)}
+.cursor.dot{width:6px;height:6px;background:#F5F3EF;border:none}
+.cursor.hover{width:72px;height:72px;background:#D6FF2A;border-color:#D6FF2A;mix-blend-mode:normal}
+.cursor.hover .cursor-label{opacity:1}
+.cursor-label{position:absolute;inset:0;display:grid;place-items:center;font-size:10px;font-weight:700;letter-spacing:.12em;color:#070709;opacity:0;transition:opacity .2s}
+.magnetic{transition:transform .3s cubic-bezier(.23,1,.32,1)}
+.marquee{animation:marquee 22s linear infinite}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.project-row{border-bottom:1px solid #1A1A1E}
+.project-row:hover{background:rgba(255,255,255,.015)}
+.preview{pointer-events:none;position:fixed;left:0;top:0;width:380px;height:260px;overflow:hidden;opacity:0;transform:translate(-50%,-50%) scale(.9) rotate(-2deg);transition:opacity .35s,transform .45s cubic-bezier(.16,1,.3,1);z-index:20;border-radius:18px}
+.preview img{width:100%;height:100%;object-fit:cover;filter:grayscale(.1) contrast(1.05)}
+.preview.show{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}
+@media(max-width:1024px){.preview{display:none}.cursor{display:none}}
+:focus-visible{outline:2px dashed #D6FF2A;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.marquee{animation:none}.char{transform:none;opacity:1}.reveal{clip-path:none}}
+</style>
+</head>
+<body class="antialiased selection:bg-acid selection:text-ink">
+<div class="grain"></div>
+<div id="progress" class="fixed top-0 left-0 w-full h-[1.5px] bg-acid z-[60]"></div>
+<div class="cursor" id="cursor"><span class="cursor-label" id="cursorLabel">VIEW</span></div>
+<div class="cursor dot" id="cursorDot"></div>
+
+<!-- Preloader -->
+<div id="preloader" class="fixed inset-0 z-[100] bg-ink flex flex-col justify-between p-6 md:p-10">
+  <div class="flex justify-between text-[10px] tracking-[0.22em] text-muted uppercase">
+    <span>©2026 — Mira Vale</span><span id="preYear">Loading — Crafting Experience</span><span class="hidden md:inline">Lisbon → Berlin</span>
+  </div>
+  <div class="flex-1 grid place-items-center">
+    <div class="text-center">
+      <div class="text-[11px] tracking-[0.32em] text-muted mb-6">FRONTEND / CREATIVE</div>
+      <div class="font-display font-800 leading-[0.85] text-[16vw] md:text-[11vw] tracking-[-0.05em]">
+        <div class="overflow-hidden"><span class="block translate-y-full" id="pl1">MIRA</span></div>
+        <div class="overflow-hidden -mt-2 md:-mt-4"><span class="block translate-y-full outline-text" id="pl2">VALE</span></div>
+      </div>
+      <div class="mt-10 flex items-center justify-center gap-4">
+        <div class="w-[120px] md:w-[220px] h-[1px] bg-line overflow-hidden"><div id="plBar" class="h-full bg-acid w-0"></div></div>
+        <span id="plNum" class="font-display text-acid text-sm tracking-widest">00%</span>
+      </div>
+    </div>
+  </div>
+  <div class="flex justify-between items-end">
+    <div class="text-[10px] leading-relaxed tracking-wide text-muted max-w-[22ch]">Award-winning frontend developer crafting immersive digital experiences for ambitious brands.</div>
+    <div class="hidden md:block text-right text-[10px] tracking-[0.18em] text-muted">SCROLL TO EXPLORE ↓</div>
+  </div>
+</div>
+
+<!-- Nav -->
+<header class="fixed top-0 w-full z-40 mix-blend-difference">
+  <nav class="max-w-[1600px] mx-auto px-6 md:px-10 h-[64px] md:h-[72px] flex items-center justify-between">
+    <a href="#" class="flex items-center gap-3 group">
+      <span class="w-8 h-8 rounded-full bg-paper text-ink grid place-items-center font-display font-800 text-[11px]">MV</span>
+      <span class="text-[11px] tracking-[0.2em] text-paper">MIRA VALE <span class="opacity-40">©2026</span></span>
+    </a>
+    <div class="hidden lg:flex items-center gap-8 text-[11px] tracking-[0.18em] text-paper">
+      <a href="#work" class="opacity-60 hover:opacity-100 transition-opacity">WORK (06)</a>
+      <a href="#about" class="opacity-60 hover:opacity-100 transition-opacity">STUDIO</a>
+      <a href="#contact" class="opacity-60 hover:opacity-100 transition-opacity">CONTACT</a>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="#contact" class="hidden md:inline-flex magnetic items-center gap-2 px-5 py-2.5 rounded-full bg-acid text-ink text-[11px] font-semibold tracking-[0.14em]">START PROJECT <span>↗</span></a>
+      <button id="menuBtn" aria-label="Open menu" class="w-11 h-11 rounded-full border border-white/15 grid place-items-center text-paper hover:bg-white hover:text-ink transition-colors">
+        <span class="w-4 h-[1.5px] bg-current block relative before:content-[''] before:absolute before:w-4 before:h-[1.5px] before:bg-current before:-top-1.5 after:content-[''] after:absolute after:w-4 after:h-[1.5px] after:bg-current after:top-1.5"></span>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<!-- Menu overlay -->
+<div id="menu" class="fixed inset-0 z-50 bg-[#0B0B0D] translate-y-[-100%] transition-transform duration-700 ease-[cubic-bezier(.77,0,.175,1)]">
+  <div class="h-full max-w-[1600px] mx-auto px-6 md:px-10 flex flex-col">
+    <div class="h-[72px] flex items-center justify-between border-b border-line">
+      <span class="text-[11px] tracking-[0.2em]">MENU</span>
+      <button id="menuClose" class="w-11 h-11 rounded-full bg-paper text-ink grid place-items-center">✕</button>
+    </div>
+    <div class="flex-1 grid lg:grid-cols-[1.2fr_.8fr] gap-10 py-10 md:py-16">
+      <div class="space-y-1 font-display font-800 text-[11vw] md:text-[7vw] leading-[0.85] tracking-[-0.04em]">
+        <a href="#work" class="menu-link block hover:text-acid transition-colors">WORK <span class="font-serif italic font-normal text-[.45em] align-super opacity-40">06</span></a>
+        <a href="#about" class="menu-link block outline-text hover:text-paper transition-colors">STUDIO</a>
+        <a href="#contact" class="menu-link block hover:text-acid transition-colors">CONTACT</a>
+      </div>
+      <div class="flex flex-col justify-end gap-10 border-t lg:border-t-0 lg:border-l border-line pt-10 lg:pt-0 lg:pl-10">
+        <div class="grid grid-cols-2 gap-8 text-sm">
+          <div><div class="text-muted text-[10px] tracking-[0.2em] mb-3">EMAIL</div><a href="mailto:hello@miravale.studio" class="hover:text-acid transition-colors">hello@miravale.studio</a></div>
+          <div><div class="text-muted text-[10px] tracking-[0.2em] mb-3">BASED</div><div>Lisbon — Berlin<br>Remote worldwide</div></div>
+          <div><div class="text-muted text-[10px] tracking-[0.2em] mb-3">SOCIAL</div><div class="space-y-1"><a href="#" class="block hover:text-acid">Instagram ↗</a><a href="#" class="block hover:text-acid">Read.cv ↗</a><a href="#" class="block hover:text-acid">GitHub ↗</a></div></div>
+          <div><div class="text-muted text-[10px] tracking-[0.2em] mb-3">AVAILABILITY</div><div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-acid text-ink text-xs font-semibold">● Available Q1 2026</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main>
+<!-- HERO -->
+<section class="relative min-h-[100svh] flex flex-col justify-end overflow-hidden bg-ink">
+  <div class="absolute inset-0">
+    <div class="absolute inset-0 opacity-[0.06]" style="background-image:linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px); background-size:64px 64px"></div>
+    <div class="absolute -top-[20%] left-1/2 -translate-x-1/2 w-[120vw] h-[70vh] rounded-[50%] blur-[80px] opacity-20" style="background:radial-gradient(ellipse at center, rgba(214,255,42,.35), transparent 65%)"></div>
+    <div class="absolute top-[18%] right-[8%] hidden lg:block">
+      <div class="w-[320px] h-[420px] rounded-[24px] overflow-hidden rotate-[-2deg] border border-white/10 bg-[#101012] p-2">
+        <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=640&q=80&auto=format&fit=crop" alt="Workspace" class="w-full h-full object-cover rounded-[16px] opacity-90">
+        <div class="absolute bottom-6 left-6 right-6 flex justify-between items-end">
+          <div class="px-3 py-2 rounded-full bg-ink/80 backdrop-blur border border-white/10 text-[10px] tracking-[0.16em]">SELECTED WORK • 2024</div>
+          <div class="w-10 h-10 rounded-full bg-acid grid place-items-center text-ink">↗</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="relative max-w-[1600px] mx-auto w-full px-6 md:px-10 pt-[96px] pb-6 md:pb-10">
+    <div class="flex flex-wrap gap-3 mb-6 md:mb-8">
+      <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.04] text-[10px] tracking-[0.18em]"><span class="w-2 h-2 rounded-full bg-acid animate-pulse"></span> AVAILABLE FOR NEW PROJECTS</span>
+      <span class="px-3 py-1.5 rounded-full border border-white/10 text-[10px] tracking-[0.18em] text-muted">FRONTEND • CREATIVE DEV • MOTION</span>
+      <span class="hidden md:inline-flex px-3 py-1.5 rounded-full border border-white/10 text-[10px] tracking-[0.18em] text-muted">LISBON → BERLIN • REMOTE</span>
+    </div>
+
+    <h1 class="font-display font-800 leading-[0.84] tracking-[-0.05em] text-[14vw] md:text-[9.2vw] xl:text-[132px]">
+      <span class="block overflow-hidden"><span class="hero-line block translate-y-[110%]">CRAFTING</span></span>
+      <span class="block overflow-hidden -mt-1 md:-mt-3"><span class="hero-line block translate-y-[110%] outline-text">DIGITAL</span></span>
+      <span class="block overflow-hidden -mt-1 md:-mt-3 flex items-center gap-3 md:gap-6"><span class="hero-line block translate-y-[110%]">EXPERIENCES</span><span class="hero-line hidden md:inline-flex items-center gap-3 text-[11px] font-sans font-medium tracking-[0.18em]"><span class="w-12 h-[1px] bg-acid"></span> EST. 2018</span></span>
+    </h1>
+
+    <div class="grid lg:grid-cols-[1.15fr_.85fr] gap-8 md:gap-10 mt-8 md:mt-12 items-end">
+      <div class="flex gap-6 md:gap-10">
+        <div class="hidden md:block w-[1px] self-stretch bg-line"></div>
+        <div>
+          <p class="max-w-[46ch] text-[15px] md:text-[18px] leading-relaxed text-paper/85">I design and build <span class="text-paper font-medium">immersive web experiences</span> — where elegant typography meets fluid motion. Helping ambitious brands turn ideas into award-winning digital products.</p>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <a href="#work" class="magnetic inline-flex items-center gap-3 px-7 py-4 rounded-full bg-paper text-ink font-semibold text-sm hover:bg-acid transition-colors">Explore work <span class="w-7 h-7 rounded-full bg-ink text-paper grid place-items-center">→</span></a>
+            <a href="#" class="inline-flex items-center gap-2 px-6 py-4 rounded-full border border-white/15 text-sm hover:bg-white hover:text-ink transition-colors"><span class="w-2 h-2 rounded-full bg-red-500"></span> Watch reel — 01:24</a>
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-4 md:gap-6 border-t border-line pt-6 md:pt-8 lg:border-t-0 lg:pt-0">
+        <div><div class="font-display font-800 text-[28px] md:text-[36px] leading-none">06<span class="text-acid">+</span></div><div class="text-[10px] tracking-[0.18em] text-muted mt-1">YEARS CRAFTING</div></div>
+        <div><div class="font-display font-800 text-[28px] md:text-[36px] leading-none">120<span class="text-acid">+</span></div><div class="text-[10px] tracking-[0.18em] text-muted mt-1">PROJECTS SHIPPED</div></div>
+        <div><div class="font-display font-800 text-[28px] md:text-[36px] leading-none">14</div><div class="text-[10px] tracking-[0.18em] text-muted mt-1">AWARDS WON</div></div>
+      </div>
+    </div>
+
+    <div class="mt-8 md:mt-10 flex items-center gap-4 text-[10px] tracking-[0.18em] text-muted">
+      <span class="hidden md:inline">SCROLL</span><span class="w-10 h-[1px] bg-white/20"></span><span>DISCOVER</span>
+      <div class="ml-auto hidden md:flex items-center gap-2"><span>©2026</span><span class="w-6 h-[1px] bg-white/20"></span><span>MIRA VALE STUDIO</span></div>
+    </div>
+  </div>
+
+  <div class="relative border-y border-line bg-paper text-ink overflow-hidden">
+    <div class="flex marquee py-3">
+      <div class="flex items-center gap-6 pr-6 shrink-0 text-[11px] tracking-[0.2em] font-semibold whitespace-nowrap">
+        <span>AVAILABLE FOR NEW PROJECTS — Q1 2026</span><span class="w-1.5 h-1.5 rounded-full bg-ink"></span>
+        <span>FRONTEND DEVELOPMENT</span><span class="w-1.5 h-1.5 rounded-full bg-ink"></span>
+        <span>CREATIVE CODING</span><span class="w-1.5 h-1.5 rounded-full bg-ink"></span>
+        <span>MOTION & INTERACTION</span><span class="w-1.5 h-1.5 rounded-full bg-ink"></span>
+        <span>DESIGN SYSTEMS</span><span class="w-1.5 h-1.5 rounded-full bg-ink"></span>
+      </div>
+      <div aria-hidden="true" class="flex items-center gap-6 pr-6 shrink-0 text-[11px] tracking-[0.2em] font-semibold whitespace-nowrap">
+        <span>AVAILABLE FOR NEW PROJECTS — Q1 2026</span><span class="w-1.5 h-1.5 rounded-full bg-ink"></span>
+        <span>FRONTEND DEVELOPMENT</span><span class="w-1.5 h-1.5 rounded-full bg-ink"></span>
+        <span>CREATIVE CODING</span><span class="w-1.5 h-1.5 rounded-full bg-ink"></span>
+        <span>MOTION & INTERACTION</span><span class="w-1.5 h-1.5 rounded-full bg-ink"></span>
+        <span>DESIGN SYSTEMS</span><span class="w-1.5 h-1.5 rounded-full bg-ink"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WORK -->
+<section id="work" class="bg-[#0B0B0D] border-b border-line">
+  <div class="max-w-[1600px] mx-auto px-6 md:px-10 py-10 md:py-16">
+    <div class="flex flex-wrap items-end justify-between gap-6">
+      <div>
+        <div class="text-[10px] tracking-[0.22em] text-muted">SELECTED WORK — 2020→2026</div>
+        <h2 class="mt-3 font-display font-800 text-[42px] md:text-[72px] leading-[0.85] tracking-[-0.04em]">Recent <span class="font-serif italic font-normal text-acid">creations</span></h2>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-[11px] tracking-[0.16em] text-muted">FILTER</span>
+        <div class="flex gap-2">
+          <button class="filter-btn active px-4 py-2 rounded-full bg-paper text-ink text-xs font-semibold" data-filter="all">All</button>
+          <button class="filter-btn px-4 py-2 rounded-full border border-white/15 text-xs hover:bg-white hover:text-ink transition-colors" data-filter="web">Web</button>
+          <button class="filter-btn px-4 py-2 rounded-full border border-white/15 text-xs hover:bg-white hover:text-ink transition-colors" data-filter="product">Product</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="preview" id="preview"><img id="previewImg" alt=""></div>
+
+  <div class="max-w-[1600px] mx-auto px-6 md:px-10">
+    <div class="border-t border-line">
+      <!-- Row 1 -->
+      <a href="#" class="project-row group grid md:grid-cols-[64px_1fr_160px_120px_48px] gap-4 md:gap-6 py-7 md:py-10 items-center" data-cat="web" data-img="https://images.unsplash.com/photo-1558655146-d09347e92766?w=800&q=80&auto=format&fit=crop">
+        <span class="text-[11px] tracking-[0.18em] text-muted">01 / 06</span>
+        <h3 class="font-display font-800 text-[28px] md:text-[44px] leading-none tracking-[-0.03em] group-hover:translate-x-2 transition-transform duration-500">NEON <span class="font-serif italic font-normal text-muted group-hover:text-acid transition-colors">Finance</span></h3>
+        <span class="text-sm text-muted">Fintech platform — WebGL, Next.js</span>
+        <span class="text-[11px] tracking-[0.18em] text-muted">2024 • AWWWARDS SOTD</span>
+        <span class="w-10 h-10 rounded-full border border-white/15 grid place-items-center group-hover:bg-acid group-hover:text-ink group-hover:border-acid transition-colors">↗</span>
+      </a>
+      <!-- Row 2 -->
+      <a href="#" class="project-row group grid md:grid-cols-[64px_1fr_160px_120px_48px] gap-4 md:gap-6 py-7 md:py-10 items-center" data-cat="product" data-img="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80&auto=format&fit=crop">
+        <span class="text-[11px] tracking-[0.18em] text-muted">02 / 06</span>
+        <h3 class="font-display font-800 text-[28px] md:text-[44px] leading-none tracking-[-0.03em] group-hover:translate-x-2 transition-transform duration-500">MONOLITH <span class="font-serif italic font-normal text-muted group-hover:text-acid">Journal</span></h3>
+        <span class="text-sm text-muted">Editorial system — Headless CMS</span>
+        <span class="text-[11px] tracking-[0.18em] text-muted">2024 • FWA</span>
+        <span class="w-10 h-10 rounded-full border border-white/15 grid place-items-center group-hover:bg-acid group-hover:text-ink transition-colors">↗</span>
+      </a>
+      <!-- Row 3 -->
+      <a href="#" class="project-row group grid md:grid-cols-[64px_1fr_160px_120px_48px] gap-4 md:gap-6 py-7 md:py-10 items-center" data-cat="web" data-img="https://images.unsplash.com/photo-1555421689-3f034debb7a6?w=800&q=80&auto=format&fit=crop">
+        <span class="text-[11px] tracking-[0.18em] text-muted">03 / 06</span>
+        <h3 class="font-display font-800 text-[28px] md:text-[44px] leading-none tracking-[-0.03em] group-hover:translate-x-2 transition-transform duration-500">AURA <span class="font-serif italic font-normal text-muted group-hover:text-acid">Wellness</span></h3>
+        <span class="text-sm text-muted">AI companion — Motion, 3D</span>
+        <span class="text-[11px] tracking-[0.18em] text-muted">2023 • CSSDA</span>
+        <span class="w-10 h-10 rounded-full border border-white/15 grid place-items-center group-hover:bg-acid group-hover:text-ink transition-colors">↗</span>
+      </a>
+      <!-- Row 4 -->
+      <a href="#" class="project-row group grid md:grid-cols-[64px_1fr_160px_120px_48px] gap-4 md:gap-6 py-7 md:py-10 items-center" data-cat="product" data-img="https://images.unsplash.com/photo-1496171367470-9ed9a570523a?w=800&q=80&auto=format&fit=crop">
+        <span class="text-[11px] tracking-[0.18em] text-muted">04 / 06</span>
+        <h3 class="font-display font-800 text-[28px] md:text-[44px] leading-none tracking-[-0.03em] group-hover:translate-x-2 transition-transform duration-500">FORMA <span class="font-serif italic font-normal text-muted group-hover:text-acid">Studio</span></h3>
+        <span class="text-sm text-muted">Design system — React, Tokens</span>
+        <span class="text-[11px] tracking-[0.18em] text-muted">2023</span>
+        <span class="w-10 h-10 rounded-full border border-white/15 grid place-items-center group-hover:bg-acid group-hover:text-ink transition-colors">↗</span>
+      </a>
+      <!-- Row 5 -->
+      <a href="#" class="project-row group grid md:grid-cols-[64px_1fr_160px_120px_48px] gap-4 md:gap-6 py-7 md:py-10 items-center" data-cat="web" data-img="https://images.unsplash.com/photo-1508921340878-ba53e1f016ec?w=800&q=80&auto=format&fit=crop">
+        <span class="text-[11px] tracking-[0.18em] text-muted">05 / 06</span>
+        <h3 class="font-display font-800 text-[28px] md:text-[44px] leading-none tracking-[-0.03em] group-hover:translate-x-2 transition-transform duration-500">ATLAS <span class="font-serif italic font-normal text-muted group-hover:text-acid">Travel</span></h3>
+        <span class="text-sm text-muted">Booking experience — Maps, Motion</span>
+        <span class="text-[11px] tracking-[0.18em] text-muted">2022 • AWWWARDS</span>
+        <span class="w-10 h-10 rounded-full border border-white/15 grid place-items-center group-hover:bg-acid group-hover:text-ink transition-colors">↗</span>
+      </a>
+      <!-- Row 6 -->
+      <a href="#" class="project-row group grid md:grid-cols-[64px_1fr_160px_120px_48px] gap-4 md:gap-6 py-7 md:py-10 items-center" data-cat="web" data-img="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80&auto=format&fit=crop">
+        <span class="text-[11px] tracking-[0.18em] text-muted">06 / 06</span>
+        <h3 class="font-display font-800 text-[28px] md:text-[44px] leading-none tracking-[-0.03em] group-hover:translate-x-2 transition-transform duration-500">LUMEN <span class="font-serif italic font-normal text-muted group-hover:text-acid">Gallery</span></h3>
+        <span class="text-sm text-muted">Art curation — Immersive scroll</span>
+        <span class="text-[11px] tracking-[0.18em] text-muted">2022</span>
+        <span class="w-10 h-10 rounded-full border border-white/15 grid place-items-center group-hover:bg-acid group-hover:text-ink transition-colors">↗</span>
+      </a>
+    </div>
+    <div class="py-8 flex justify-center">
+      <a href="#" class="inline-flex items-center gap-2 text-[11px] tracking-[0.18em] text-muted hover:text-paper transition-colors">VIEW ARCHIVE (24) <span>→</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- Featured case -->
+<section class="bg-ink">
+  <div class="max-w-[1600px] mx-auto px-6 md:px-10 py-12 md:py-20">
+    <div class="grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
+      <div class="lg:sticky lg:top-28">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-acid text-ink text-[10px] font-bold tracking-[0.16em]">FEATURED CASE • NEON</div>
+        <h3 class="mt-6 font-display font-800 text-[36px] md:text-[56px] leading-[0.9] tracking-[-0.04em]">Reimagining <br><span class="outline-text">finance</span> for a<br>new generation.</h3>
+        <p class="mt-6 text-[15px] leading-relaxed text-muted max-w-[48ch]">A WebGL-powered fintech platform. 60fps interactions, real-time data viz, and a design system that scales across web and native. Featured on Awwwards & FWA.</p>
+        <div class="mt-8 grid grid-cols-3 gap-6 border-t border-line pt-6 max-w-[420px]">
+          <div><div class="text-[11px] tracking-[0.18em] text-muted">ROLE</div><div class="text-sm mt-1">Lead Frontend, Motion</div></div>
+          <div><div class="text-[11px] tracking-[0.18em] text-muted">STACK</div><div class="text-sm mt-1">Next.js, Three.js, GSAP</div></div>
+          <div><div class="text-[11px] tracking-[0.18em] text-muted">IMPACT</div><div class="text-sm mt-1">+340% engagement</div></div>
+        </div>
+        <a href="#" class="mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-full border border-white/15 text-sm hover:bg-paper hover:text-ink transition-colors">View case study — 4 min read <span>↗</span></a>
+      </div>
+      <div class="space-y-4">
+        <div class="reveal in rounded-[24px] overflow-hidden border border-white/10 bg-[#0E0E10] p-2">
+          <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&q=80&auto=format&fit=crop" alt="Neon dashboard" class="w-full aspect-[4/3] object-cover rounded-[16px]">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="rounded-[20px] overflow-hidden border border-white/10"><img src="https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=600&q=80&auto=format&fit=crop" class="w-full aspect-[4/3] object-cover"></div>
+          <div class="rounded-[20px] overflow-hidden border border-white/10"><img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80&auto=format&fit=crop" class="w-full aspect-[4/3] object-cover"></div>
+        </div>
+        <div class="rounded-[20px] bg-[#111113] border border-white/10 p-6 flex items-center justify-between">
+          <div class="flex -space-x-2"><img src="https://i.pravatar.cc/100?img=1" class="w-8 h-8 rounded-full border-2 border-[#111113]"><img src="https://i.pravatar.cc/100?img=2" class="w-8 h-8 rounded-full border-2 border-[#111113]"><img src="https://i.pravatar.cc/100?img=3" class="w-8 h-8 rounded-full border-2 border-[#111113]"></div>
+          <div class="text-sm">“Mira shipped what we thought impossible — in 6 weeks.” <span class="text-muted">— CEO, Neon</span></div>
+          <span class="hidden md:inline text-acid">★★★★★</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- About / Studio -->
+<section id="about" class="bg-paper text-ink">
+  <div class="max-w-[1600px] mx-auto px-6 md:px-10 py-12 md:py-20">
+    <div class="grid lg:grid-cols-[.95fr_1.05fr] gap-10 md:gap-16">
+      <div>
+        <div class="text-[10px] tracking-[0.22em] text-muted">STUDIO — ABOUT</div>
+        <h2 class="mt-4 font-display font-800 text-[44px] md:text-[64px] leading-[0.88] tracking-[-0.04em]">Design <span class="font-serif italic font-normal">engineered</span> <br>to move <span class="inline-block align-middle w-10 h-[2px] bg-ink"></span> people.</h2>
+        <div class="mt-8 w-full aspect-[4/3] rounded-[24px] overflow-hidden bg-ink relative">
+          <img src="https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&q=80&auto=format&fit=crop" alt="Portrait" class="w-full h-full object-cover opacity-90">
+          <div class="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/60 to-transparent">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-paper text-ink text-[10px] tracking-[0.16em] font-semibold">MIRA VALE — CREATIVE DEVELOPER</div>
+          </div>
+        </div>
+        <div class="mt-6 grid grid-cols-3 gap-4 text-center">
+          <div class="rounded-2xl border border-black/10 py-4"><div class="font-display font-800 text-xl">Awwwards</div><div class="text-[10px] tracking-[0.14em] text-muted">SOTD ×3</div></div>
+          <div class="rounded-2xl border border-black/10 py-4"><div class="font-display font-800 text-xl">FWA</div><div class="text-[10px] tracking-[0.14em] text-muted">CUTTING EDGE</div></div>
+          <div class="rounded-2xl border border-black/10 py-4"><div class="font-display font-800 text-xl">CSSDA</div><div class="text-[10px] tracking-[0.14em] text-muted">WOTD ×5</div></div>
+        </div>
+      </div>
+      <div class="lg:pt-10">
+        <p class="text-[18px] md:text-[22px] leading-relaxed tracking-[-0.01em]">I’m a frontend developer and creative technologist obsessed with the space between <span class="underline decoration-acid decoration-4 underline-offset-4">code and emotion</span>. For 6 years I’ve helped startups and cultural institutions ship websites that feel as good as they perform.</p>
+        <p class="mt-6 text-[15px] leading-relaxed text-[#4b4b4b]">My stack is modern — Next.js, TypeScript, WebGL, GSAP — but my process is timeless: listen deeply, prototype fast, polish ruthlessly. Every interaction is intentional. Every millisecond counts.</p>
+
+        <div class="mt-10 border-t border-black/10">
+          <div class="grid grid-cols-1 divide-y divide-black/10">
+            <div class="py-5 flex justify-between items-center"><div><div class="font-semibold text-sm">Frontend Development</div><div class="text-xs text-muted">Next.js • React • TypeScript • WebGL • Three.js</div></div><span class="w-8 h-8 rounded-full border border-black/10 grid place-items-center">↗</span></div>
+            <div class="py-5 flex justify-between items-center"><div><div class="font-semibold text-sm">Motion & Interaction</div><div class="text-xs text-muted">GSAP • Framer Motion • Lenis • Shader • Micro-interactions</div></div><span class="w-8 h-8 rounded-full border border-black/10 grid place-items-center">↗</span></div>
+            <div class="py-5 flex justify-between items-center"><div><div class="font-semibold text-sm">Design Systems</div><div class="text-xs text-muted">Tokens • Accessibility • Performance • Documentation</div></div><span class="w-8 h-8 rounded-full border border-black/10 grid place-items-center">↗</span></div>
+          </div>
+        </div>
+
+        <div class="mt-8 rounded-[20px] bg-ink text-paper p-6 md:p-8 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+          <div>
+            <div class="font-display font-800 text-xl">Let’s build something iconic.</div>
+            <div class="text-sm text-white/60 mt-1">2 slots left for Q1 2026 — booking closes Dec 15.</div>
+          </div>
+          <a href="#contact" class="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-acid text-ink font-semibold text-sm">Check availability <span>→</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stack / Logos -->
+<section class="bg-ink border-y border-line">
+  <div class="max-w-[1600px] mx-auto px-6 md:px-10 py-10">
+    <div class="flex flex-wrap items-center justify-between gap-6 text-[11px] tracking-[0.18em] text-muted">
+      <span>TRUSTED BY AMBITIOUS TEAMS</span>
+      <div class="flex flex-wrap gap-6 md:gap-10 font-display font-700 text-paper/70 text-sm tracking-[-0.02em]">
+        <span>NEON</span><span>MONOLITH</span><span>AURA</span><span>FORMA</span><span>ATLAS</span><span>LUMEN</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact" class="bg-ink relative overflow-hidden">
+  <div class="absolute inset-0 opacity-30" style="background:radial-gradient(800px 400px at 20% 0%, rgba(214,255,42,.12), transparent 60%)"></div>
+  <div class="relative max-w-[1600px] mx-auto px-6 md:px-10 py-12 md:py-20">
+    <div class="grid lg:grid-cols-[1.1fr_.9fr] gap-10 md:gap-16">
+      <div>
+        <div class="text-[11px] tracking-[0.22em] text-acid">CONTACT — LET’S TALK</div>
+        <h2 class="mt-4 font-display font-800 leading-[0.85] tracking-[-0.05em] text-[14vw] md:text-[8vw] lg:text-[92px]">LET’S <br><span class="outline-text accent-stroke">TALK</span></h2>
+        <p class="mt-6 text-[16px] leading-relaxed text-muted max-w-[44ch]">Have an idea that deserves to be unforgettable? I’m taking on 2 new projects for Q1 2026. Tell me about yours — I reply within 12 hours.</p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="mailto:hello@miravale.studio" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-paper text-ink font-semibold text-sm">hello@miravale.studio <span>↗</span></a>
+          <a href="#" class="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-white/15 text-sm">Schedule 20-min call</a>
+        </div>
+        <div class="mt-10 grid grid-cols-2 gap-8 max-w-[520px] border-t border-line pt-8">
+          <div><div class="text-[10px] tracking-[0.18em] text-muted">RESPONSE</div><div class="mt-2 text-sm">Within 12 hours<br>Mon–Fri, 10am–6pm CET</div></div>
+          <div><div class="text-[10px] tracking-[0.18em] text-muted">LOCATION</div><div class="mt-2 text-sm">Lisbon • Berlin<br>Remote worldwide</div></div>
+        </div>
+      </div>
+
+      <form id="contactForm" class="rounded-[24px] bg-[#0F0F11] border border-white/10 p-6 md:p-8" novalidate>
+        <div class="grid grid-cols-2 gap-4">
+          <label class="col-span-2 md:col-span-1"><span class="text-[10px] tracking-[0.16em] text-muted">NAME *</span><input required placeholder="Ada Lovelace" class="mt-2 w-full bg-transparent border-b border-white/15 py-3 text-sm outline-none focus:border-acid placeholder:text-white/30"></label>
+          <label class="col-span-2 md:col-span-1"><span class="text-[10px] tracking-[0.16em] text-muted">EMAIL *</span><input required type="email" placeholder="ada@company.com" class="mt-2 w-full bg-transparent border-b border-white/15 py-3 text-sm outline-none focus:border-acid placeholder:text-white/30"></label>
+          <label class="col-span-2"><span class="text-[10px] tracking-[0.16em] text-muted">PROJECT TYPE</span>
+            <select class="mt-2 w-full bg-transparent border-b border-white/15 py-3 text-sm outline-none focus:border-acid">
+              <option class="bg-ink">Website / Product</option><option class="bg-ink">Design System</option><option class="bg-ink">Creative / Experimental</option><option class="bg-ink">Other</option>
+            </select>
+          </label>
+          <label class="col-span-2"><span class="text-[10px] tracking-[0.16em] text-muted">BUDGET</span>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <button type="button" class="budget px-4 py-2 rounded-full border border-white/15 text-xs hover:bg-paper hover:text-ink transition-colors">€10k–25k</button>
+              <button type="button" class="budget px-4 py-2 rounded-full border border-white/15 text-xs hover:bg-paper hover:text-ink transition-colors">€25k–50k</button>
+              <button type="button" class="budget active px-4 py-2 rounded-full bg-acid text-ink text-xs font-semibold">€50k–100k</button>
+              <button type="button" class="budget px-4 py-2 rounded-full border border-white/15 text-xs hover:bg-paper hover:text-ink transition-colors">€100k+</button>
+            </div>
+          </label>
+          <label class="col-span-2"><span class="text-[10px] tracking-[0.16em] text-muted">TELL ME ABOUT IT *</span><textarea required rows="3" placeholder="What are you building? What does success look like?" class="mt-2 w-full bg-transparent border-b border-white/15 py-3 text-sm outline-none focus:border-acid placeholder:text-white/30 resize-none"></textarea></label>
+        </div>
+        <div class="mt-6 flex items-center gap-3">
+          <button id="submitBtn" class="flex-1 inline-flex justify-center items-center gap-2 py-4 rounded-full bg-acid text-ink font-semibold text-sm hover:bg-[#e0ff5c] transition-colors">Send inquiry <span>→</span></button>
+        </div>
+        <p class="mt-3 text-[11px] text-muted text-center">By sending, you agree to be contacted. No spam — ever.</p>
+        <div id="formMsg" class="hidden mt-4 rounded-xl bg-acid text-ink p-4 text-sm font-medium">Thanks — I’ll reply within 12 hours. Check your inbox.</div>
+        <div id="formErr" class="hidden mt-4 rounded-xl bg-red-500 text-white p-4 text-sm">Please fill in name, valid email, and message.</div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer class="bg-[#050507] border-t border-line">
+  <div class="max-w-[1600px] mx-auto px-6 md:px-10 py-8">
+    <div class="flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
+      <div class="flex items-center gap-3">
+        <span class="w-8 h-8 rounded-full bg-paper text-ink grid place-items-center font-display font-800 text-[11px]">MV</span>
+        <span class="text-[11px] tracking-[0.2em]">MIRA VALE ©2026 — CRAFTED WITH OBSESSION IN LISBON</span>
+      </div>
+      <div class="flex gap-6 text-[11px] tracking-[0.16em] text-muted">
+        <a href="#" class="hover:text-paper">INSTAGRAM</a><a href="#" class="hover:text-paper">GITHUB</a><a href="#" class="hover:text-paper">READ.CV</a><a href="#" class="hover:text-paper">LINKEDIN</a>
+      </div>
+    </div>
+    <div class="mt-8 flex justify-between text-[10px] tracking-[0.16em] text-muted border-t border-line pt-6">
+      <span>PRIVACY • IMPRINT</span><span class="hidden md:inline">SET IN SYNE, INSTRUMENT SERIF & SPACE GROTESK</span><span>BACK TO TOP ↑</span>
+    </div>
+  </div>
+</footer>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+let pl = 0;
+const plNum = $('#plNum'), plBar = $('#plBar'), preloader = $('#preloader');
+const tick = () => {
+  pl += Math.random()*9+3;
+  if(pl>=100){ pl=100; plNum.textContent='100%'; plBar.style.width='100%';
+    setTimeout(()=>{
+      $('#pl1').style.transition='transform .7s cubic-bezier(.77,0,.175,1)';
+      $('#pl2').style.transition='transform .7s cubic-bezier(.77,0,.175,1)';
+      $('#pl1').style.transform='translateY(0)';
+      $('#pl2').style.transform='translateY(0)';
+    },120);
+    setTimeout(()=>{
+      preloader.style.transform='translateY(-100%)';
+      preloader.style.transition='transform .9s cubic-bezier(.77,0,.175,1)';
+      document.body.style.overflow='';
+      heroIn();
+    },900);
+    return;
+  }
+  plNum.textContent = String(Math.floor(pl)).padStart(2,'0')+'%';
+  plBar.style.width = pl+'%';
+  setTimeout(tick, 70+Math.random()*90);
+};
+document.body.style.overflow='hidden';
+tick();
+
+function heroIn(){
+  $$('.hero-line').forEach((el,i)=>{
+    el.style.transition=`transform .9s cubic-bezier(.16,1,.3,1) ${i*110}ms`;
+    el.style.transform='translateY(0)';
+  });
+}
+
+const progress = $('#progress');
+addEventListener('scroll', ()=>{
+  const p = scrollY / (document.documentElement.scrollHeight - innerHeight);
+  progress.style.transform = `scaleX(${p})`;
+},{passive:true});
+
+const menu = $('#menu'), menuBtn=$('#menuBtn'), menuClose=$('#menuClose');
+menuBtn.addEventListener('click', ()=> menu.style.transform='translateY(0)');
+menuClose.addEventListener('click', ()=> menu.style.transform='translateY(-100%)');
+$$('.menu-link').forEach(a=> a.addEventListener('click', ()=> menu.style.transform='translateY(-100%)'));
+
+const cursor = $('#cursor'), cursorDot=$('#cursorDot'), cursorLabel=$('#cursorLabel');
+let mx=0,my=0, cx=0,cy=0, dx=0,dy=0;
+addEventListener('mousemove', e=>{ mx=e.clientX; my=e.clientY; });
+(function loop(){
+  cx += (mx - cx)*0.12; cy += (my - cy)*0.12;
+  dx += (mx - dx)*0.22; dy += (my - dy)*0.22;
+  cursor.style.left=cx+'px'; cursor.style.top=cy+'px';
+  cursorDot.style.left=dx+'px'; cursorDot.style.top=dy+'px';
+  requestAnimationFrame(loop);
+})();
+$$('a, button').forEach(el=>{
+  el.addEventListener('mouseenter', ()=>{
+    if(el.closest('.project-row')){ cursor.classList.add('hover'); cursorLabel.textContent='VIEW'; }
+    else if(el.classList.contains('magnetic') || el.tagName==='A'){ cursor.style.transform='translate(-50%,-50%) scale(1.15)'; }
+  });
+  el.addEventListener('mouseleave', ()=>{
+    cursor.classList.remove('hover'); cursor.style.transform='translate(-50%,-50%) scale(1)';
+  });
+});
+$$('.magnetic').forEach(btn=>{
+  btn.addEventListener('mousemove', e=>{
+    const r=btn.getBoundingClientRect();
+    const x=(e.clientX - r.left - r.width/2)*0.28;
+    const y=(e.clientY - r.top - r.height/2)*0.35;
+    btn.style.transform=`translate(${x}px, ${y}px)`;
+  });
+  btn.addEventListener('mouseleave', ()=> btn.style.transform='translate(0,0)');
+});
+
+const preview=$('#preview'), previewImg=$('#previewImg');
+$$('.project-row').forEach(row=>{
+  row.addEventListener('mouseenter', ()=>{
+    previewImg.src=row.dataset.img;
+    preview.classList.add('show');
+  });
+  row.addEventListener('mouseleave', ()=> preview.classList.remove('show'));
+});
+addEventListener('mousemove', e=>{
+  if(!preview.classList.contains('show')) return;
+  preview.style.left=e.clientX+'px'; preview.style.top=e.clientY+'px';
+});
+
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('in'); });
+},{threshold:.18});
+$$('.reveal').forEach(el=> observer.observe(el));
+
+$$('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    $$('.filter-btn').forEach(b=>{b.classList.remove('active','bg-paper','text-ink'); b.classList.add('border','border-white/15')});
+    btn.classList.add('active','bg-paper','text-ink'); btn.classList.remove('border','border-white/15');
+    const f=btn.dataset.filter;
+    $$('.project-row').forEach(r=>{
+      const show = f==='all' || r.dataset.cat===f;
+      r.style.display=show?'grid':'none';
+    });
+  });
+});
+
+$$('.budget').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    $$('.budget').forEach(x=>{x.classList.remove('active','bg-acid','text-ink','font-semibold'); x.classList.add('border','border-white/15')});
+    b.classList.add('active','bg-acid','text-ink','font-semibold'); b.classList.remove('border','border-white/15');
+  });
+});
+
+const form=$('#contactForm'), msg=$('#formMsg'), err=$('#formErr');
+form.addEventListener('submit', e=>{
+  e.preventDefault();
+  const inputs=form.querySelectorAll('input[required], textarea[required]');
+  let valid=true;
+  inputs.forEach(i=>{
+    if(!i.value.trim()) valid=false;
+    if(i.type==='email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(i.value)) valid=false;
+    if(!valid) i.style.borderColor='#ef4444'; else i.style.borderColor='';
+  });
+  if(!valid){ err.classList.remove('hidden'); msg.classList.add('hidden'); return; }
+  err.classList.add('hidden');
+  $('#submitBtn').textContent='Sending…';
+  setTimeout(()=>{
+    $('#submitBtn').innerHTML='Sent ✓';
+    msg.classList.remove('hidden');
+    form.reset();
+    setTimeout(()=>{ msg.classList.add('hidden'); $('#submitBtn').innerHTML='Send inquiry <span>→</span>'; }, 4000);
+  }, 800);
+});
+
+$$('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click', e=>{
+    const id=a.getAttribute('href');
+    if(id.length>1){ e.preventDefault(); document.querySelector(id)?.scrollIntoView({behavior:'smooth', block:'start'}); }
+  });
+});
+
+addEventListener('keydown', e=>{ if(e.key==='Escape') menu.style.transform='translateY(-100%)'; });
+</script>
+</body>
+</html>
