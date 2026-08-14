@@ -30,6 +30,7 @@
 | Model | Dir | Context | $/MTok in/out | LOC | Est. cost |
 |---|---|---:|---:|---:|---:|---:|
 | Grok 4.5 | `Grok-4.5/` | 500K | $2 / $6 | 1983 | ~$0.09 |
+| Grok 4.6 | `Grok-4.6/` | 500K | $2 / $6 | 1983 | ~$0.0486 |
 | GPT-5.5 | `GPT-5.5/` | 1.05M | $5 / $30 | 734 | ~$0.11 |
 | kimi-k3 | `kimi-k3/` | n/a | n/a (user-reported) | 821 | $0.030 |
 | Opus 5 (Claude) | `opus-5/` | 1M | $5 / $25 | 990 | ~$0.24 |

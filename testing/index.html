@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="NeuraFlux — production-ready reasoning for modern products." />
+  <title>NeuraFlux — Build products that think smarter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+            display: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    summary::-webkit-details-marker { display: none; }
+    summary { list-style: none; }
+    a:focus-visible, button:focus-visible, summary:focus-visible {
+      outline: 2px solid #fb923c;
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#0a0908] font-sans text-stone-100 antialiased selection:bg-orange-500 selection:text-black">
+  <main class="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_72%_45%,rgba(249,115,22,0.14),transparent_32%)]">
+
+    <nav class="relative z-10 mx-auto flex h-20 w-[calc(100%-2rem)] max-w-[1600px] items-center justify-between md:h-24 md:w-[calc(100%-4.5rem)]" aria-label="Primary navigation">
+      <a href="#" class="flex items-center gap-3 font-display text-xl font-semibold tracking-tight md:text-2xl">
+        <span aria-hidden="true" class="grid size-8 rotate-45 place-items-center border-[5px] border-white"><span class="size-2 bg-black"></span></span>
+        NeuraFlux
+      </a>
+      <div class="hidden items-center gap-10 text-sm text-stone-300 lg:flex">
+        <a class="transition hover:text-orange-400" href="#product">Product</a><a class="transition hover:text-orange-400" href="#developers">Developers</a><a class="transition hover:text-orange-400" href="#docs">Docs</a><a class="transition hover:text-orange-400" href="#security">Security</a><a class="transition hover:text-orange-400" href="#pricing">Pricing</a>
+      </div>
+      <div class="flex items-center gap-4 text-sm md:gap-8">
+        <a class="hidden text-stone-300 transition hover:text-orange-400 sm:block" href="#signin">Sign in</a>
+        <a class="rounded-lg border border-orange-500 bg-orange-600 px-5 py-3 font-semibold text-white shadow-[0_14px_40px_rgba(249,115,22,0.16)] transition hover:-translate-y-0.5 hover:bg-orange-500" href="#access">Get access</a>
+        <details class="relative lg:hidden">
+          <summary class="flex size-11 cursor-pointer items-center justify-center rounded-lg border border-stone-700 bg-stone-900 text-stone-300 transition hover:border-stone-500 hover:text-white">
+            <span class="sr-only">Open navigation menu</span>
+            <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </summary>
+          <div class="absolute right-0 top-full mt-2 w-52 rounded-lg border border-stone-700 bg-stone-950 p-2 shadow-xl">
+            <a class="block rounded px-3 py-2.5 text-sm text-stone-300 transition hover:bg-stone-800 hover:text-white" href="#product">Product</a>
+            <a class="block rounded px-3 py-2.5 text-sm text-stone-300 transition hover:bg-stone-800 hover:text-white" href="#developers">Developers</a>
+            <a class="block rounded px-3 py-2.5 text-sm text-stone-300 transition hover:bg-stone-800 hover:text-white" href="#docs">Docs</a>
+            <a class="block rounded px-3 py-2.5 text-sm text-stone-300 transition hover:bg-stone-800 hover:text-white" href="#security">Security</a>
+            <a class="block rounded px-3 py-2.5 text-sm text-stone-300 transition hover:bg-stone-800 hover:text-white" href="#pricing">Pricing</a>
+          </div>
+        </details>
+      </div>
+    </nav>
+
+    <section class="relative z-10 mx-auto grid min-h-[calc(100vh-6rem)] w-[calc(100%-2rem)] max-w-[1600px] items-center gap-14 py-12 md:w-[calc(100%-4.5rem)] lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:py-16">
+      <div class="max-w-2xl">
+        <div class="inline-flex items-center gap-2.5 rounded-full border border-orange-600/70 px-4 py-2 font-mono text-xs font-semibold tracking-wider text-orange-400"><span class="size-2 rounded-full bg-orange-500"></span>PUBLIC BETA · NOW OPEN</div>
+        <h1 class="mt-8 font-display text-6xl font-bold leading-[0.98] tracking-[-0.055em] sm:text-7xl xl:text-[88px]">Build products<br />that think<br /><span class="text-orange-500">smarter.</span></h1>
+        <p class="mt-6 max-w-xl text-base leading-7 text-stone-400 md:text-lg md:leading-8">Add production-ready reasoning to your product with one API. NeuraFlux handles context, tools, and decisions for you.</p>
+        <div class="mt-8 flex flex-col gap-4 sm:flex-row">
+          <a class="inline-flex min-h-14 items-center justify-center gap-4 rounded-lg border border-orange-500 bg-orange-600 px-8 font-semibold text-white shadow-[0_14px_40px_rgba(249,115,22,0.18)] transition hover:-translate-y-0.5 hover:bg-orange-500" href="#start">Start building <span class="text-xl">→</span></a>
+          <a class="inline-flex min-h-14 items-center justify-center gap-3 rounded-lg border border-stone-800 bg-transparent px-8 font-medium text-stone-400 transition hover:border-stone-600 hover:text-stone-200" href="#demo"><span class="grid size-7 place-items-center rounded-full border border-stone-600 text-[10px]">▶</span>See how it works</a>
+        </div>
+        <div class="mt-7 flex flex-wrap gap-x-7 gap-y-3 text-sm text-stone-500">
+          <span class="flex items-center gap-2"><b class="grid size-5 place-items-center rounded-full border border-orange-500 text-[10px] font-normal text-orange-400">✓</b>Free to start</span>
+          <span class="flex items-center gap-2"><b class="grid size-5 place-items-center rounded-full border border-orange-500 text-[10px] font-normal text-orange-400">✓</b>No credit card</span>
+          <span class="flex items-center gap-2"><b class="grid size-5 place-items-center rounded-full border border-orange-500 text-[10px] font-normal text-orange-400">✓</b>TypeScript SDK</span>
+        </div>
+        <figure class="mt-10 max-w-md rounded-lg bg-stone-900/50 p-4">
+          <blockquote class="text-sm leading-6 text-stone-300">&ldquo;NeuraFlux turned two weeks of feedback analysis into a 90-second API call.&rdquo;</blockquote>
+          <figcaption class="mt-2 text-xs text-stone-500">Maya Chen, Engineering Lead at Driftwave</figcaption>
+        </figure>
+      </div>
+
+      <div id="product" class="relative min-w-0">
+        <div aria-hidden="true" class="absolute -bottom-4 -right-4 left-8 top-8 rounded-xl border-2 border-orange-600 bg-orange-600/5 shadow-[0_0_70px_rgba(249,115,22,0.12)]"></div>
+        <article class="relative overflow-hidden rounded-xl border border-stone-700 bg-gradient-to-br from-stone-900 to-stone-950 shadow-2xl">
+          <header class="flex min-h-16 items-center justify-between border-b border-stone-800 px-5">
+            <strong class="text-sm font-semibold text-stone-200">Reasoning session</strong>
+            <span class="flex items-center text-sm font-medium text-orange-400"><span class="mr-2 inline-block size-2 rounded-full bg-orange-500"></span>Live <b class="ml-3 rounded border border-orange-600/60 px-2.5 py-1 font-mono font-normal">NF-03</b></span>
+          </header>
+          <div class="p-5 md:p-7">
+            <h2 class="text-xl font-semibold md:text-2xl">Analyse customer feedback</h2>
+            <div class="mt-7 grid gap-8 md:grid-cols-[0.8fr_1.2fr]">
+              <ol class="space-y-1">
+                <li class="relative flex min-h-20 gap-4 after:absolute after:bottom-[-4px] after:left-6 after:top-12 after:w-px after:bg-stone-700"><span class="relative z-10 grid size-12 shrink-0 place-items-center rounded-full border border-stone-700 bg-stone-950 text-stone-500">▤</span><div class="pt-1"><strong class="block">Context</strong><small class="mt-1 block text-stone-400">1,284 records found</small></div></li>
+                <li class="relative flex min-h-24 gap-4 after:absolute after:bottom-[-4px] after:left-6 after:top-12 after:w-px after:bg-stone-700"><span class="relative z-10 grid size-12 shrink-0 place-items-center rounded-full border border-orange-400 bg-orange-600 shadow-[0_0_24px_rgba(249,115,22,0.25)]">✦</span><div class="pt-1"><strong class="block">Reasoning</strong><small class="mt-1 block text-orange-400">Generating insights</small></div></li>
+                <li class="relative flex min-h-24 gap-4 after:absolute after:bottom-[-4px] after:left-6 after:top-12 after:w-px after:bg-stone-700"><span class="relative z-10 grid size-12 shrink-0 place-items-center rounded-full border border-stone-700 bg-stone-950 text-stone-500">⌁</span><div class="pt-1"><strong class="block">Tool call</strong><small class="mt-1 block text-stone-400">Searching knowledge base</small></div></li>
+                <li class="flex gap-4"><span class="grid size-12 shrink-0 place-items-center rounded-full border border-stone-700 bg-stone-950 text-stone-500">✓</span><strong class="pt-3">Result</strong></li>
+              </ol>
+              <div class="flex flex-col gap-6">
+                <pre class="overflow-x-auto rounded-lg border border-stone-800 bg-stone-950 p-6 font-mono text-sm leading-7 text-stone-300"><code>neura.<span class="text-orange-400">generate</span>({
+  task: <span class="text-orange-400">&quot;find opportunities&quot;</span>
+})</code></pre>
+                <div class="rounded-lg border border-stone-800 bg-stone-900 p-6">
+                  <p class="text-lg leading-8 md:text-xl">Improve onboarding first. It appears in 38% of negative feedback.</p>
+                  <span class="mt-5 inline-flex items-center gap-2 rounded-md border border-emerald-600/50 px-3 py-2 text-xs text-emerald-400">✓ Completed in 1.8s</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

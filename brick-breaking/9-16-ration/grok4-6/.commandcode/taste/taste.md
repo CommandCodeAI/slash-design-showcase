@@ -1,0 +1,2 @@
+- Prefers original implementations built independently; do not review, copy, or take cues from sibling or other generations. Confidence: 0.88
+- Wants complete, finished deliverables rather than partial or unfinished work. Confidence: 0.72

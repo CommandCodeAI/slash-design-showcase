@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>NeuraFlux - Smell Report</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<style>
+		body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+		.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+		.report-section { border: 1px solid #222226; background: #0a0a0b; position: relative; }
+		.corner-box { position: absolute; width: 20px; height: 20px; border: 1px solid #222226; background: #000; }
+	</style>
+</head>
+<body class="bg-black text-[#fafafa]">
+	<main class="mx-auto w-full max-w-6xl px-5 py-8 md:px-10 md:py-12">
+		<header class="report-section mb-8 p-6 md:p-8">
+			<div class="corner-box left-0 top-0 -translate-x-1/2 -translate-y-1/2"></div>
+			<div class="corner-box right-0 top-0 translate-x-1/2 -translate-y-1/2"></div>
+			<div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+				<div>
+					<div class="mono mb-2 text-xs tracking-widest text-[#666]">// SMELL</div>
+					<h1 class="text-4xl font-bold tracking-tight md:text-6xl">NeuraFlux</h1>
+				</div>
+				<div class="mono text-left text-xs text-[#666] md:text-right">
+					<div>COMMANDCODE REPORT</div>
+					<div class="text-[#444]">2026-08-13</div>
+				</div>
+			</div>
+		</header>
+
+		<section class="report-section mb-8 p-6 md:p-8">
+			<div class="corner-box left-0 top-0 -translate-x-1/2 -translate-y-1/2"></div>
+			<div class="corner-box right-0 top-0 translate-x-1/2 -translate-y-1/2"></div>
+			<div class="grid gap-8 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+				<div>
+					<div class="mono mb-2 text-xs tracking-widest text-[#666]">// OVERALL</div>
+					<div class="text-6xl font-bold tracking-tight md:text-7xl">5</div>
+					<div class="mt-1 text-lg text-[#666]">/ 10</div>
+					<div class="mt-4 inline-flex border border-[#fbbf24]/30 bg-[#fbbf24]/10 px-3 py-1 text-sm text-[#fbbf24]">PRESENT</div>
+				</div>
+				<div>
+					<div class="mono mb-3 text-xs tracking-widest text-[#666]">// TL;DR</div>
+					<p class="text-sm leading-6 text-[#a0a0a0]">Four catalog tells detected. The page avoids the worst AI reflexes (no blue-violet gradient, no center stack, no feature tile grid), but several default patterns remain unchosen: an accent rail, default type, generic social proof, and a domain-default dark-terminal aesthetic.</p>
+					<p class="mt-4 text-sm leading-6 text-[#fbbf24]">Run /design deslop to replace each tell with a deliberate choice, then /design typeset to build a real type system.</p>
+				</div>
+			</div>
+		</section>
+
+		<section class="report-section mb-8 p-6 md:p-8">
+			<div class="corner-box left-0 top-0 -translate-x-1/2 -translate-y-1/2"></div>
+			<div class="corner-box right-0 top-0 translate-x-1/2 -translate-y-1/2"></div>
+			<div class="mono mb-6 text-xs tracking-widest text-[#666]">// ODOR HEURISTICS</div>
+			<div class="overflow-x-auto">
+				<table class="w-full min-w-[720px] border-collapse text-sm">
+					<thead>
+						<tr class="border-b border-[#222226] text-left mono text-xs text-[#666]">
+							<th class="py-3 pr-4 font-normal">#</th>
+							<th class="py-3 pr-4 font-normal">ODOR</th>
+							<th class="py-3 pr-4 font-normal">SCORE</th>
+							<th class="py-3 font-normal">FINDING</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr class="border-b border-[#1a1a1e]">
+							<td class="py-4 pr-4 text-[#555]">1</td>
+							<td class="py-4 pr-4 text-[#fafafa]">Tech gradient</td>
+							<td class="py-4 pr-4 text-[#34d399]">1/1</td>
+							<td class="py-4 text-[#a0a0a0]">Absent. No blue-violet or indigo-cyan gradient. Subtle orange radial tint only.</td>
+						</tr>
+						<tr class="border-b border-[#1a1a1e]">
+							<td class="py-4 pr-4 text-[#555]">2</td>
+							<td class="py-4 pr-4 text-[#fafafa]">Generic tech hue</td>
+							<td class="py-4 pr-4 text-[#34d399]">1/1</td>
+							<td class="py-4 text-[#a0a0a0]">Absent. Orange is not the blue-purple default. Non-default hue chosen.</td>
+						</tr>
+						<tr class="border-b border-[#1a1a1e]">
+							<td class="py-4 pr-4 text-[#555]">3</td>
+							<td class="py-4 pr-4 text-[#fafafa]">Feature tile grid</td>
+							<td class="py-4 pr-4 text-[#34d399]">1/1</td>
+							<td class="py-4 text-[#a0a0a0]">Absent. No equal-card feature section. Single authored product panel.</td>
+						</tr>
+						<tr class="border-b border-[#1a1a1e]">
+							<td class="py-4 pr-4 text-[#555]">4</td>
+							<td class="py-4 pr-4 text-[#fafafa]">Accent rail</td>
+							<td class="py-4 pr-4 text-[#f43f5e]">0/1</td>
+							<td class="py-4 text-[#a0a0a0]">Detected. border-l-4 border-l-orange-500 on result callout. Colored stripe simulating structure.</td>
+						</tr>
+						<tr class="border-b border-[#1a1a1e]">
+							<td class="py-4 pr-4 text-[#555]">5</td>
+							<td class="py-4 pr-4 text-[#fafafa]">Unearned blur</td>
+							<td class="py-4 pr-4 text-[#34d399]">1/1</td>
+							<td class="py-4 text-[#a0a0a0]">Absent. No frosted glass panels.</td>
+						</tr>
+						<tr class="border-b border-[#1a1a1e]">
+							<td class="py-4 pr-4 text-[#555]">6</td>
+							<td class="py-4 pr-4 text-[#fafafa]">Stat monument</td>
+							<td class="py-4 pr-4 text-[#fbbf24]">0/1</td>
+							<td class="py-4 text-[#a0a0a0]">Faint. "1,200+ developers" with stars and three empty colored avatar circles. Placeholder social proof.</td>
+						</tr>
+						<tr class="border-b border-[#1a1a1e]">
+							<td class="py-4 pr-4 text-[#555]">7</td>
+							<td class="py-4 pr-4 text-[#fafafa]">Icon topper</td>
+							<td class="py-4 pr-4 text-[#34d399]">1/1</td>
+							<td class="py-4 text-[#a0a0a0]">Absent. No decorative icons above headings.</td>
+						</tr>
+						<tr class="border-b border-[#1a1a1e]">
+							<td class="py-4 pr-4 text-[#555]">8</td>
+							<td class="py-4 pr-4 text-[#fafafa]">Bounce everywhere</td>
+							<td class="py-4 pr-4 text-[#34d399]">1/1</td>
+							<td class="py-4 text-[#a0a0a0]">Absent. Only simple hover lift transitions. No elastic or bounce easing.</td>
+						</tr>
+						<tr class="border-b border-[#1a1a1e]">
+							<td class="py-4 pr-4 text-[#555]">9</td>
+							<td class="py-4 pr-4 text-[#fafafa]">Default type</td>
+							<td class="py-4 pr-4 text-[#f43f5e]">0/1</td>
+							<td class="py-4 text-[#a0a0a0]">Detected. Tailwind font-sans and font-mono with no scale system, no weight contrast, no voice.</td>
+						</tr>
+						<tr class="border-b border-[#1a1a1e]">
+							<td class="py-4 pr-4 text-[#555]">10</td>
+							<td class="py-4 pr-4 text-[#fafafa]">Center stack</td>
+							<td class="py-4 pr-4 text-[#34d399]">1/1</td>
+							<td class="py-4 text-[#a0a0a0]">Absent. Two-column split with text left, product panel right. Composition decision made.</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		<section class="report-section mb-8 p-6 md:p-8">
+			<div class="corner-box left-0 top-0 -translate-x-1/2 -translate-y-1/2"></div>
+			<div class="corner-box right-0 top-0 translate-x-1/2 -translate-y-1/2"></div>
+			<div class="mono mb-6 text-xs tracking-widest text-[#666]">// COGNITIVE LOAD / RISK</div>
+			<div class="grid gap-6 md:grid-cols-2">
+				<div>
+					<div class="mb-3 text-xl font-semibold">PRESENT</div>
+					<ul class="space-y-3 text-sm text-[#a0a0a0]">
+						<li><span class="mono mr-2 text-[#34d399]">PASS</span>Two-column split composition — not a center stack</li>
+						<li><span class="mono mr-2 text-[#34d399]">PASS</span>Orange palette avoids the blue-violet reflex</li>
+						<li><span class="mono mr-2 text-[#34d399]">PASS</span>Product panel shows real proof, not feature tiles</li>
+						<li><span class="mono mr-2 text-[#fbbf24]">WATCH</span>Domain default trap: dark + terminal + grid overlay is guessable from industry</li>
+						<li><span class="mono mr-2 text-[#f43f5e]">FAIL</span>Accent rail on result callout — decoration pretending to be structure</li>
+						<li><span class="mono mr-2 text-[#f43f5e]">FAIL</span>Default type with no voice — Tailwind system stack on autopilot</li>
+					</ul>
+				</div>
+				<div>
+					<div class="mono mb-3 text-xs tracking-widest text-[#666]">// NEXT MODES</div>
+					<div class="flex flex-wrap gap-2">
+						<span class="border border-[#333] px-3 py-1 text-sm text-[#a0a0a0]">/deslop</span>
+						<span class="border border-[#333] px-3 py-1 text-sm text-[#a0a0a0]">/typeset</span>
+						<span class="border border-[#333] px-3 py-1 text-sm text-[#a0a0a0]">/voice</span>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="report-section mb-8 p-6 md:p-8">
+			<div class="corner-box left-0 top-0 -translate-x-1/2 -translate-y-1/2"></div>
+			<div class="corner-box right-0 top-0 translate-x-1/2 -translate-y-1/2"></div>
+			<div class="mono mb-6 text-xs tracking-widest text-[#666]">// WHAT'S WORKING</div>
+			<div class="grid gap-4 md:grid-cols-3">
+				<article class="border border-[#1f1f24] p-4">
+					<h2 class="mb-2 text-sm font-semibold">Composition decision</h2>
+					<p class="text-sm leading-6 text-[#a0a0a0]">Two-column split with a real product artifact. Not a center stack. The right call for a decide surface.</p>
+				</article>
+				<article class="border border-[#1f1f24] p-4">
+					<h2 class="mb-2 text-sm font-semibold">Non-default color</h2>
+					<p class="text-sm leading-6 text-[#a0a0a0]">Orange-on-black avoids the blue-violet reflex. Radial gradient adds atmosphere without being a tech gradient.</p>
+				</article>
+				<article class="border border-[#1f1f24] p-4">
+					<h2 class="mb-2 text-sm font-semibold">Proof, not ornament</h2>
+					<p class="text-sm leading-6 text-[#a0a0a0]">Reasoning-session panel walks through Context, Reasoning, Tool call, Result with a real code snippet and result sentence.</p>
+				</article>
+			</div>
+		</section>
+
+		<section class="report-section mb-8 p-6 md:p-8">
+			<div class="corner-box left-0 top-0 -translate-x-1/2 -translate-y-1/2"></div>
+			<div class="corner-box right-0 top-0 translate-x-1/2 -translate-y-1/2"></div>
+			<div class="mono mb-6 text-xs tracking-widest text-[#666]">// PRIORITY ISSUES</div>
+			<div class="space-y-5">
+				<article class="border border-[#2a1d22] bg-[#110b0d] p-5">
+					<div class="mono mb-2 text-xs text-[#f43f5e]">P1</div>
+					<h2 class="mb-2 text-lg font-semibold">Accent rail on result callout</h2>
+					<p class="mb-4 text-sm leading-6 text-[#a0a0a0]">border-l-4 border-l-orange-500 on the result callout (line 69). A colored stripe simulating structure where type weight or border treatment would do the real job. Decoration pretending to be organization.</p>
+					<div class="border-l border-[#fbbf24] pl-4 text-sm leading-6 text-[#fbbf24]">FIX: Remove the left border accent. Use type weight, background tone, or a full border to differentiate the callout. The rail goes.</div>
+				</article>
+				<article class="border border-[#2a1d22] bg-[#110b0d] p-5">
+					<div class="mono mb-2 text-xs text-[#f43f5e]">P1</div>
+					<h2 class="mb-2 text-lg font-semibold">Default type with no voice</h2>
+					<p class="mb-4 text-sm leading-6 text-[#a0a0a0]">Tailwind font-sans (system stack) and font-mono with no scale rationale, no weight contrast system, no voice. The headline tracking is tuned but the body and UI text are on autopilot.</p>
+					<div class="border-l border-[#fbbf24] pl-4 text-sm leading-6 text-[#fbbf24]">FIX: Build a real type scale with at least three levels, weight contrast, and measure discipline. Commit to a typeface or justify the system stack.</div>
+				</article>
+				<article class="border border-[#2a1d22] bg-[#110b0d] p-5">
+					<div class="mono mb-2 text-xs text-[#fbbf24]">P2</div>
+					<h2 class="mb-2 text-lg font-semibold">Placeholder social proof</h2>
+					<p class="mb-4 text-sm leading-6 text-[#a0a0a0]">"Trusted by 1,200+ developers" with five stars and three empty colored avatar circles. The avatars are placeholders — colored circles, not people. The stat has no story behind it.</p>
+					<div class="border-l border-[#fbbf24] pl-4 text-sm leading-6 text-[#fbbf24]">FIX: Replace empty avatars with real proof language — a customer quote, a specific outcome, or a named company. If the stat is real, give it a sentence, not a monument.</div>
+				</article>
+				<article class="border border-[#2a1d22] bg-[#110b0d] p-5">
+					<div class="mono mb-2 text-xs text-[#fbbf24]">P2</div>
+					<h2 class="mb-2 text-lg font-semibold">Domain default texture</h2>
+					<p class="mb-4 text-sm leading-6 text-[#a0a0a0]">Grid-line background overlay with radial mask, traffic-light terminal dots, glowing badge dot — all generic dev-tool reflexes. The dark-terminal-grid aesthetic is the median generated landing page for an AI API.</p>
+					<div class="border-l border-[#fbbf24] pl-4 text-sm leading-6 text-[#fbbf24]">FIX: Break at least one dimension from the dev-tool median. Strip the grid overlay, rethink the terminal chrome, tint neutrals warm toward the brand hue.</div>
+				</article>
+			</div>
+		</section>
+
+		<footer class="mono py-8 text-center text-xs tracking-widest text-[#444]">
+			Generated with CommandCode - 2026-08-13
+		</footer>
+	</main>
+</body>
+</html>

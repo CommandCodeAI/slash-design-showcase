@@ -24,10 +24,11 @@
 
 | Model | Dir | Cost/gen | LOC |
 |---|---|---:|---:|
-| **Opus 5 (Anthropic)** | `opus-5/` | ~$0.37 (floor)‡ | 1360 |
+| Opus 5 (Anthropic) | `opus-5/` | ~$0.37 | 1360 |
 | Fable 5 (Claude) | `Fable-5/` | $0.6000 | 672 |
+| GLM 5.3 (Zai) | `GLM 5.3/` | $0.0168 | 672 |
 | GPT-5.5 (ChatGPT) | `GPT-5.5/` | $0.7000 | 1423 |
-| GPT-5.6 Sol (OpenAI) | `GPT-5.6-sol/` | $0.3265† | 1501 |
+| GPT-5.6 Sol (OpenAI) | `GPT-5.6-sol/` | $0.3265 | 1501 |
 | Grok 4.5 (xAI) | `Grok-4.5/` | $0.4000 | 1326 |
 | Gemini 3.6 Flash (Google) | `gemini-3.6-falsh/` | not estimated§ | 1465 |
 | Kimi K3 (Moonshot AI) | `Kimi-K3/` | ~$0.12 (floor)* | 862 |
