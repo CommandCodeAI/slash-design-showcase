@@ -31,13 +31,14 @@
 |---|---|---:|---:|
 | **Opus 5 (Anthropic)** | `opus-5/` | est. $0.26 (floor)‡ | 1243 |
 | DeepSeek V4 Pro | `DeepSeek-V4-Pro/` | est. $0.0017 | 575 |
+| DeepSeek V4 Pro | `DeepSeek-V4-Pro 0813/` | est. $0.00109 | 575 |
 | Fable 5 (Claude) | `Fable-5/` | est. $0.60 | 546 |
 | GLM 5.2 | `GLM-5.2/` | est. $0.03 | 592 |
 | GPT-5.5 | `GPT-5.5/` | est. $0.35 | 400 |
 | Kimi K3 | `Kimi-K3/` | est. $0.10 | 953 |
 | GPT-5.6 Sol (OpenAI) | `GPT-5.6-sol/` | est. $0.52 | 768 |
 | Gemini 3.6 Flash | `gemini-3.6-flash/` | est. $0.45 (~5 prompts) | 1311 |
-| Gemini 3.6 Flash | `gemini-3.6-flash/` | est. $0.45 (~5 prompts) | 1311 |
+| Gemini 3.6 Flash | `gemini-3.7-flash/` | est. $0.0063  | 1311 |
 | Qwen3.8-27B | `Qwen3.8-27B` | est. $0.00492 | 1311 |
 | Laguna S 2.1 | `laguna-s-2.1/` | not estimated§ | 931 |
 | Ling 3.0 Flash | `ling-3.0-flash/` | not estimated§ | 669 |
