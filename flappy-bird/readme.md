@@ -38,9 +38,11 @@
 | Grok 4.6 | `Grok 4.5` | $0.095 | 1040 |
 | GPT-5.6 Sol | `gp-5.6-sol/` | ~$0.1500 | 631 |
 | DeepSeek | `DeepSeek-V4-Pro/` | $0.0008 | 748 |
-| DeepSeek | `DeepSeek-V4-Pro 0813` | $0.00055 | 739 |
+| DeepSeek | `DeepSeek-V4-Pro 0813` | $0.00055 | 739 | (new price - 0.0036)
 | Gemini 3.6 Flash | `gemini-3.6-flash/` | $0.1500 (5-6 prompts) | 1,411 |
+| Gemini 3.7 Flash | `gemini-3.7-flash/` | $0.0083 ( 2 prompts) | 1,411 |
 | qwen-3.7-flash | `qwen-3.7-flash/` | $0.006 (8 prompts) | 482 |
+| qwen-3.8-27b | `qwen-3.8-27b` | $0.00685 | 933 |
 | deepseek-v4-flash | `deepseek-v4-flash/` | $0.0005 (2 prompts) | 781 |
 | step-3.7-flash | `step-3.7-flash/` | $0.009 (4 prompts) | 643 |
 | muse-spark-1.2 | `muse-spark-1.2/` | $0.0187 | 949 |

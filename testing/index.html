@@ -1,122 +1,1028 @@
-<!doctype html>
-<html lang="en" class="scroll-smooth">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="NeuraFlux — production-ready reasoning for modern products." />
-  <title>NeuraFlux — Build products that think smarter</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
-            display: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-          },
-        },
-      },
-    };
-  </script>
-  <style>
-    summary::-webkit-details-marker { display: none; }
-    summary { list-style: none; }
-    a:focus-visible, button:focus-visible, summary:focus-visible {
-      outline: 2px solid #fb923c;
-      outline-offset: 2px;
-      border-radius: 4px;
-    }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        transition-duration: 0.01ms !important;
-        animation-duration: 0.01ms !important;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Flappy · A cute little flyer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1f4d3f;
+    --cream: #fff8ec;
+    --coral: #ff7a5c;
+    --coral-deep: #e85d43;
+    --leaf: #48b06a;
+    --card: rgba(255, 255, 255, 0.92);
+    --shadow: 0 18px 48px rgba(31, 77, 63, 0.22);
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #8ecfe8;
+    font-family: "Fredoka", ui-rounded, "Segoe UI", system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  #game {
+    display: block;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(31, 77, 63, 0.08);
+    z-index: 10;
+  }
+
+  .panel {
+    width: min(360px, 92vw);
+    text-align: center;
+    background: var(--card);
+    border-radius: 28px;
+    padding: 32px 28px 28px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(31, 77, 63, 0.08);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .mascot {
+    width: 88px;
+    height: 88px;
+    margin: 0 auto 14px;
+    position: relative;
+  }
+
+  .mascot::before {
+    content: "";
+    position: absolute;
+    inset: 6px 8px 10px 4px;
+    background: radial-gradient(circle at 38% 32%, #ffe08a 0 42%, #ffd166 43% 100%);
+    border-radius: 50% 50% 46% 54% / 54% 54% 46% 46%;
+    box-shadow: inset -6px -8px 0 rgba(232, 93, 67, 0.10);
+  }
+  .mascot::after {
+    content: "";
+    position: absolute;
+    left: 34px;
+    top: 40px;
+    width: 34px;
+    height: 20px;
+    background: #ff9f43;
+    border-radius: 0 50% 50% 0;
+    clip-path: polygon(0 38%, 100% 0, 100% 100%, 0 62%);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(2.4rem, 9vw, 3.2rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .tagline {
+    margin: 8px 0 24px;
+    font-size: 1rem;
+    font-weight: 500;
+    opacity: 0.68;
+  }
+
+  .score-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat {
+    background: #f6f1e7;
+    border-radius: 16px;
+    padding: 12px 18px;
+    min-width: 96px;
+  }
+  .stat .label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.55;
+    font-weight: 600;
+  }
+  .stat .value {
+    font-size: 1.9rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  .medal {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: #fff3d6;
+    color: #a66a00;
+    border-radius: 999px;
+    padding: 7px 14px;
+    margin-bottom: 20px;
+  }
+  .medal .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 16px 24px;
+    font-family: inherit;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(180deg, var(--coral) 0%, var(--coral-deep) 100%);
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 8px 0 #b8432f, 0 12px 24px rgba(232, 93, 67, 0.32);
+    transition: transform 0.16s var(--ease), box-shadow 0.16s var(--ease);
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 4px 0 #b8432f, 0 6px 12px rgba(232, 93, 67, 0.28);
+  }
+  .btn:focus-visible {
+    outline: 3px dashed #1f4d3f;
+    outline-offset: 4px;
+  }
+
+  .hint {
+    margin-top: 18px;
+    font-size: 0.9rem;
+    opacity: 0.62;
+    font-weight: 500;
+  }
+  kbd {
+    background: #eef3ee;
+    border: 1px solid #d5e0d6;
+    border-bottom-width: 3px;
+    border-radius: 7px;
+    padding: 2px 8px;
+    font-family: inherit;
+    font-size: 0.82rem;
+  }
+
+  .topbar {
+    position: fixed;
+    top: max(14px, env(safe-area-inset-top));
+    right: max(14px, env(safe-area-inset-right));
+    z-index: 20;
+    display: flex;
+    gap: 8px;
+  }
+
+  .icon-btn {
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(31, 77, 63, 0.12);
+    border-radius: 50%;
+    color: var(--ink);
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(31, 77, 63, 0.12);
+    transition: transform 0.16s var(--ease);
+  }
+  .icon-btn:hover { transform: scale(1.06); }
+  .icon-btn:focus-visible {
+    outline: 3px dashed #1f4d3f;
+    outline-offset: 3px;
+  }
+
+  [hidden] { display: none !important; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn, .icon-btn { transition: none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="game" aria-label="Flappy, a cute flappy bird style game. Tap, click, or press Space to flap and fly through the pipes."></canvas>
+
+<div class="topbar">
+  <button id="muteBtn" class="icon-btn" aria-pressed="false" aria-label="Mute sound" title="Toggle sound">🔊</button>
+</div>
+
+<div id="startScreen" class="overlay">
+  <div class="panel">
+    <div class="mascot" aria-hidden="true"></div>
+    <h1>Flappy</h1>
+    <p class="tagline">A tiny bird with big dreams.</p>
+    <button id="playBtn" class="btn">Play</button>
+    <p class="hint">Tap, click, or press <kbd>Space</kbd> to flap</p>
+  </div>
+</div>
+
+<div id="overScreen" class="overlay" hidden>
+  <div class="panel">
+    <h1 style="font-size: 2rem;">Game over</h1>
+    <div class="score-row">
+      <div class="stat">
+        <div class="label">Score</div>
+        <div class="value" id="finalScore">0</div>
+      </div>
+      <div class="stat">
+        <div class="label">Best</div>
+        <div class="value" id="bestScore">0</div>
+      </div>
+    </div>
+    <div class="medal" id="medal" hidden><span class="dot"></span><span id="medalText"></span></div>
+    <button id="restartBtn" class="btn">Play again</button>
+    <p class="hint">Press <kbd>Space</kbd> to restart</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Setup ----------
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const startScreen = document.getElementById("startScreen");
+  const overScreen = document.getElementById("overScreen");
+  const playBtn = document.getElementById("playBtn");
+  const restartBtn = document.getElementById("restartBtn");
+  const muteBtn = document.getElementById("muteBtn");
+  const finalScore = document.getElementById("finalScore");
+  const bestScore = document.getElementById("bestScore");
+  const medal = document.getElementById("medal");
+  const medalText = document.getElementById("medalText");
+
+  const WORLD_H = 640;          // logical world height
+  const GROUND_H = 96;
+  const BIRD_X = 180;           // fixed horizontal position in world units
+  const BIRD_R = 22;
+  const GRAVITY = 2350;
+  const FLAP_VEL = -640;
+  const MAX_FALL = 980;
+  const PIPE_W = 86;
+  const PIPE_GAP = 172;
+  const PIPE_SPACING = 288;
+  const SPEED = 190;
+
+  let scale = 1;
+  let worldW = 0;
+  let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  const state = {
+    mode: "ready",           // ready | playing | dying | over
+    birdY: WORLD_H * 0.45,
+    birdVel: 0,
+    birdRot: 0,
+    wing: 0,                 // wing animation phase
+    wingVel: 0,
+    pipes: [],
+    score: 0,
+    best: parseInt(localStorage.getItem("flappy-best") || "0", 10),
+    time: 0,
+    deathTimer: 0,
+    shake: 0,
+    flash: 0,
+    muted: localStorage.getItem("flappy-muted") === "1",
+    // parallax offsets
+    cloudX: 0,
+    hillX: 0,
+    bushX: 0,
+    groundX: 0,
+    // particles and popups
+    particles: [],
+    popups: [],
+    groundY: WORLD_H - GROUND_H,
+  };
+
+  // ---------- Sound (tiny synth, optional) ----------
+  let audioCtx = null;
+  function ensureAudio() {
+    if (!audioCtx) {
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (e) {
+        audioCtx = null;
       }
     }
-  </style>
-</head>
-<body class="min-h-screen bg-[#0a0908] font-sans text-stone-100 antialiased selection:bg-orange-500 selection:text-black">
-  <main class="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_72%_45%,rgba(249,115,22,0.14),transparent_32%)]">
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+  }
 
-    <nav class="relative z-10 mx-auto flex h-20 w-[calc(100%-2rem)] max-w-[1600px] items-center justify-between md:h-24 md:w-[calc(100%-4.5rem)]" aria-label="Primary navigation">
-      <a href="#" class="flex items-center gap-3 font-display text-xl font-semibold tracking-tight md:text-2xl">
-        <span aria-hidden="true" class="grid size-8 rotate-45 place-items-center border-[5px] border-white"><span class="size-2 bg-black"></span></span>
-        NeuraFlux
-      </a>
-      <div class="hidden items-center gap-10 text-sm text-stone-300 lg:flex">
-        <a class="transition hover:text-orange-400" href="#product">Product</a><a class="transition hover:text-orange-400" href="#developers">Developers</a><a class="transition hover:text-orange-400" href="#docs">Docs</a><a class="transition hover:text-orange-400" href="#security">Security</a><a class="transition hover:text-orange-400" href="#pricing">Pricing</a>
-      </div>
-      <div class="flex items-center gap-4 text-sm md:gap-8">
-        <a class="hidden text-stone-300 transition hover:text-orange-400 sm:block" href="#signin">Sign in</a>
-        <a class="rounded-lg border border-orange-500 bg-orange-600 px-5 py-3 font-semibold text-white shadow-[0_14px_40px_rgba(249,115,22,0.16)] transition hover:-translate-y-0.5 hover:bg-orange-500" href="#access">Get access</a>
-        <details class="relative lg:hidden">
-          <summary class="flex size-11 cursor-pointer items-center justify-center rounded-lg border border-stone-700 bg-stone-900 text-stone-300 transition hover:border-stone-500 hover:text-white">
-            <span class="sr-only">Open navigation menu</span>
-            <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
-          </summary>
-          <div class="absolute right-0 top-full mt-2 w-52 rounded-lg border border-stone-700 bg-stone-950 p-2 shadow-xl">
-            <a class="block rounded px-3 py-2.5 text-sm text-stone-300 transition hover:bg-stone-800 hover:text-white" href="#product">Product</a>
-            <a class="block rounded px-3 py-2.5 text-sm text-stone-300 transition hover:bg-stone-800 hover:text-white" href="#developers">Developers</a>
-            <a class="block rounded px-3 py-2.5 text-sm text-stone-300 transition hover:bg-stone-800 hover:text-white" href="#docs">Docs</a>
-            <a class="block rounded px-3 py-2.5 text-sm text-stone-300 transition hover:bg-stone-800 hover:text-white" href="#security">Security</a>
-            <a class="block rounded px-3 py-2.5 text-sm text-stone-300 transition hover:bg-stone-800 hover:text-white" href="#pricing">Pricing</a>
-          </div>
-        </details>
-      </div>
-    </nav>
+  function tone(freq, dur, type, gain, slideTo) {
+    if (state.muted || !audioCtx) return;
+    try {
+      const t = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.type = type || "sine";
+      osc.frequency.setValueAtTime(freq, t);
+      if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain || 0.12, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(g).connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + dur + 0.02);
+    } catch (e) { /* no-op */ }
+  }
 
-    <section class="relative z-10 mx-auto grid min-h-[calc(100vh-6rem)] w-[calc(100%-2rem)] max-w-[1600px] items-center gap-14 py-12 md:w-[calc(100%-4.5rem)] lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:py-16">
-      <div class="max-w-2xl">
-        <div class="inline-flex items-center gap-2.5 rounded-full border border-orange-600/70 px-4 py-2 font-mono text-xs font-semibold tracking-wider text-orange-400"><span class="size-2 rounded-full bg-orange-500"></span>PUBLIC BETA · NOW OPEN</div>
-        <h1 class="mt-8 font-display text-6xl font-bold leading-[0.98] tracking-[-0.055em] sm:text-7xl xl:text-[88px]">Build products<br />that think<br /><span class="text-orange-500">smarter.</span></h1>
-        <p class="mt-6 max-w-xl text-base leading-7 text-stone-400 md:text-lg md:leading-8">Add production-ready reasoning to your product with one API. NeuraFlux handles context, tools, and decisions for you.</p>
-        <div class="mt-8 flex flex-col gap-4 sm:flex-row">
-          <a class="inline-flex min-h-14 items-center justify-center gap-4 rounded-lg border border-orange-500 bg-orange-600 px-8 font-semibold text-white shadow-[0_14px_40px_rgba(249,115,22,0.18)] transition hover:-translate-y-0.5 hover:bg-orange-500" href="#start">Start building <span class="text-xl">→</span></a>
-          <a class="inline-flex min-h-14 items-center justify-center gap-3 rounded-lg border border-stone-800 bg-transparent px-8 font-medium text-stone-400 transition hover:border-stone-600 hover:text-stone-200" href="#demo"><span class="grid size-7 place-items-center rounded-full border border-stone-600 text-[10px]">▶</span>See how it works</a>
-        </div>
-        <div class="mt-7 flex flex-wrap gap-x-7 gap-y-3 text-sm text-stone-500">
-          <span class="flex items-center gap-2"><b class="grid size-5 place-items-center rounded-full border border-orange-500 text-[10px] font-normal text-orange-400">✓</b>Free to start</span>
-          <span class="flex items-center gap-2"><b class="grid size-5 place-items-center rounded-full border border-orange-500 text-[10px] font-normal text-orange-400">✓</b>No credit card</span>
-          <span class="flex items-center gap-2"><b class="grid size-5 place-items-center rounded-full border border-orange-500 text-[10px] font-normal text-orange-400">✓</b>TypeScript SDK</span>
-        </div>
-        <figure class="mt-10 max-w-md rounded-lg bg-stone-900/50 p-4">
-          <blockquote class="text-sm leading-6 text-stone-300">&ldquo;NeuraFlux turned two weeks of feedback analysis into a 90-second API call.&rdquo;</blockquote>
-          <figcaption class="mt-2 text-xs text-stone-500">Maya Chen, Engineering Lead at Driftwave</figcaption>
-        </figure>
-      </div>
+  const sfx = {
+    flap() { tone(660, 0.12, "triangle", 0.10, 880); },
+    score() { tone(880, 0.14, "sine", 0.14); setTimeout(() => tone(1320, 0.18, "sine", 0.12), 70); },
+    hit() { tone(200, 0.28, "sawtooth", 0.16, 90); },
+    die() { tone(500, 0.5, "sine", 0.14, 160); },
+  };
 
-      <div id="product" class="relative min-w-0">
-        <div aria-hidden="true" class="absolute -bottom-4 -right-4 left-8 top-8 rounded-xl border-2 border-orange-600 bg-orange-600/5 shadow-[0_0_70px_rgba(249,115,22,0.12)]"></div>
-        <article class="relative overflow-hidden rounded-xl border border-stone-700 bg-gradient-to-br from-stone-900 to-stone-950 shadow-2xl">
-          <header class="flex min-h-16 items-center justify-between border-b border-stone-800 px-5">
-            <strong class="text-sm font-semibold text-stone-200">Reasoning session</strong>
-            <span class="flex items-center text-sm font-medium text-orange-400"><span class="mr-2 inline-block size-2 rounded-full bg-orange-500"></span>Live <b class="ml-3 rounded border border-orange-600/60 px-2.5 py-1 font-mono font-normal">NF-03</b></span>
-          </header>
-          <div class="p-5 md:p-7">
-            <h2 class="text-xl font-semibold md:text-2xl">Analyse customer feedback</h2>
-            <div class="mt-7 grid gap-8 md:grid-cols-[0.8fr_1.2fr]">
-              <ol class="space-y-1">
-                <li class="relative flex min-h-20 gap-4 after:absolute after:bottom-[-4px] after:left-6 after:top-12 after:w-px after:bg-stone-700"><span class="relative z-10 grid size-12 shrink-0 place-items-center rounded-full border border-stone-700 bg-stone-950 text-stone-500">▤</span><div class="pt-1"><strong class="block">Context</strong><small class="mt-1 block text-stone-400">1,284 records found</small></div></li>
-                <li class="relative flex min-h-24 gap-4 after:absolute after:bottom-[-4px] after:left-6 after:top-12 after:w-px after:bg-stone-700"><span class="relative z-10 grid size-12 shrink-0 place-items-center rounded-full border border-orange-400 bg-orange-600 shadow-[0_0_24px_rgba(249,115,22,0.25)]">✦</span><div class="pt-1"><strong class="block">Reasoning</strong><small class="mt-1 block text-orange-400">Generating insights</small></div></li>
-                <li class="relative flex min-h-24 gap-4 after:absolute after:bottom-[-4px] after:left-6 after:top-12 after:w-px after:bg-stone-700"><span class="relative z-10 grid size-12 shrink-0 place-items-center rounded-full border border-stone-700 bg-stone-950 text-stone-500">⌁</span><div class="pt-1"><strong class="block">Tool call</strong><small class="mt-1 block text-stone-400">Searching knowledge base</small></div></li>
-                <li class="flex gap-4"><span class="grid size-12 shrink-0 place-items-center rounded-full border border-stone-700 bg-stone-950 text-stone-500">✓</span><strong class="pt-3">Result</strong></li>
-              </ol>
-              <div class="flex flex-col gap-6">
-                <pre class="overflow-x-auto rounded-lg border border-stone-800 bg-stone-950 p-6 font-mono text-sm leading-7 text-stone-300"><code>neura.<span class="text-orange-400">generate</span>({
-  task: <span class="text-orange-400">&quot;find opportunities&quot;</span>
-})</code></pre>
-                <div class="rounded-lg border border-stone-800 bg-stone-900 p-6">
-                  <p class="text-lg leading-8 md:text-xl">Improve onboarding first. It appears in 38% of negative feedback.</p>
-                  <span class="mt-5 inline-flex items-center gap-2 rounded-md border border-emerald-600/50 px-3 py-2 text-xs text-emerald-400">✓ Completed in 1.8s</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </article>
-      </div>
-    </section>
-  </main>
+  function setMuted(m) {
+    state.muted = m;
+    localStorage.setItem("flappy-muted", m ? "1" : "0");
+    muteBtn.textContent = m ? "🔇" : "🔊";
+    muteBtn.setAttribute("aria-pressed", String(m));
+    muteBtn.setAttribute("aria-label", m ? "Unmute sound" : "Mute sound");
+  }
+
+  // ---------- Resize ----------
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    canvas.style.width = w + "px";
+    canvas.style.height = h + "px";
+    scale = h / WORLD_H;
+    worldW = w / scale;
+    state.groundY = WORLD_H - GROUND_H;
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  // ---------- Input ----------
+  function flap() {
+    if (state.mode === "ready") startGame();
+    if (state.mode === "playing") {
+      state.birdVel = FLAP_VEL;
+      state.wingVel = -22;
+      sfx.flap();
+      spawnWingPuffs();
+    }
+  }
+
+  function startGame() {
+    ensureAudio();
+    state.mode = "playing";
+    state.birdY = WORLD_H * 0.45;
+    state.birdVel = 0;
+    state.birdRot = 0;
+    state.pipes = [];
+    state.score = 0;
+    state.particles = [];
+    state.popups = [];
+    state.shake = 0;
+    state.flash = 0;
+    state.deathTimer = 0;
+    startScreen.hidden = true;
+    overScreen.hidden = true;
+    flap();
+  }
+
+  function resetToReady() {
+    state.mode = "ready";
+    state.birdY = WORLD_H * 0.45;
+    state.birdVel = 0;
+    state.birdRot = 0;
+    state.pipes = [];
+    state.score = 0;
+    state.particles = [];
+    state.popups = [];
+    state.shake = 0;
+    state.flash = 0;
+    state.deathTimer = 0;
+    overScreen.hidden = true;
+    startScreen.hidden = false;
+  }
+
+  canvas.addEventListener("pointerdown", function (e) {
+    e.preventDefault();
+    ensureAudio();
+    if (state.mode === "over") return; // must press button or Space
+    flap();
+  });
+
+  window.addEventListener("keydown", function (e) {
+    if (e.code === "Space" || e.code === "ArrowUp") {
+      e.preventDefault();
+      ensureAudio();
+      if (state.mode === "over") {
+        restart();
+      } else if (state.mode === "ready") {
+        startGame();
+      } else {
+        flap();
+      }
+    }
+  });
+
+  playBtn.addEventListener("click", startGame);
+  restartBtn.addEventListener("click", restart);
+  muteBtn.addEventListener("click", function () {
+    ensureAudio();
+    setMuted(!state.muted);
+  });
+  setMuted(state.muted);
+
+  function restart() {
+    startGame();
+  }
+
+  // ---------- Particles ----------
+  function spawnWingPuffs() {
+    for (let i = 0; i < 3; i++) {
+      state.particles.push({
+        x: BIRD_X - 14,
+        y: state.birdY + 4,
+        vx: -40 - Math.random() * 60,
+        vy: (Math.random() - 0.5) * 30,
+        life: 0.5 + Math.random() * 0.2,
+        maxLife: 0.7,
+        r: 3 + Math.random() * 3,
+        type: "puff",
+      });
+    }
+  }
+
+  function spawnDeathBurst() {
+    const feathers = ["#ffd166", "#ffb84d", "#ff9f43", "#fff3d6"];
+    for (let i = 0; i < 26; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = 60 + Math.random() * 260;
+      state.particles.push({
+        x: BIRD_X,
+        y: state.birdY,
+        vx: Math.cos(a) * sp,
+        vy: Math.sin(a) * sp - 80,
+        life: 0.8 + Math.random() * 0.5,
+        maxLife: 1.3,
+        r: 3 + Math.random() * 5,
+        rot: Math.random() * Math.PI,
+        vr: (Math.random() - 0.5) * 12,
+        type: "feather",
+        color: feathers[Math.floor(Math.random() * feathers.length)],
+      });
+    }
+  }
+
+  function addPopup(text, y) {
+    state.popups.push({ text, y: y || state.birdY - 40, life: 0.9, maxLife: 0.9 });
+  }
+
+  // ---------- Pipes ----------
+  function spawnPipe() {
+    const margin = 110;
+    const minGapY = margin;
+    const maxGapY = state.groundY - PIPE_GAP - margin;
+    const gapY = minGapY + Math.random() * (maxGapY - minGapY);
+    state.pipes.push({ x: worldW + PIPE_W, gapY, gapH: PIPE_GAP, scored: false });
+  }
+
+  // ---------- Game over ----------
+  function die() {
+    state.mode = "dying";
+    state.deathTimer = 0;
+    state.shake = 18;
+    state.flash = 0.5;
+    sfx.hit();
+    spawnDeathBurst();
+    if (state.score > state.best) {
+      state.best = state.score;
+      localStorage.setItem("flappy-best", String(state.best));
+    }
+  }
+
+  function showGameOver() {
+    state.mode = "over";
+    finalScore.textContent = state.score;
+    bestScore.textContent = state.best;
+    const thresholds = [
+      [50, "#e85d43", "Platinum wings"],
+      [30, "#f4c542", "Gold medal"],
+      [20, "#c7ccd6", "Silver medal"],
+      [10, "#d98a4a", "Bronze medal"],
+    ];
+    const earned = thresholds.find((t) => state.score >= t[0]);
+    if (earned) {
+      medal.hidden = false;
+      medal.style.color = earned[1];
+      medalText.textContent = earned[2];
+    } else {
+      medal.hidden = true;
+    }
+    overScreen.hidden = false;
+    restartBtn.focus();
+  }
+
+  // ---------- Update ----------
+  function update(dt) {
+    state.time += dt;
+    const speed = state.mode === "playing" ? SPEED : (state.mode === "dying" ? SPEED * 0.4 : SPEED * 0.55);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // parallax scroll
+    state.cloudX -= speed * 0.12 * dt;
+    state.hillX -= speed * 0.30 * dt;
+    state.bushX -= speed * 0.55 * dt;
+    state.groundX = (state.groundX - speed * dt) % 48;
+
+    // wing animation
+    state.wingVel += 90 * dt * (state.mode === "playing" || state.mode === "ready" ? 1 : 0.4);
+    if (state.wing > 0.4) state.wingVel = 0;
+    if (state.wing < 0) { state.wing = 0; state.wingVel = 0; }
+    state.wing += state.wingVel * dt;
+
+    // bird physics
+    if (state.mode === "ready") {
+      state.birdY = WORLD_H * 0.45 + Math.sin(state.time * 3) * 10;
+      state.birdRot = Math.sin(state.time * 3 + 1) * 0.08;
+    } else if (state.mode === "playing" || state.mode === "dying") {
+      state.birdVel = Math.min(state.birdVel + GRAVITY * dt, MAX_FALL);
+      state.birdY += state.birdVel * dt;
+      if (state.birdY < BIRD_R) { state.birdY = BIRD_R; state.birdVel = Math.max(state.birdVel, 0); }
+      const targetRot = state.birdVel < 0
+        ? Math.max(-0.42, state.birdVel / 1500)
+        : Math.min(1.45, state.birdVel / 1200);
+      state.birdRot += (targetRot - state.birdRot) * Math.min(1, 12 * dt);
+    }
+
+    // pipes
+    if (state.mode === "playing") {
+      if (state.pipes.length === 0 || state.pipes[state.pipes.length - 1].x < worldW - PIPE_SPACING) {
+        spawnPipe();
+      }
+      for (const p of state.pipes) {
+        p.x -= speed * dt;
+        if (!p.scored && p.x + PIPE_W < BIRD_X) {
+          p.scored = true;
+          state.score++;
+          sfx.score();
+          addPopup("+1");
+        }
+      }
+      state.pipes = state.pipes.filter((p) => p.x > -PIPE_W * 2);
+
+      // collision
+      if (state.birdY + BIRD_R > state.groundY) {
+        state.birdY = state.groundY - BIRD_R;
+        die();
+      }
+      for (const p of state.pipes) {
+        const inX = BIRD_X + BIRD_R > p.x && BIRD_X - BIRD_R < p.x + PIPE_W;
+        if (inX) {
+          const inTop = state.birdY - BIRD_R < p.gapY;
+          const inBottom = state.birdY + BIRD_R > p.gapY + p.gapH;
+          if (inTop || inBottom) {
+            die();
+            break;
+          }
+        }
+      }
+    } else if (state.mode === "dying") {
+      for (const p of state.pipes) p.x -= speed * dt;
+      if (state.birdY + BIRD_R >= state.groundY) {
+        state.birdY = state.groundY - BIRD_R;
+        state.birdVel = 0;
+        state.deathTimer += dt;
+        if (state.deathTimer > 0.7) {
+          showGameOver();
+          sfx.die();
+        }
+      }
+    }
+
+    // particles
+    for (const p of state.particles) {
+      p.life -= dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      if (p.type === "feather") {
+        p.vy += 420 * dt;
+        p.rot += p.vr * dt;
+      }
+    }
+    state.particles = state.particles.filter((p) => p.life > 0);
+
+    // popups
+    for (const pop of state.popups) {
+      pop.life -= dt;
+      pop.y -= 40 * dt;
+    }
+    state.popups = state.popups.filter((p) => p.life > 0);
+
+    // effects
+    state.shake = Math.max(0, state.shake - dt * (reduced ? 60 : 30));
+    state.flash = Math.max(0, state.flash - dt * 1.6);
+  }
+
+  // ---------- Drawing helpers ----------
+  function roundRect(x, y, w, h, r) {
+    const rr = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + rr, y);
+    ctx.arcTo(x + w, y, x + w, y + h, rr);
+    ctx.arcTo(x + w, y + h, x, y + h, rr);
+    ctx.arcTo(x, y + h, x, y, rr);
+    ctx.arcTo(x, y, x + w, y, rr);
+    ctx.closePath();
+  }
+
+  function skyGradient() {
+    const g = ctx.createLinearGradient(0, 0, 0, WORLD_H);
+    g.addColorStop(0, "#7cc4e8");
+    g.addColorStop(0.55, "#a9dcf2");
+    g.addColorStop(0.8, "#e6f7fb");
+    g.addColorStop(1, "#fdf7e6");
+    return g;
+  }
+
+  function drawCloud(x, y, s) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(s, s);
+    ctx.fillStyle = "rgba(255,255,255,0.92)";
+    ctx.beginPath();
+    ctx.arc(0, 0, 22, 0, Math.PI * 2);
+    ctx.arc(20, -10, 18, 0, Math.PI * 2);
+    ctx.arc(42, 0, 20, 0, Math.PI * 2);
+    ctx.arc(22, 8, 20, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawSun() {
+    const x = worldW - 140;
+    const y = 130;
+    const glow = ctx.createRadialGradient(x, y, 10, x, y, 120);
+    glow.addColorStop(0, "rgba(255,238,170,0.9)");
+    glow.addColorStop(0.4, "rgba(255,236,150,0.35)");
+    glow.addColorStop(1, "rgba(255,236,150,0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(x, y, 120, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffedb0";
+    ctx.beginPath();
+    ctx.arc(x, y, 46, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffe18a";
+    ctx.beginPath();
+    ctx.arc(x, y, 36, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawHills(offset, color, baseY, amp) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(0, baseY);
+    const period = 320;
+    for (let x = -period; x <= worldW + period; x += 40) {
+      const wx = x + offset;
+      const y = baseY - Math.abs(Math.sin((wx / period) * Math.PI)) * amp;
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(worldW + 50, baseY + 200);
+    ctx.lineTo(-50, baseY + 200);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawBush(x, y, s, color) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(s, s);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(0, 0, 16, 0, Math.PI * 2);
+    ctx.arc(18, -4, 14, 0, Math.PI * 2);
+    ctx.arc(34, 0, 16, 0, Math.PI * 2);
+    ctx.arc(17, 6, 18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawGround() {
+    const g = ctx.createLinearGradient(0, state.groundY, 0, WORLD_H);
+    g.addColorStop(0, "#b7e07a");
+    g.addColorStop(0.12, "#8fd06a");
+    g.addColorStop(1, "#5aa34a");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, state.groundY, worldW, GROUND_H);
+
+    ctx.fillStyle = "#c9ea95";
+    ctx.fillRect(0, state.groundY, worldW, 10);
+
+    // scrolling grass tufts
+    ctx.fillStyle = "#6bb356";
+    for (let x = Math.round(state.groundX) - 48; x < worldW + 48; x += 48) {
+      ctx.beginPath();
+      ctx.moveTo(x, state.groundY + 8);
+      ctx.quadraticCurveTo(x + 6, state.groundY - 10, x + 12, state.groundY + 8);
+      ctx.fill();
+    }
+  }
+
+  function drawPipe(p) {
+    const x = p.x;
+    const topH = p.gapY;
+    const bottomY = p.gapY + p.gapH;
+    const bottomH = state.groundY - bottomY;
+
+    // top pipe body
+    pipeBody(x, 0, PIPE_W, topH);
+    // top lip
+    pipeLip(x, topH - 30);
+    // bottom pipe body
+    pipeBody(x, bottomY, PIPE_W, bottomH);
+    // bottom lip
+    pipeLip(x, bottomY);
+  }
+
+  function pipeBody(x, y, w, h) {
+    if (h <= 0) return;
+    const g = ctx.createLinearGradient(x, 0, x + w, 0);
+    g.addColorStop(0, "#6fcf86");
+    g.addColorStop(0.28, "#8fe0a0");
+    g.addColorStop(0.55, "#57bd6f");
+    g.addColorStop(0.78, "#43a75f");
+    g.addColorStop(1, "#57bd6f");
+    ctx.fillStyle = g;
+    ctx.fillRect(x, y, w, h);
+    // edge highlight
+    ctx.fillStyle = "rgba(255,255,255,0.28)";
+    ctx.fillRect(x + 8, y, 7, h);
+    ctx.fillStyle = "rgba(0,0,0,0.10)";
+    ctx.fillRect(x + w - 12, y, 12, h);
+  }
+
+  function pipeLip(x, y) {
+    const lw = PIPE_W + 12;
+    const lh = 30;
+    const g = ctx.createLinearGradient(x - 6, 0, x - 6 + lw, 0);
+    g.addColorStop(0, "#6fcf86");
+    g.addColorStop(0.28, "#a3e8b0");
+    g.addColorStop(0.55, "#57bd6f");
+    g.addColorStop(1, "#43a75f");
+    ctx.fillStyle = g;
+    roundRect(x - 6, y, lw, lh, 8);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(31,77,63,0.18)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  function drawBird() {
+    ctx.save();
+    ctx.translate(BIRD_X, state.birdY);
+    ctx.rotate(state.birdRot);
+
+    // tail
+    ctx.fillStyle = "#ff9f43";
+    ctx.beginPath();
+    ctx.moveTo(-16, 6);
+    ctx.lineTo(-34, -4);
+    ctx.lineTo(-30, 12);
+    ctx.closePath();
+    ctx.fill();
+
+    // wing (flaps behind body)
+    ctx.save();
+    ctx.translate(-2, 0);
+    ctx.rotate(-0.4 - Math.sin(state.wing * 4) * 0.9);
+    ctx.fillStyle = "#ffb84d";
+    ctx.beginPath();
+    ctx.ellipse(-6, 6, 16, 9, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.25)";
+    ctx.beginPath();
+    ctx.ellipse(-10, 3, 9, 5, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // body
+    const body = ctx.createRadialGradient(-4, -6, 4, 0, 0, BIRD_R + 6);
+    body.addColorStop(0, "#ffe08a");
+    body.addColorStop(1, "#ffc14d");
+    ctx.fillStyle = body;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, BIRD_R + 6, BIRD_R, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // belly
+    ctx.fillStyle = "#fff3d6";
+    ctx.beginPath();
+    ctx.ellipse(4, 8, 14, 11, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // beak
+    ctx.fillStyle = "#ff9f43";
+    ctx.beginPath();
+    ctx.moveTo(14, -2);
+    ctx.quadraticCurveTo(30, 2, 14, 12);
+    ctx.quadraticCurveTo(22, 5, 14, -2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(31,77,63,0.25)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(14, 4);
+    ctx.quadraticCurveTo(24, 5, 14, 9);
+    ctx.stroke();
+
+    // eye
+    ctx.fillStyle = "#1f2a26";
+    ctx.beginPath();
+    ctx.arc(9, -6, 5.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(11, -8, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // blush
+    ctx.fillStyle = "rgba(255,120,150,0.55)";
+    ctx.beginPath();
+    ctx.ellipse(6, 6, 5, 3.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  function drawScore() {
+    if (state.mode === "ready" || state.mode === "over") return;
+    const y = 80;
+    const x = worldW / 2;
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "700 52px Fredoka, ui-rounded, system-ui, sans-serif";
+    ctx.lineWidth = 8;
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "rgba(31,77,63,0.16)";
+    ctx.strokeText(state.score, x, y);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(state.score, x, y);
+    ctx.restore();
+  }
+
+  function drawParticles() {
+    for (const p of state.particles) {
+      const a = Math.max(0, p.life / p.maxLife);
+      if (p.type === "puff") {
+        ctx.fillStyle = "rgba(255,255,255," + (a * 0.7) + ")";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * (1 + (1 - a) * 1.4), 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = a;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, p.r, p.r * 0.55, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawPopups() {
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    for (const pop of state.popups) {
+      const a = Math.max(0, pop.life / pop.maxLife);
+      ctx.globalAlpha = a;
+      ctx.font = "700 30px Fredoka, ui-rounded, system-ui, sans-serif";
+      ctx.strokeStyle = "rgba(31,77,63,0.3)";
+      ctx.lineWidth = 5;
+      ctx.strokeText(pop.text, BIRD_X + 40, pop.y);
+      ctx.fillStyle = "#ff7a5c";
+      ctx.fillText(pop.text, BIRD_X + 40, pop.y);
+    }
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawReadyHint() {
+    // animated hint text handled by DOM overlay; nothing extra needed here
+  }
+
+  // ---------- Render ----------
+  function render() {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, worldW, WORLD_H);
+
+    // camera shake
+    ctx.save();
+    if (state.shake > 0.2) {
+      const s = state.shake;
+      ctx.translate((Math.random() - 0.5) * s, (Math.random() - 0.5) * s);
+    }
+
+    // sky
+    ctx.fillStyle = skyGradient();
+    ctx.fillRect(0, 0, worldW, WORLD_H);
+    drawSun();
+
+    // clouds (far parallax)
+    for (let i = -1; i < 6; i++) {
+      const x = ((i * 380 + state.cloudX) % (worldW + 380)) - 190;
+      const y = 70 + ((i * 97) % 160);
+      drawCloud(x, y, 0.7 + ((i % 3) * 0.25));
+    }
+
+    // hills (mid parallax)
+    drawHills(state.hillX * 0.6, "rgba(191,230,201,0.75)", state.groundY + 10, 90);
+    drawHills(state.hillX, "rgba(159,217,180,0.85)", state.groundY + 14, 60);
+
+    // bushes (near parallax)
+    const bushY = state.groundY + 12;
+    for (let i = -1; i < 8; i++) {
+      const x = ((i * 300 + state.bushX) % (worldW + 300)) - 150;
+      drawBush(x, bushY, 0.8 + (i % 2) * 0.4, i % 3 === 0 ? "#6fbf9b" : "#58a88a");
+    }
+
+    // pipes
+    for (const p of state.pipes) drawPipe(p);
+
+    // ground
+    drawGround();
+
+    // bird
+    drawBird();
+
+    // particles + popups
+    drawParticles();
+    drawPopups();
+
+    // score
+    drawScore();
+
+    ctx.restore();
+
+    // white flash on death
+    if (state.flash > 0) {
+      ctx.fillStyle = "rgba(255,255,255," + state.flash + ")";
+      ctx.fillRect(0, 0, worldW, WORLD_H);
+    }
+  }
+
+  // ---------- Main loop ----------
+  let last = performance.now();
+  function loop(now) {
+    let dt = (now - last) / 1000;
+    last = now;
+    dt = Math.min(dt, 1 / 30); // clamp to avoid tunneling on tab switch
+    update(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
 </body>
 </html>

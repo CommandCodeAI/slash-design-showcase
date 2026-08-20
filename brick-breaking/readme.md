@@ -37,6 +37,8 @@
 | Kimi K3 | `Kimi-K3/` | est. $0.10 | 953 |
 | GPT-5.6 Sol (OpenAI) | `GPT-5.6-sol/` | est. $0.52 | 768 |
 | Gemini 3.6 Flash | `gemini-3.6-flash/` | est. $0.45 (~5 prompts) | 1311 |
+| Gemini 3.6 Flash | `gemini-3.6-flash/` | est. $0.45 (~5 prompts) | 1311 |
+| Qwen3.8-27B | `Qwen3.8-27B` | est. $0.00492 | 1311 |
 | Laguna S 2.1 | `laguna-s-2.1/` | not estimated§ | 931 |
 | Ling 3.0 Flash | `ling-3.0-flash/` | not estimated§ | 669 |
 
