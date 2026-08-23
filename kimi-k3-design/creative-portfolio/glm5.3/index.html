@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Milo Reyes — Creative Developer</title>
+<meta name="description" content="Milo Reyes is a creative developer in Berlin crafting expressive, performant web experiences with WebGL, motion and typography.">
+<meta property="og:title" content="Milo Reyes — Creative Developer">
+<meta property="og:description" content="Expressive, performance-obsessed interfaces. WebGL, motion, typography. Berlin.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0C0C0B">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230C0C0B'/%3E%3Ctext x='32' y='45' font-family='Georgia,serif' font-style='italic' font-size='38' fill='%23FF4A1F' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600&f[]=general-sans@400,500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono&display=swap">
+<style>
+/* ---------- tokens & reset ---------- */
+:root{
+  --bg:#0C0C0B;
+  --fg:#E9E7DF;
+  --muted:#97948B;
+  --hairline:rgba(233,231,223,.14);
+  --hairline-strong:rgba(233,231,223,.32);
+  --acc:#FF4A1F;
+  --acc-ink:#1A0B06;
+  --ink-2:#141412;
+  --font-display:"Clash Display","Helvetica Neue",Arial,sans-serif;
+  --font-body:"General Sans","Helvetica Neue",Arial,sans-serif;
+  --font-serif:"Instrument Serif",Georgia,serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+  --ease-expo:cubic-bezier(.16,1,.3,1);
+  --ease-out:cubic-bezier(.22,1,.36,1);
+  --pad:clamp(20px,4.5vw,72px);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;color-scheme:dark}
+html,body{overflow-x:clip}
+body{
+  background:var(--bg);color:var(--fg);
+  font-family:var(--font-body);font-size:1rem;line-height:1.65;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+body.is-loading,body.is-locked{overflow:hidden}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+ul{list-style:none}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+::selection{background:var(--acc);color:var(--acc-ink)}
+:focus-visible{outline:2px dashed var(--acc);outline-offset:4px}
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:#2a2a27;border-radius:99px;border:2px solid var(--bg)}
+@media(hover:hover){
+  body.cursor-on,body.cursor-on a,body.cursor-on button{cursor:none}
+}
+
+/* ---------- utilities ---------- */
+.container{max-width:1560px;margin-inline:auto;padding-inline:max(var(--pad),env(safe-area-inset-left))}
+.mono{font-family:var(--font-mono);font-size:.6875rem;font-weight:400;letter-spacing:.14em;text-transform:uppercase}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip-link{position:fixed;top:12px;left:12px;z-index:1001;background:var(--fg);color:var(--bg);padding:.7rem 1.2rem;font-family:var(--font-mono);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;transform:translateY(-300%);transition:transform .3s var(--ease-out)}
+.skip-link:focus-visible{transform:none;outline:2px dashed var(--acc);outline-offset:3px}
+.section{padding-block:clamp(5.5rem,12vh,10rem)}
+.section-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;border-top:1px solid var(--hairline);padding-top:1.1rem;margin-bottom:clamp(2.5rem,6vh,4.5rem)}
+.section-head .mono{color:var(--muted)}
+.section-head .mono b{color:var(--fg);font-weight:400}
+
+/* ---------- grain ---------- */
+.grain{position:fixed;left:-50%;top:-50%;width:200%;height:200%;z-index:980;pointer-events:none;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:260px;animation:grain 9s steps(10) infinite}
+@keyframes grain{
+  0%,100%{transform:translate(0,0)}10%{transform:translate(-4%,-6%)}20%{transform:translate(-8%,3%)}
+  30%{transform:translate(5%,-8%)}40%{transform:translate(-3%,9%)}50%{transform:translate(-7%,-4%)}
+  60%{transform:translate(8%,2%)}70%{transform:translate(2%,7%)}80%{transform:translate(-6%,1%)}90%{transform:translate(4%,-3%)}
+}
+
+/* ---------- cursor ---------- */
+.cursor{position:fixed;left:0;top:0;z-index:990;pointer-events:none;opacity:0;transition:opacity .3s}
+.cursor.is-visible{opacity:1}
+.cursor__inner{width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--fg);mix-blend-mode:difference;display:flex;align-items:center;justify-content:center;transition:width .35s var(--ease-out),height .35s var(--ease-out),margin .35s var(--ease-out),background-color .3s,mix-blend-mode 0s}
+.cursor__label{font-family:var(--font-mono);font-size:.625rem;letter-spacing:.12em;text-transform:uppercase;color:var(--bg);opacity:0;transition:opacity .2s;white-space:nowrap}
+.cursor.is-link .cursor__inner{width:34px;height:34px;margin:-17px 0 0 -17px}
+.cursor.is-label .cursor__inner{width:78px;height:78px;margin:-39px 0 0 -39px;background:var(--fg);mix-blend-mode:normal}
+.cursor.is-label .cursor__label{opacity:1}
+
+/* ---------- loader ---------- */
+.loader{position:fixed;inset:0;z-index:970;background:var(--bg);display:flex;align-items:flex-end;transition:transform .85s var(--ease-expo)}
+html:not(.js) .loader{display:none}
+.loader.is-done{transform:translateY(-101%)}
+.loader__inner{width:100%;display:flex;justify-content:space-between;align-items:baseline;padding:0 var(--pad) 2rem;border-bottom:1px solid var(--hairline)}
+.loader__name{font-family:var(--font-display);font-weight:500;font-size:clamp(1rem,2vw,1.35rem);letter-spacing:-.01em}
+.loader__name i{font-family:var(--font-serif);font-style:italic;color:var(--acc);letter-spacing:0}
+.loader__count{font-family:var(--font-mono);font-size:.75rem;letter-spacing:.14em;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* ---------- header ---------- */
+.site-header{position:fixed;inset-inline:0;top:0;z-index:900;padding:1.15rem 0;transition:transform .55s var(--ease-out)}
+.site-header.is-hidden{transform:translateY(-110%)}
+.site-header .container{display:flex;align-items:center;justify-content:space-between;gap:2rem}
+.brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;letter-spacing:-.01em;display:inline-flex;align-items:baseline;gap:.15rem}
+.brand sup{font-family:var(--font-mono);font-size:.55rem;color:var(--acc);letter-spacing:0}
+.site-nav{display:flex;gap:clamp(1.2rem,3vw,2.6rem)}
+.nav__link{font-family:var(--font-mono);font-size:.6875rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);transition:color .3s}
+.nav__link:hover,.nav__link:focus-visible{color:var(--fg)}
+.nav__roll{display:block;position:relative;overflow:hidden;height:1.05em}
+.nav__roll span{display:block;transition:transform .45s var(--ease-out)}
+.nav__roll span:last-child{position:absolute;inset:0;transform:translateY(110%);color:var(--acc)}
+.nav__link:hover .nav__roll span:first-child,.nav__link:focus-visible .nav__roll span:first-child{transform:translateY(-110%)}
+.nav__link:hover .nav__roll span:last-child,.nav__link:focus-visible .nav__roll span:last-child{transform:none}
+.status{display:flex;align-items:center;gap:.9rem;color:var(--muted)}
+.status__wrap{display:flex;align-items:center;gap:.55rem}
+.status__dot{width:7px;height:7px;border-radius:50%;background:var(--acc);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.status__time{font-variant-numeric:tabular-nums}
+html.js body.is-loading .site-header > .container > *{opacity:0;transform:translateY(-12px)}
+html.js body.is-loaded .site-header > .container > *{opacity:1;transform:none;transition:opacity .7s var(--ease-out),transform .7s var(--ease-out)}
+html.js body.is-loaded .site-nav{transition-delay:.08s}
+html.js body.is-loaded .status{transition-delay:.16s}
+
+/* ---------- hero ---------- */
+.hero{position:relative;min-height:100vh;min-height:100svh;display:flex;flex-direction:column}
+.hero__lines{position:absolute;inset:0;pointer-events:none}
+.hero__lines i{position:absolute;top:0;bottom:0;width:1px;background:var(--hairline)}
+.hero__lines i:nth-child(1){left:var(--pad)}
+.hero__lines i:nth-child(2){right:var(--pad)}
+.hero__lines i:nth-child(3){left:58%;opacity:.5}
+.hero__container{position:relative;display:flex;flex-direction:column;flex:1;width:100%;padding-top:clamp(7rem,14vh,10rem);padding-bottom:clamp(1.8rem,4vh,3rem)}
+.hero__kicker{color:var(--muted);display:flex;justify-content:space-between;gap:1rem}
+.hero__kicker em{font-style:normal;color:var(--fg)}
+.hero__title{margin-block:auto;font-family:var(--font-display);font-weight:600;font-size:clamp(3.3rem,16.5vw,13.5rem);line-height:.94;letter-spacing:-.018em;text-transform:uppercase;will-change:transform}
+.hero__row{display:flex;align-items:center;gap:.14em}
+.hero__row--2{padding-left:clamp(1.5rem,17vw,17rem);margin-top:.02em}
+.hero__serif{font-family:var(--font-serif);font-style:italic;font-weight:400;text-transform:none;font-size:.96em;letter-spacing:-.01em;line-height:1}
+.hero__fn{font-family:var(--font-mono);font-style:normal;font-size:.16em;letter-spacing:.1em;color:var(--acc);vertical-align:super;margin-left:.3em;text-transform:uppercase}
+.hero__pill{position:relative;height:.58em;width:1.65em;flex:none;border-radius:99em;overflow:hidden;clip-path:inset(0 100% 0 0 round 99em)}
+.hero__pill img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) sepia(.14) contrast(1.05);animation:kenburns 11s ease-in-out infinite alternate}
+@keyframes kenburns{from{transform:scale(1) translateX(0)}to{transform:scale(1.18) translateX(4%)}}
+html.js body.is-loaded .hero__pill{clip-path:inset(0 0 0 0 round 99em);transition:clip-path 1s var(--ease-expo) .55s}
+.mask{display:block;overflow:hidden}
+.mask__inner{display:block}
+html.js .hero .mask__inner{transform:translateY(115%)}
+html.js body.is-loaded .hero .mask__inner{transform:none;transition:transform 1s var(--ease-expo) .32s}
+html.js .hero .char{display:inline-block;transform:translateY(115%) rotate(5deg);transform-origin:0 100%;will-change:transform}
+html.js body.is-loaded .hero .char{transform:none;transition:transform .95s var(--ease-expo)}
+.hero__foot{display:flex;align-items:flex-end;justify-content:space-between;gap:2rem;margin-top:clamp(2rem,5vh,3.5rem)}
+.hero__intro{max-width:36ch;font-size:clamp(1rem,1.3vw,1.2rem);line-height:1.6;color:var(--muted)}
+.hero__intro a{color:var(--fg);border-bottom:1px solid var(--hairline-strong);transition:border-color .3s}
+.hero__intro a:hover{border-color:var(--acc)}
+.hero__note{margin-top:1rem;color:var(--muted)}
+.hero__note i{font-style:normal;color:var(--acc)}
+.hero__scroll{position:relative;flex:none;width:clamp(96px,9vw,124px);aspect-ratio:1;display:grid;place-items:center;color:var(--muted)}
+.hero__scroll svg{position:absolute;inset:0;width:100%;height:100%}
+.hero__scroll .ring-text{font-family:var(--font-mono);font-size:8.4px;letter-spacing:.34em;text-transform:uppercase;fill:currentColor;transform-origin:50% 50%;animation:spin 16s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hero__scroll .arrow{width:18px;height:18px;stroke:var(--fg);transition:transform .4s var(--ease-out)}
+.hero__scroll:hover .arrow{transform:translateY(4px)}
+.hero__side{position:absolute;right:calc(var(--pad)/2 - .4rem);top:50%;transform:translateY(-50%);writing-mode:vertical-rl;color:var(--muted);letter-spacing:.2em}
+html.js .hero__kicker,html.js .hero__foot,html.js .hero__side{opacity:0;transform:translateY(18px)}
+html.js body.is-loaded .hero__kicker,html.js body.is-loaded .hero__foot,html.js body.is-loaded .hero__side{opacity:1;transform:none;transition:opacity .8s var(--ease-out),transform .8s var(--ease-out)}
+html.js body.is-loaded .hero__kicker{transition-delay:.55s}
+html.js body.is-loaded .hero__foot{transition-delay:.85s}
+html.js body.is-loaded .hero__side{transition-delay:1s;transform:translateY(-50%)}
+
+/* ---------- marquee ---------- */
+.marquee{border-block:1px solid var(--hairline);padding:1.1rem 0;overflow:hidden}
+.marquee__track{display:flex;width:max-content;animation:marquee 30s linear infinite}
+.marquee--rev .marquee__track{animation-direction:reverse}
+.marquee__half{display:flex;align-items:center;gap:2.6rem;padding-right:2.6rem;white-space:nowrap;font-family:var(--font-display);font-weight:500;font-size:clamp(1.05rem,2vw,1.5rem);letter-spacing:.01em;text-transform:uppercase}
+.marquee__half .sep{color:var(--acc);font-size:.8em}
+.marquee__half .out{color:transparent;-webkit-text-stroke:1px var(--hairline-strong)}
+@keyframes marquee{to{transform:translateX(-50%)}}
+
+/* ---------- reveals ---------- */
+html.js [data-reveal]{opacity:0;transform:translateY(34px);transition:opacity .85s var(--ease-out),transform .85s var(--ease-out)}
+html.js [data-reveal].is-in{opacity:1;transform:none}
+html.js [data-reveal="lines"]{opacity:1;transform:none;transition:none}
+html.js [data-reveal="lines"] .mask__inner{transform:translateY(115%);transition:transform .95s var(--ease-expo) calc(var(--i,0)*.09s)}
+html.js [data-reveal="lines"].is-in .mask__inner{transform:none}
+
+/* ---------- work ---------- */
+.work-list{border-bottom:1px solid var(--hairline)}
+.work-list:hover .work-row{opacity:.45}
+.work-list:hover .work-row:hover,.work-list:hover .work-row:focus-visible{opacity:1}
+.work-row{display:grid;grid-template-columns:3.8rem minmax(0,1fr) auto auto 3rem;align-items:center;gap:clamp(1rem,2.6vw,2.8rem);padding:clamp(1.5rem,3vh,2.4rem) .25rem;border-top:1px solid var(--hairline);transition:background-color .45s var(--ease-out),opacity .35s}
+.work-row__thumb{display:none}
+.work-row__index{color:var(--muted);transition:color .3s}
+.work-row__title{font-family:var(--font-display);font-weight:500;font-size:clamp(1.9rem,4.6vw,4.1rem);line-height:1;letter-spacing:-.015em;transition:transform .5s var(--ease-out)}
+.work-row__cat,.work-row__year{color:var(--muted);white-space:nowrap}
+.work-row__arrow{justify-self:end;width:2.1rem;height:2.1rem;display:grid;place-items:center;color:var(--fg);opacity:0;transform:translate(-8px,8px) rotate(-45deg);transition:opacity .35s,transform .45s var(--ease-out)}
+.work-row__arrow svg{width:20px;height:20px}
+.work-row:hover,.work-row:focus-visible{background:var(--fg);color:var(--bg)}
+.work-row:hover .work-row__index,.work-row:focus-visible .work-row__index{color:var(--acc)}
+.work-row:hover .work-row__cat,.work-row:hover .work-row__year,.work-row:focus-visible .work-row__cat,.work-row:focus-visible .work-row__year{color:rgba(12,12,11,.6)}
+.work-row:hover .work-row__title,.work-row:focus-visible .work-row__title{transform:translateX(clamp(10px,1.4vw,22px))}
+.work-row:hover .work-row__arrow,.work-row:focus-visible .work-row__arrow{opacity:1;transform:none}
+.work-preview{position:fixed;left:0;top:0;z-index:800;width:min(24vw,380px);aspect-ratio:4/3;pointer-events:none;opacity:0;transform:scale(.85);transition:opacity .35s var(--ease-out),transform .35s var(--ease-out);will-change:transform}
+.work-preview.is-on{opacity:1}
+.work-preview__inner{position:absolute;inset:0;overflow:hidden;border-radius:4px;transform:scale(.9);transition:transform .45s var(--ease-out)}
+.work-preview.is-on .work-preview__inner{transform:scale(1)}
+.work-preview img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s;filter:grayscale(1) sepia(.14) contrast(1.05)}
+.work-preview img.is-active{opacity:1}
+
+/* ---------- about ---------- */
+.statement{font-family:var(--font-display);font-weight:500;font-size:clamp(1.85rem,4.3vw,3.9rem);line-height:1.18;letter-spacing:-.012em;max-width:24ch;margin-bottom:clamp(4rem,9vh,7rem)}
+.statement .w{display:inline-block}
+.statement em,.statement .w-em{font-family:var(--font-serif);font-style:italic;font-weight:400;font-size:1.05em;letter-spacing:0}
+.about__grid{display:grid;grid-template-columns:5fr 7fr;gap:clamp(3rem,6vw,7rem);align-items:start}
+.about__frame{position:relative;overflow:hidden;border-radius:4px;aspect-ratio:4/5}
+.about__frame img{width:100%;height:118%;object-fit:cover;filter:grayscale(1) sepia(.14) contrast(1.05);transition:filter .6s var(--ease-out);will-change:transform}
+.about__media:hover .about__frame img{filter:grayscale(0) sepia(0) contrast(1)}
+.about__media figcaption{margin-top:.9rem;color:var(--muted)}
+.about__body > p{max-width:52ch;color:var(--muted);font-size:clamp(1rem,1.25vw,1.15rem)}
+.about__body > p + p{margin-top:1.4rem}
+.about__body > p strong{color:var(--fg);font-weight:500}
+.caps{margin-top:clamp(3rem,6vh,4.5rem)}
+.cap{display:grid;grid-template-columns:3.4rem 15rem 1fr;gap:1.4rem;align-items:baseline;padding:1.35rem .25rem;border-top:1px solid var(--hairline);transition:transform .45s var(--ease-out)}
+.cap:hover{transform:translateX(10px)}
+.cap .mono{color:var(--muted)}
+.cap:hover .mono{color:var(--acc)}
+.cap h3{font-family:var(--font-display);font-weight:500;font-size:clamp(1.2rem,1.8vw,1.6rem);letter-spacing:-.01em}
+.cap p{color:var(--muted);font-size:.95rem}
+.recognition{margin-top:clamp(4rem,9vh,7rem)}
+.recognition__label{color:var(--muted);margin-bottom:1.2rem}
+.award{display:grid;grid-template-columns:1fr auto auto;gap:clamp(1rem,3vw,3rem);align-items:baseline;padding:1.15rem .25rem;border-top:1px solid var(--hairline);transition:transform .45s var(--ease-out)}
+.award:hover{transform:translateX(10px)}
+.award h3{font-family:var(--font-display);font-weight:500;font-size:clamp(1.1rem,1.6vw,1.45rem)}
+.award .mono{color:var(--muted)}
+.award:hover .mono:first-child{color:var(--acc)}
+
+/* ---------- contact ---------- */
+.contact{border-top:1px solid var(--hairline)}
+.contact__title{font-family:var(--font-display);font-weight:600;font-size:clamp(2.9rem,10.5vw,9.5rem);line-height:.98;letter-spacing:-.02em;text-transform:uppercase}
+.contact__title .serif{font-family:var(--font-serif);font-style:italic;font-weight:400;text-transform:none;letter-spacing:-.01em}
+.contact__title .mask{display:inline-block;vertical-align:bottom}
+.contact__sub{margin-top:2rem;color:var(--muted)}
+.contact__sub i{font-style:normal;color:var(--acc)}
+.contact__email{display:inline-block;margin-top:clamp(1.4rem,3vh,2.2rem);font-family:var(--font-display);font-weight:500;font-size:clamp(1.55rem,7vw,6.2rem);letter-spacing:-.015em;line-height:1.15;word-break:break-word}
+.roll{display:inline-block;position:relative;overflow:hidden;vertical-align:bottom}
+.roll span{display:inline-block;transition:transform .55s var(--ease-out);transition-delay:calc(var(--i,0)*18ms)}
+.roll span:last-child{position:absolute;left:0;top:100%;color:var(--acc)}
+.contact__email:hover .roll span,.contact__email:focus-visible .roll span{transform:translateY(-100%)}
+.socials{display:grid;grid-template-columns:repeat(4,1fr);margin-top:clamp(3.5rem,8vh,6rem)}
+.socials a{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.25rem 1rem 1.25rem .25rem;border-top:1px solid var(--hairline);font-family:var(--font-mono);font-size:.6875rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);transition:color .3s,transform .45s var(--ease-out)}
+.socials a svg{width:13px;height:13px;flex:none;transition:transform .35s var(--ease-out)}
+.socials a:hover{color:var(--fg);transform:translateX(8px)}
+.socials a:hover svg{transform:translate(3px,-3px);color:var(--acc)}
+.foot-bar{display:flex;justify-content:space-between;align-items:center;gap:1.5rem;flex-wrap:wrap;border-top:1px solid var(--hairline);margin-top:clamp(3rem,7vh,5rem);padding-top:1.6rem;color:var(--muted)}
+.foot-bar .js-clock{font-variant-numeric:tabular-nums;color:var(--fg)}
+.to-top{display:inline-flex;align-items:center;gap:.6rem;color:var(--muted);transition:color .3s}
+.to-top svg{width:12px;height:12px;transition:transform .35s var(--ease-out)}
+.to-top:hover{color:var(--fg)}
+.to-top:hover svg{transform:translateY(-3px)}
+
+/* ---------- case overlay ---------- */
+.case{
+  --bg:#E9E7DF;--fg:#131311;--muted:#5D5B53;--hairline:rgba(19,19,17,.16);--hairline-strong:rgba(19,19,17,.4);--acc:#C2370F;--acc-ink:#F5F3EC;
+  position:fixed;inset:0;z-index:950;background:var(--bg);color:var(--fg);color-scheme:light;
+  transform:translateY(101%);visibility:hidden;transition:transform .75s var(--ease-expo),visibility 0s linear .75s;
+}
+.case.is-open{transform:none;visibility:visible;transition:transform .75s var(--ease-expo)}
+.case__scroll{height:100%;overflow-y:auto;overscroll-behavior:contain}
+.case__head{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:1.1rem max(var(--pad),env(safe-area-inset-left));background:var(--bg);border-bottom:1px solid var(--hairline)}
+.case__index{color:var(--muted)}
+.case__close{width:52px;height:52px;border:1px solid var(--hairline-strong);border-radius:50%;display:grid;place-items:center;color:var(--fg);transition:background-color .35s,color .35s,border-color .35s}
+.case__close svg{width:16px;height:16px}
+.case__close:hover{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.case__body{position:relative;padding:clamp(3rem,7vh,5.5rem) 0 clamp(4rem,8vh,6rem)}
+.case__big{position:absolute;top:1rem;right:0;font-family:var(--font-display);font-weight:600;font-size:clamp(7rem,24vw,22rem);line-height:.8;color:transparent;-webkit-text-stroke:1px rgba(19,19,17,.14);pointer-events:none;user-select:none}
+.case__title{font-family:var(--font-display);font-weight:600;font-size:clamp(3rem,9vw,7.5rem);line-height:.95;letter-spacing:-.02em;text-transform:uppercase;position:relative}
+.case__title em{font-family:var(--font-serif);font-style:italic;font-weight:400;text-transform:none}
+.case__meta{display:grid;grid-template-columns:repeat(4,1fr);gap:2rem;border-block:1px solid var(--hairline);padding-block:1.6rem;margin-block:clamp(2.5rem,5vh,3.5rem)}
+.case__meta .mono{color:var(--muted);display:block;margin-bottom:.5rem}
+.case__meta p{font-size:.95rem}
+.case__hero{border-radius:4px;overflow:hidden;aspect-ratio:16/9;margin-bottom:clamp(2.5rem,5vh,4rem)}
+.case__hero img,.case__img img{width:100%;height:100%;object-fit:cover}
+.case__cols{display:grid;grid-template-columns:7fr 4fr;gap:clamp(2.5rem,5vw,6rem);margin-bottom:clamp(2.5rem,5vh,4rem)}
+.case__cols > div > p{max-width:58ch;color:var(--muted)}
+.case__cols > div > p + p{margin-top:1.3rem}
+.case__cols > div > p strong{color:var(--fg);font-weight:500}
+.case__fact{display:flex;justify-content:space-between;gap:1.5rem;padding:.9rem .25rem;border-top:1px solid var(--hairline)}
+.case__fact .mono{color:var(--muted)}
+.case__fact p{text-align:right;font-size:.9rem}
+.case__img{border-radius:4px;overflow:hidden;margin-bottom:clamp(2rem,4vh,3rem)}
+.case__img--wide{aspect-ratio:21/9}
+.case__img--offset{width:min(72%,640px);margin-left:auto;aspect-ratio:4/3}
+.case__next{display:flex;justify-content:space-between;align-items:center;gap:2rem;width:100%;padding:clamp(1.8rem,4vh,2.8rem) max(var(--pad),env(safe-area-inset-left));border-top:1px solid var(--hairline);text-align:left;transition:background-color .4s var(--ease-out),color .4s}
+.case__next .mono{color:var(--muted);transition:color .4s}
+.case__next strong{font-family:var(--font-display);font-weight:500;font-size:clamp(1.6rem,4.5vw,3.4rem);letter-spacing:-.015em;text-transform:uppercase;display:block;margin-top:.4rem}
+.case__next svg{width:26px;height:26px;flex:none;transition:transform .4s var(--ease-out)}
+.case__next:hover{background:var(--fg);color:var(--bg)}
+.case__next:hover .mono{color:rgba(233,231,223,.6)}
+.case__next:hover svg{transform:translateX(8px)}
+.case__el{opacity:0;transform:translateY(26px);transition:opacity .6s var(--ease-out),transform .6s var(--ease-out);transition-delay:calc(var(--i,0)*70ms + .3s)}
+.case.is-open .case__el{opacity:1;transform:none}
+.case.is-swapping .case__el{opacity:0;transform:translateY(14px);transition:opacity .25s,transform .25s}
+
+/* ---------- responsive ---------- */
+@media(max-width:1024px){
+  .about__grid{grid-template-columns:1fr;gap:3rem}
+  .about__frame{max-width:520px}
+  .case__cols{grid-template-columns:1fr;gap:2.5rem}
+}
+@media(max-width:860px){
+  .status{display:none}
+  .hero__side{display:none}
+  .hero__lines i:nth-child(3){display:none}
+  .work-row{grid-template-columns:1fr auto;grid-template-areas:"thumb thumb" "title arrow" "meta meta";row-gap:.9rem;padding-inline:0}
+  .work-row__thumb{display:block;grid-area:thumb;overflow:hidden;border-radius:4px;aspect-ratio:16/10}
+  .work-row__thumb img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) sepia(.14) contrast(1.05);transition:filter .5s}
+  .work-row:hover .work-row__thumb img{filter:none}
+  .work-row__index{display:none}
+  .work-row__title{grid-area:title}
+  .work-row__arrow{grid-area:arrow}
+  .work-row__meta{grid-area:meta;display:flex;gap:1.4rem}
+  .work-row:hover .work-row__meta .mono{color:rgba(12,12,11,.6)}
+  .work-preview{display:none}
+  .cap{grid-template-columns:3rem 1fr;grid-template-areas:"i name" "i detail"}
+  .cap .mono{grid-area:i}
+  .cap h3{grid-area:name}
+  .cap p{grid-area:detail}
+  .award{grid-template-columns:1fr auto;grid-template-areas:"name year" "detail year"}
+  .award h3{grid-area:name}
+  .award .mono:first-child{grid-area:detail}
+  .award .mono:last-child{grid-area:year}
+  .socials{grid-template-columns:1fr 1fr}
+  .case__meta{grid-template-columns:1fr 1fr;gap:1.6rem}
+  .case__big{display:none}
+  .hero__foot{flex-direction:column;align-items:flex-start;gap:2.2rem}
+  .hero__scroll{align-self:flex-end}
+}
+@media(max-width:560px){
+  .hero__row--2{padding-left:2rem}
+  .foot-bar{flex-direction:column;align-items:flex-start;gap:.8rem}
+  .case__img--offset{width:100%}
+}
+
+/* ---------- reduced motion ---------- */
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0ms!important}
+  .marquee__half:last-child{display:none}
+  .marquee__track{transform:none}
+  html.js .hero .char,html.js .hero .mask__inner,html.js [data-reveal],html.js [data-reveal="lines"] .mask__inner{transform:none;opacity:1}
+  html.js .hero__kicker,html.js .hero__foot,html.js .hero__side{opacity:1;transform:none}
+  html.js .hero__side{transform:translateY(-50%)}
+  .grain{animation:none}
+}
+</style>
+</head>
+<body class="is-loading">
+<script>document.documentElement.classList.replace('no-js','js')</script>
+
+<a class="skip-link" href="#work">Skip to work</a>
+<div class="grain" aria-hidden="true"></div>
+<div class="cursor" aria-hidden="true"><div class="cursor__inner"><span class="cursor__label"></span></div></div>
+
+<div class="loader" aria-hidden="true">
+  <div class="loader__inner">
+    <p class="loader__name">Milo Reyes <i>— folio © 2026</i></p>
+    <p class="loader__count">000</p>
+  </div>
+</div>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="#top" data-magnetic="0.25">Milo Reyes<sup>®</sup></a>
+    <nav class="site-nav" aria-label="Primary">
+      <a class="nav__link" href="#work" data-magnetic="0.25"><span class="nav__roll"><span>Work</span><span aria-hidden="true">Work</span></span></a>
+      <a class="nav__link" href="#about" data-magnetic="0.25"><span class="nav__roll"><span>About</span><span aria-hidden="true">About</span></span></a>
+      <a class="nav__link" href="#contact" data-magnetic="0.25"><span class="nav__roll"><span>Contact</span><span aria-hidden="true">Contact</span></span></a>
+    </nav>
+    <div class="status mono">
+      <span class="status__wrap"><span class="status__dot" aria-hidden="true"></span>Open for projects</span>
+      <span class="status__time">BER&nbsp;<span class="js-clock">--:--:--</span></span>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" id="top" aria-label="Introduction">
+    <div class="hero__lines" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="container hero__container">
+      <p class="hero__kicker mono"><span>Folio <em>© 2026</em> — Vol. 03</span><span>Frontend &amp; motion</span></p>
+      <h1 class="hero__title">
+        <span class="hero__row hero__row--1">
+          <span class="mask"><span class="mask__inner js-chars">Creative</span></span>
+          <span class="hero__pill"><img src="https://picsum.photos/seed/milo-hero-strip/900/350.jpg" alt="Abstract dark artwork" width="900" height="350"></span>
+        </span>
+        <span class="hero__row hero__row--2">
+          <span class="mask"><span class="mask__inner"><em class="hero__serif">developer<sup class="hero__fn">*</sup></em></span></span>
+        </span>
+      </h1>
+      <div class="hero__foot">
+        <div>
+          <p class="hero__intro">Frontend developer &amp; designer, eight years in — building WebGL experiences, editorial sites and interfaces that hold up at 60fps. Currently at <a href="#about">Studio Mono</a>, Berlin.</p>
+          <p class="hero__note mono"><i>*</i>and occasional designer</p>
+        </div>
+        <a class="hero__scroll" href="#work" data-magnetic="0.3" aria-label="Scroll to selected work">
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <defs><path id="scrollCircle" d="M50,50 m-40,0 a40,40 0 1,1 80,0 a40,40 0 1,1 -80,0"/></defs>
+            <text class="ring-text"><textPath href="#scrollCircle">Scroll — selected work — scroll —&#160;</textPath></text>
+          </svg>
+          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M12 4v16m0 0l-6-6m6 6l6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+    <p class="hero__side mono" aria-hidden="true">52.5200° N — 13.4050° E</p>
+  </section>
+
+  <aside class="marquee" aria-hidden="true">
+    <div class="marquee__track">
+      <div class="marquee__half"><span>Selected work</span><span class="sep">✳</span><span class="out">2020 → 2026</span><span class="sep">✳</span><span>Creative development</span><span class="sep">✳</span><span class="out">WebGL &amp; motion</span><span class="sep">✳</span></div>
+      <div class="marquee__half"><span>Selected work</span><span class="sep">✳</span><span class="out">2020 → 2026</span><span class="sep">✳</span><span>Creative development</span><span class="sep">✳</span><span class="out">WebGL &amp; motion</span><span class="sep">✳</span></div>
+    </div>
+  </aside>
+
+  <section class="section" id="work" aria-labelledby="workTitle" style="scroll-margin-top:5rem">
+    <div class="container">
+      <header class="section-head" data-reveal>
+        <p class="mono"><b>01</b> — Selected work</p>
+        <p class="mono">(05)</p>
+      </header>
+      <h2 id="workTitle" class="sr-only">Selected work</h2>
+      <ul class="work-list">
+        <li>
+          <a href="#work" class="work-row" data-project="aether" data-cursor-label="View">
+            <span class="work-row__thumb"><img src="https://picsum.photos/seed/aether-cover/900/560.jpg" alt="Aether — generative particle field artwork" loading="lazy" width="900" height="560"></span>
+            <span class="work-row__index mono">01</span>
+            <span class="work-row__title">Aether</span>
+            <span class="work-row__meta"><span class="work-row__cat mono">Immersive / WebGL</span><span class="work-row__year mono">2026</span></span>
+            <span class="work-row__arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 18L18 6M18 6H8m10 0v10" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </a>
+        </li>
+        <li>
+          <a href="#work" class="work-row" data-project="monograph" data-cursor-label="View">
+            <span class="work-row__thumb"><img src="https://picsum.photos/seed/monograph-cover/900/560.jpg" alt="Monograph — type specimen interface" loading="lazy" width="900" height="560"></span>
+            <span class="work-row__index mono">02</span>
+            <span class="work-row__title">Monograph</span>
+            <span class="work-row__meta"><span class="work-row__cat mono">Type foundry platform</span><span class="work-row__year mono">2025</span></span>
+            <span class="work-row__arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 18L18 6M18 6H8m10 0v10" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </a>
+        </li>
+        <li>
+          <a href="#work" class="work-row" data-project="fieldnotes" data-cursor-label="View">
+            <span class="work-row__thumb"><img src="https://picsum.photos/seed/fieldnotes-cover/900/560.jpg" alt="Fieldnotes — topographic brand site" loading="lazy" width="900" height="560"></span>
+            <span class="work-row__index mono">03</span>
+            <span class="work-row__title">Fieldnotes</span>
+            <span class="work-row__meta"><span class="work-row__cat mono">Brand &amp; product site</span><span class="work-row__year mono">2025</span></span>
+            <span class="work-row__arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 18L18 6M18 6H8m10 0v10" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </a>
+        </li>
+        <li>
+          <a href="#work" class="work-row" data-project="pulse" data-cursor-label="View">
+            <span class="work-row__thumb"><img src="https://picsum.photos/seed/pulse-cover/900/560.jpg" alt="Pulse Festival — kinetic lineup wall" loading="lazy" width="900" height="560"></span>
+            <span class="work-row__index mono">04</span>
+            <span class="work-row__title">Pulse Festival</span>
+            <span class="work-row__meta"><span class="work-row__cat mono">Identity &amp; website</span><span class="work-row__year mono">2024</span></span>
+            <span class="work-row__arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 18L18 6M18 6H8m10 0v10" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </a>
+        </li>
+        <li>
+          <a href="#work" class="work-row" data-project="nocturne" data-cursor-label="View">
+            <span class="work-row__thumb"><img src="https://picsum.photos/seed/nocturne-cover/900/560.jpg" alt="Nocturne — interactive night essay" loading="lazy" width="900" height="560"></span>
+            <span class="work-row__index mono">05</span>
+            <span class="work-row__title">Nocturne</span>
+            <span class="work-row__meta"><span class="work-row__cat mono">Interactive essay</span><span class="work-row__year mono">2024</span></span>
+            <span class="work-row__arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 18L18 6M18 6H8m10 0v10" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="work-preview" aria-hidden="true"><div class="work-preview__inner"></div></div>
+  </section>
+
+  <section class="section" id="about" aria-labelledby="aboutTitle" style="scroll-margin-top:5rem">
+    <div class="container">
+      <header class="section-head" data-reveal>
+        <p class="mono"><b>02</b> — About</p>
+        <p class="mono">Berlin, DE — est. 2018</p>
+      </header>
+      <h2 id="aboutTitle" class="sr-only">About</h2>
+      <p class="statement js-statement">I design and build <em>expressive</em> web experiences — where typography, motion and engineering carry <em>equal weight</em>, and detail is the whole point.</p>
+      <div class="about__grid">
+        <figure class="about__media" data-reveal>
+          <div class="about__frame" data-parallax="0.10"><img src="https://picsum.photos/seed/milo-portrait/900/1125.jpg" alt="Portrait of Milo Reyes" loading="lazy" width="900" height="1125"></div>
+          <figcaption class="mono">Berlin, 2026 — probably debugging a shader</figcaption>
+        </figure>
+        <div class="about__body">
+          <p data-reveal>I'm Milo — a frontend developer and designer who has spent eight years making the web feel less templated. I've shipped work for <strong>type foundries, festivals and founders</strong> across Europe, usually living somewhere between the design file and the render loop.</p>
+          <p data-reveal>The best compliment my work gets is that <strong>it feels expensive</strong>. The second best: "wait, this is a website?" Both usually come down to the same things — typography, timing, and caring about the last four pixels.</p>
+          <ul class="caps">
+            <li class="cap" data-reveal><span class="mono">01</span><h3>Creative development</h3><p>Three.js / WebGL, GLSL shaders, GSAP, canvas</p></li>
+            <li class="cap" data-reveal><span class="mono">02</span><h3>Frontend engineering</h3><p>React, TypeScript, Next.js, Astro, Node</p></li>
+            <li class="cap" data-reveal><span class="mono">03</span><h3>Interaction &amp; motion</h3><p>Scroll choreography, page transitions, micro-interactions</p></li>
+            <li class="cap" data-reveal><span class="mono">04</span><h3>Art direction</h3><p>Typography systems, layout, color — directed in the browser</p></li>
+          </ul>
+        </div>
+      </div>
+      <div class="recognition" data-reveal>
+        <p class="mono recognition__label">Recognition</p>
+        <ul>
+          <li class="award"><h3>Awwwards</h3><span class="mono">Site of the Day × 2</span><span class="mono">2024 · 2026</span></li>
+          <li class="award"><h3>FWA</h3><span class="mono">FWA of the Day</span><span class="mono">2025</span></li>
+          <li class="award"><h3>CSS Design Awards</h3><span class="mono">Website of the Year, nominee</span><span class="mono">2026</span></li>
+          <li class="award"><h3>GSAP Showcase</h3><span class="mono">Featured project</span><span class="mono">2025</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <aside class="marquee marquee--rev" aria-hidden="true">
+    <div class="marquee__track">
+      <div class="marquee__half"><span>Let's work together</span><span class="sep">✳</span><span class="out">Available Q4 2026</span><span class="sep">✳</span><span>hello@miloreyes.dev</span><span class="sep">✳</span><span class="out">No brief too weird</span><span class="sep">✳</span></div>
+      <div class="marquee__half"><span>Let's work together</span><span class="sep">✳</span><span class="out">Available Q4 2026</span><span class="sep">✳</span><span>hello@miloreyes.dev</span><span class="sep">✳</span><span class="out">No brief too weird</span><span class="sep">✳</span></div>
+    </div>
+  </aside>
+
+  <footer class="contact section" id="contact" style="scroll-margin-top:5rem">
+    <div class="container">
+      <header class="section-head" data-reveal>
+        <p class="mono"><b>03</b> — Contact</p>
+        <p class="mono">Open for projects</p>
+      </header>
+      <h2 class="contact__title" data-reveal="lines">
+        <span class="mask"><span class="mask__inner" style="--i:0">Let's make</span></span><br>
+        <span class="mask"><span class="mask__inner" style="--i:1">something <em class="serif">rare.</em></span></span>
+      </h2>
+      <p class="contact__sub mono" data-reveal>Currently booking <i>Q4 2026</i> — remote or Berlin</p>
+      <a class="contact__email js-email" href="mailto:hello@miloreyes.dev" data-reveal>hello@miloreyes.dev</a>
+      <ul class="socials" data-reveal>
+        <li><a href="https://github.com/miloreyes" target="_blank" rel="noopener">GitHub <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 17L17 7M17 7H9m8 0v8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+        <li><a href="https://x.com/miloreyes" target="_blank" rel="noopener">X / Twitter <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 17L17 7M17 7H9m8 0v8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+        <li><a href="https://linkedin.com/in/miloreyes" target="_blank" rel="noopener">LinkedIn <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 17L17 7M17 7H9m8 0v8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+        <li><a href="https://instagram.com/milo.reyes" target="_blank" rel="noopener">Instagram <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 17L17 7M17 7H9m8 0v8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+      </ul>
+      <div class="foot-bar mono">
+        <p>© 2026 Milo Reyes — All rights reserved</p>
+        <p>Berlin, DE — <span class="js-clock">--:--:--</span> CET</p>
+        <a class="to-top" href="#top" data-magnetic="0.25">Back to top <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 20V4m0 0l-6 6m6-6l6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+    </div>
+  </footer>
+</main>
+
+<div class="case" id="case" role="dialog" aria-modal="true" aria-labelledby="caseTitle" aria-hidden="true">
+  <div class="case__scroll" id="caseScroll">
+    <div class="case__head">
+      <p class="case__index mono" id="caseIndex">Case 01/05</p>
+      <button class="case__close" id="caseClose" data-magnetic="0.3" aria-label="Close case study">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="case__body container" id="caseBody"></div>
+    <button class="case__next" id="caseNext">
+      <span><span class="mono">Next project</span><strong id="caseNextTitle">—</strong></span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 12h16m0 0l-6-6m6 6l-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (s, c = document) => c.querySelector(s);
+  const $$ = (s, c = document) => [...c.querySelectorAll(s)];
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const FINE = matchMedia('(pointer: fine)').matches;
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+  const img = (seed, w, h) => `https://picsum.photos/seed/${seed}/${w}/${h}.jpg`;
+
+  /* ---------- data ---------- */
+  const ORDER = ['aether', 'monograph', 'fieldnotes', 'pulse', 'nocturne'];
+  const PROJECTS = {
+    aether: {
+      title: 'Aether', kicker: 'Immersive / WebGL', year: '2026',
+      client: 'Aether Studio, Copenhagen', deliverable: 'Immersive WebGL site',
+      role: 'Creative development, motion', stack: 'Three.js · GLSL · GSAP · Vite',
+      recognition: 'Awwwards — Site of the Day',
+      text: [
+        'An immersive WebGL experience for Aether, a generative art studio in Copenhagen. The site renders a living particle field that reacts to cursor movement — every visit produces a composition that has never existed before.',
+        'Built with Three.js and custom GLSL shaders, the experience holds <strong>60fps on mid-range hardware</strong>. The interface layer stays deliberately quiet: a mono grid, one typeface, and a lot of restraint — the art does the talking.'
+      ],
+      cover: img('aether-cover', 800, 600), hero: img('aether-hero', 1600, 900),
+      b: img('aether-b', 1600, 680), c: img('aether-c', 1200, 900)
+    },
+    monograph: {
+      title: 'Monograph', kicker: 'Type foundry platform', year: '2025',
+      client: 'Monograph Type Foundry', deliverable: 'Foundry platform & specimens',
+      role: 'Design & frontend', stack: 'Next.js · Variable fonts · GSAP',
+      recognition: 'Awwwards — Honorable Mention',
+      text: [
+        'A digital home for Monograph, an independent type foundry. Specimens are the product: every typeface gets an interactive testing ground — drag to resize, scroll through weights, preview live on your own words.',
+        'The site is built <strong>typographically first</strong> — ninety percent of the interface is the type itself. A variable-font slider lets buyers feel the full weight range before they commit to a license.'
+      ],
+      cover: img('monograph-cover', 800, 600), hero: img('monograph-hero', 1600, 900),
+      b: img('monograph-b', 1600, 680), c: img('monograph-c', 1200, 900)
+    },
+    fieldnotes: {
+      title: 'Fieldnotes', kicker: 'Brand & product site', year: '2025',
+      client: 'Fieldnotes App', deliverable: 'Brand & product storytelling site',
+      role: 'Creative development', stack: 'Astro · GSAP · Mapbox GL',
+      recognition: 'CSSDA — Best UI',
+      text: [
+        'Brand and product site for Fieldnotes, a journaling app for hikers. The design borrows from topographic maps: contour lines, elevation data, and a paper-like warmth inside a mostly digital product.',
+        'Scroll choreography carries the story — <strong>the further you read, the higher you climb</strong>. Section markers use real elevation pulled from the trail\u2019s GPX data, so the page itself keeps a truthful altitude.'
+      ],
+      cover: img('fieldnotes-cover', 800, 600), hero: img('fieldnotes-hero', 1600, 900),
+      b: img('fieldnotes-b', 1600, 680), c: img('fieldnotes-c', 1200, 900)
+    },
+    pulse: {
+      title: 'Pulse Festival', kicker: 'Identity & website', year: '2024',
+      client: 'Pulse, Rotterdam', deliverable: 'Identity & festival website',
+      role: 'Creative development', stack: 'Canvas · Web Audio API · Astro',
+      recognition: 'FWA of the Day',
+      text: [
+        'Identity and website for Pulse, an electronic music festival in Rotterdam. The lineup is the hero: a kinetic, programmatically animated type wall where every artist name reacts to a shared audio-reactive grid.',
+        'Built in ten days with a two-person team. The type wall runs on canvas at a <strong>locked 60fps</strong>, and the whole site ships in under 300KB — festival wifi deserves mercy.'
+      ],
+      cover: img('pulse-cover', 800, 600), hero: img('pulse-hero', 1600, 900),
+      b: img('pulse-b', 1600, 680), c: img('pulse-c', 1200, 900)
+    },
+    nocturne: {
+      title: 'Nocturne', kicker: 'Interactive essay', year: '2024',
+      client: 'Self-initiated', deliverable: 'Interactive WebGL essay',
+      role: 'Everything — design, code, words', stack: 'WebGL · GLSL · Svelte',
+      recognition: 'Awwwards — Site of the Day',
+      text: [
+        'An interactive essay on artificial light and the city — part experiment, part love letter to Berlin at 3am. The piece follows the reader\u2019s scroll through six neighborhoods, each one lit differently.',
+        'Nocturne started as a weekend shader sketch and grew into a year-long side project. It won Site of the Day and remains <strong>the piece I\u2019m asked about most</strong>.'
+      ],
+      cover: img('nocturne-cover', 800, 600), hero: img('nocturne-hero', 1600, 900),
+      b: img('nocturne-b', 1600, 680), c: img('nocturne-c', 1200, 900)
+    }
+  };
+
+  /* ---------- clock ---------- */
+  const clocks = $$('.js-clock');
+  if (clocks.length) {
+    const fmt = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'Europe/Berlin' });
+    const tick = () => { const t = fmt.format(new Date()); clocks.forEach(c => c.textContent = t); };
+    tick(); setInterval(tick, 1000);
+  }
+
+  /* ---------- loader ---------- */
+  const loader = $('.loader');
+  const countEl = $('.loader__count');
+  const setLoaded = () => {
+    document.body.classList.remove('is-loading');
+    document.body.classList.add('is-loaded');
+    setTimeout(() => loader && loader.remove(), 1500);
+  };
+  if (!loader || REDUCED) {
+    setLoaded();
+  } else {
+    const dur = 1150, t0 = performance.now();
+    const step = now => {
+      const p = clamp((now - t0) / dur, 0, 1);
+      const e = p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+      countEl.textContent = String(Math.round(e * 100)).padStart(3, '0');
+      if (p < 1) requestAnimationFrame(step);
+      else setTimeout(() => { loader.classList.add('is-done'); setLoaded(); }, 160);
+    };
+    requestAnimationFrame(step);
+  }
+
+  /* ---------- hero char split ---------- */
+  $$('.js-chars').forEach(el => {
+    const text = el.textContent;
+    el.textContent = '';
+    [...text].forEach((ch, i) => {
+      const s = document.createElement('span');
+      s.className = 'char';
+      s.textContent = ch;
+      s.style.transitionDelay = (0.12 + i * 0.035) + 's';
+      el.appendChild(s);
+      el.appendChild(document.createTextNode(''));
+    });
+  });
+
+  /* ---------- email split ---------- */
+  const emailEl = $('.js-email');
+  if (emailEl) {
+    const text = emailEl.textContent;
+    emailEl.textContent = '';
+    emailEl.setAttribute('aria-label', text);
+    [...text].forEach((ch, i) => {
+      const roll = document.createElement('span');
+      roll.className = 'roll';
+      roll.setAttribute('aria-hidden', 'true');
+      const a = document.createElement('span'); a.textContent = ch; a.style.setProperty('--i', i);
+      const b = document.createElement('span'); b.textContent = ch; b.style.setProperty('--i', i);
+      roll.append(a, b);
+      emailEl.appendChild(roll);
+    });
+  }
+
+  /* ---------- reveals ---------- */
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+  $$('[data-reveal]').forEach(el => io.observe(el));
+
+  /* ---------- statement words ---------- */
+  const statement = $('.js-statement');
+  let words = [];
+  if (statement && !REDUCED) {
+    const frag = document.createDocumentFragment();
+    statement.childNodes.forEach(node => {
+      const isEm = node.nodeName === 'EM';
+      const text = node.textContent;
+      text.split(/\s+/).filter(Boolean).forEach(w => {
+        const s = document.createElement('span');
+        s.className = 'w' + (isEm ? ' w-em' : '');
+        s.textContent = w;
+        frag.appendChild(s);
+        frag.appendChild(document.createTextNode(' '));
+      });
+    });
+    statement.textContent = '';
+    statement.appendChild(frag);
+    words = $$('.w', statement);
+    words.forEach(w => w.style.opacity = '.14');
+  }
+
+  /* ---------- work preview ---------- */
+  const preview = $('.work-preview');
+  const previewInner = preview ? $('.work-preview__inner') : null;
+  const previewImgs = {};
+  let previewOn = false, pvX = 0, pvY = 0, pvTX = 0, pvTY = 0, pvRot = 0;
+  if (preview && FINE && !REDUCED) {
+    const workSection = $('#work');
+    const preload = new IntersectionObserver((en, obs) => {
+      if (en[0].isIntersecting) {
+        ORDER.forEach(id => {
+          const im = document.createElement('img');
+          im.src = PROJECTS[id].cover; im.alt = '';
+          previewInner.appendChild(im);
+          previewImgs[id] = im;
+        });
+        obs.disconnect();
+      }
+    }, { rootMargin: '400px' });
+    preload.observe(workSection);
+
+    $$('.work-row').forEach(row => {
+      row.addEventListener('mouseenter', () => {
+        const id = row.dataset.project;
+        Object.values(previewImgs).forEach(i => i.classList.remove('is-active'));
+        if (previewImgs[id]) previewImgs[id].classList.add('is-active');
+        previewOn = true;
+        preview.classList.add('is-on');
+      });
+    });
+    $('.work-list').addEventListener('mouseleave', () => {
+      previewOn = false;
+      preview.classList.remove('is-on');
+    });
+  }
+
+  /* ---------- cursor ---------- */
+  const cursor = $('.cursor');
+  const cursorLabel = $('.cursor__label');
+  let mX = innerWidth / 2, mY = innerHeight / 2, cX = mX, cY = mY, cursorActive = false;
+  if (cursor && FINE && !REDUCED) {
+    document.body.classList.add('cursor-on');
+    addEventListener('mousemove', e => {
+      mX = e.clientX; mY = e.clientY;
+      if (!cursorActive) { cursorActive = true; cursor.classList.add('is-visible'); }
+      pvTX = mX; pvTY = mY;
+    }, { passive: true });
+    document.addEventListener('mouseover', e => {
+      const labelEl = e.target.closest('[data-cursor-label]');
+      const linkEl = e.target.closest('a, button');
+      cursor.classList.toggle('is-label', !!labelEl);
+      cursor.classList.toggle('is-link', !labelEl && !!linkEl);
+      if (labelEl) cursorLabel.textContent = labelEl.dataset.cursorLabel;
+    });
+    document.addEventListener('mouseleave', () => cursor.classList.remove('is-visible'));
+    document.addEventListener('mouseenter', () => cursorActive && cursor.classList.add('is-visible'));
+  }
+
+  /* ---------- magnetic ---------- */
+  if (FINE && !REDUCED) {
+    $$('[data-magnetic]').forEach(el => {
+      const strength = parseFloat(el.dataset.magnetic) || 0.3;
+      el.addEventListener('mousemove', e => {
+        const r = el.getBoundingClientRect();
+        const x = clamp((e.clientX - r.left - r.width / 2) * strength, -14, 14);
+        const y = clamp((e.clientY - r.top - r.height / 2) * strength, -14, 14);
+        el.style.transition = 'transform .12s ease-out';
+        el.style.transform = `translate(${x}px, ${y}px)`;
+      });
+      el.addEventListener('mouseleave', () => {
+        el.style.transition = 'transform .5s cubic-bezier(.22,1,.36,1)';
+        el.style.transform = '';
+      });
+    });
+  }
+
+  /* ---------- rAF loop ---------- */
+  const heroTitle = $('.hero__title');
+  const heroRow1 = $('.hero__row--1');
+  const heroRow2 = $('.hero__row--2');
+  const parallaxEls = $$('[data-parallax]');
+  const header = $('.site-header');
+  let lastY = scrollY, curSkew = 0, curPar = 0, hmX = 0, hmY = 0;
+
+  addEventListener('mousemove', e => {
+    hmX = (e.clientX / innerWidth - .5) * 2;
+    hmY = (e.clientY / innerHeight - .5) * 2;
+  }, { passive: true });
+
+  addEventListener('scroll', () => {
+    const y = scrollY;
+    if (!caseOpen) {
+      if (y > 160 && y > lastY + 4) header.classList.add('is-hidden');
+      else if (y < lastY - 4 || y < 160) header.classList.remove('is-hidden');
+    }
+    lastY = y;
+  }, { passive: true });
+
+  function frame() {
+    if (FINE && !REDUCED && cursor) {
+      cX = lerp(cX, mX, .3); cY = lerp(cY, mY, .3);
+      cursor.style.transform = `translate3d(${cX}px, ${cY}px, 0)`;
+      if (preview) {
+        const rot = clamp((pvTX - pvX) * .28, -7, 7);
+        pvRot = lerp(pvRot, rot, .12);
+        pvX = lerp(pvX, pvTX, .11); pvY = lerp(pvY, pvTY, .11);
+        preview.style.transform = `translate3d(${pvX + 28}px, ${pvY - preview.offsetHeight / 2}px, 0) rotate(${pvRot}deg) scale(${previewOn ? 1 : .85})`;
+      }
+    }
+    if (!REDUCED) {
+      const y = scrollY;
+      const vh = innerHeight;
+      if (heroTitle) {
+        curPar = lerp(curPar, y * .22, .1);
+        const targetSkew = clamp((y - lastFrameY) * -.06, -1.4, 1.4);
+        curSkew = lerp(curSkew, targetSkew, .09);
+        heroTitle.style.transform = `translate3d(0, ${curPar}px, 0) skewY(${curSkew}deg)`;
+      }
+      if (FINE && heroRow1 && heroRow2) {
+        heroRow1.style.transform = `translate3d(${hmX * 9}px, ${hmY * 7}px, 0)`;
+        heroRow2.style.transform = `translate3d(${hmX * -14}px, ${hmY * -10}px, 0)`;
+      }
+      parallaxEls.forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.bottom < -50 || r.top > vh + 50) return;
+        const p = (vh / 2 - (r.top + r.height / 2)) / vh;
+        const im = el.querySelector('img');
+        if (im) im.style.transform = `translate3d(0, ${p * el.dataset.parallax * 200 * -1}px, 0)`;
+      });
+      if (statement && words.length) {
+        const r = statement.getBoundingClientRect();
+        const start = vh * .92, end = vh * .3;
+        const prog = clamp((start - r.top) / (start - end + r.height * .5), 0, 1);
+        const n = words.length;
+        for (let i = 0; i < n; i++) {
+          words[i].style.opacity = clamp(prog * n - i, 0.14, 1);
+        }
+      }
+      lastFrameY = y;
+    }
+    requestAnimationFrame(frame);
+  }
+  let lastFrameY = scrollY;
+  requestAnimationFrame(frame);
+
+  /* ---------- case overlay ---------- */
+  const caseEl = $('#case');
+  const caseBody = $('#caseBody');
+  const caseScroll = $('#caseScroll');
+  const caseClose = $('#caseClose');
+  const caseNext = $('#caseNext');
+  const caseIndex = $('#caseIndex');
+  const caseNextTitle = $('#caseNextTitle');
+  const main = $('#main');
+  let caseOpen = false, lastFocus = null, currentCase = null;
+
+  function buildCase(id) {
+    const p = PROJECTS[id];
+    const idx = ORDER.indexOf(id);
+    const next = PROJECTS[ORDER[(idx + 1) % ORDER.length]];
+    currentCase = id;
+    caseIndex.textContent = `Case ${String(idx + 1).padStart(2, '0')}/05`;
+    caseNextTitle.textContent = next.title;
+    caseBody.innerHTML = `
+      <p class="case__big" aria-hidden="true">${String(idx + 1).padStart(2, '0')}</p>
+      <h2 class="case__title case__el" id="caseTitle" style="--i:0">${p.title} <em>©${p.year}</em></h2>
+      <div class="case__meta case__el" style="--i:1">
+        <div><span class="mono">Client</span><p>${p.client}</p></div>
+        <div><span class="mono">Deliverable</span><p>${p.deliverable}</p></div>
+        <div><span class="mono">Role</span><p>${p.role}</p></div>
+        <div><span class="mono">Stack</span><p>${p.stack}</p></div>
+      </div>
+      <figure class="case__hero case__el" style="--i:2"><img src="${p.hero}" alt="${p.title} — hero visual" loading="lazy"></figure>
+      <div class="case__cols case__el" style="--i:3">
+        <div>${p.text.map(t => `<p>${t}</p>`).join('')}</div>
+        <div>
+          <p class="mono" style="color:var(--muted);margin-bottom:.4rem">Details</p>
+          <div class="case__fact"><span class="mono">Recognition</span><p>${p.recognition}</p></div>
+          <div class="case__fact"><span class="mono">Year</span><p>${p.year}</p></div>
+          <div class="case__fact"><span class="mono">Discipline</span><p>${p.kicker}</p></div>
+        </div>
+      </div>
+      <figure class="case__img case__img--wide case__el" style="--i:4"><img src="${p.b}" alt="${p.title} — detail view" loading="lazy"></figure>
+      <figure class="case__img case__img--offset case__el" style="--i:5"><img src="${p.c}" alt="${p.title} — secondary view" loading="lazy"></figure>
+    `;
+  }
+
+  function openCase(id) {
+    buildCase(id);
+    caseOpen = true;
+    lastFocus = document.activeElement;
+    caseEl.classList.add('is-open');
+    caseEl.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('is-locked');
+    main.inert = true;
+    $('.site-header').inert = true;
+    header.classList.remove('is-hidden');
+    setTimeout(() => caseClose.focus(), 500);
+  }
+
+  function closeCase() {
+    caseOpen = false;
+    caseEl.classList.remove('is-open');
+    caseEl.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('is-locked');
+    main.inert = false;
+    $('.site-header').inert = false;
+    if (lastFocus) lastFocus.focus();
+  }
+
+  function swapCase(id) {
+    caseEl.classList.add('is-swapping');
+    setTimeout(() => {
+      buildCase(id);
+      caseScroll.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' });
+      caseEl.classList.remove('is-swapping');
+    }, 280);
+  }
+
+  $$('.work-row').forEach(row => {
+    row.addEventListener('click', e => {
+      e.preventDefault();
+      openCase(row.dataset.project);
+    });
+  });
+  caseClose.addEventListener('click', closeCase);
+  caseNext.addEventListener('click', () => {
+    const idx = ORDER.indexOf(currentCase);
+    swapCase(ORDER[(idx + 1) % ORDER.length]);
+  });
+  caseEl.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeCase(); return; }
+    if (e.key !== 'Tab') return;
+    const focusables = $$('a[href], button', caseEl);
+    const first = focusables[0], last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+})();
+</script>
+</body>
+</html>

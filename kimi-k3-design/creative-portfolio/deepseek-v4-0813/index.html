@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elias Marlow — Frontend Developer &amp; Creative</title>
+  <meta name="description" content="Elias Marlow is a frontend developer and creative building immersive, award-winning web experiences." />
+  <meta property="og:title" content="Elias Marlow — Frontend Developer & Creative" />
+  <meta property="og:description" content="Immersive web experiences for brands that want to be felt." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- Custom cursor -->
+  <div class="cursor" aria-hidden="true">
+    <span class="cursor__dot"></span>
+  </div>
+
+  <!-- Scroll progress -->
+  <div class="scroll-progress" aria-hidden="true"></div>
+
+  <!-- Progress readout -->
+  <div class="scroll-readout" aria-hidden="true"><span id="scrollPct">00</span><span class="scroll-readout__slash">/</span>100</div>
+
+  <header class="site-head" data-reveal>
+    <a class="brand" href="#top" aria-label="Elias Marlow, home">
+      <span class="brand__mark">E</span>
+      <span class="brand__name">Elias Marlow</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a class="nav__link" href="#work"><span>Work</span></a>
+      <a class="nav__link" href="#about"><span>About</span></a>
+      <a class="nav__link" href="#capabilities"><span>Capabilities</span></a>
+      <a class="nav__link nav__link--cta" href="#contact"><span>Contact</span></a>
+    </nav>
+    <button class="menu-toggle" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div class="mobile-menu" id="mobile-menu" hidden>
+    <nav class="mobile-menu__nav" aria-label="Mobile">
+      <a class="mobile-menu__link" href="#work">Work</a>
+      <a class="mobile-menu__link" href="#about">About</a>
+      <a class="mobile-menu__link" href="#capabilities">Capabilities</a>
+      <a class="mobile-menu__link" href="#contact">Contact</a>
+    </nav>
+  </div>
+
+  <main id="main">
+    <!-- HERO -->
+    <section class="hero" id="top" aria-label="Introduction">
+      <div class="hero__meta" data-reveal>
+        <span class="hero__loc">Lisbon, PT — 38.7223° N</span>
+        <span class="hero__avail"><i aria-hidden="true"></i> Available for select projects</span>
+      </div>
+
+      <h1 class="hero__title">
+        <span class="line"><span class="line__inner" data-reveal>Frontend</span></span>
+        <span class="line"><span class="line__inner line__inner--indent" data-reveal>developer</span></span>
+        <span class="line"><span class="line__inner line__inner--italic" data-reveal>&amp; creative</span></span>
+      </h1>
+
+      <div class="hero__foot">
+        <p class="hero__lede" data-reveal>
+          I craft immersive web experiences where engineering meets art direction — sites that move with intent and feel inevitable.
+        </p>
+        <a class="hero__scroll" href="#work" data-reveal>
+          <span class="hero__scroll-label">Scroll to explore</span>
+          <span class="hero__scroll-line" aria-hidden="true"></span>
+        </a>
+      </div>
+
+      <div class="hero__orb" aria-hidden="true"></div>
+    </section>
+
+    <!-- MARQUEE -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        <span>Creative development</span><span class="marquee__dot">·</span>
+        <span>Interaction design</span><span class="marquee__dot">·</span>
+        <span>WebGL &amp; motion</span><span class="marquee__dot">·</span>
+        <span>Design systems</span><span class="marquee__dot">·</span>
+        <span>Performance</span><span class="marquee__dot">·</span>
+        <span>Art direction</span><span class="marquee__dot">·</span>
+        <span>Creative development</span><span class="marquee__dot">·</span>
+        <span>Interaction design</span><span class="marquee__dot">·</span>
+        <span>WebGL &amp; motion</span><span class="marquee__dot">·</span>
+        <span>Design systems</span><span class="marquee__dot">·</span>
+        <span>Performance</span><span class="marquee__dot">·</span>
+        <span>Art direction</span><span class="marquee__dot">·</span>
+      </div>
+    </div>
+
+    <!-- WORK -->
+    <section class="work" id="work" aria-labelledby="work-title">
+      <header class="section-head">
+        <span class="section-head__index" data-reveal>01</span>
+        <h2 class="section-head__title" id="work-title" data-reveal>Selected work</h2>
+        <p class="section-head__note" data-reveal>Five projects, five problems solved in code.</p>
+      </header>
+
+      <ul class="work__list">
+        <li class="project" data-cursor="View" data-index="01">
+          <a class="project__link" href="#work" aria-label="View project: Atelier No. 7">
+            <span class="project__index" aria-hidden="true">01</span>
+            <h3 class="project__name">Atelier No. 7</h3>
+            <span class="project__cat">E-commerce · Fashion house</span>
+            <span class="project__year">2025</span>
+          </a>
+          <div class="project__preview" aria-hidden="true">
+            <div class="project__preview-img project__preview-img--atelier"></div>
+          </div>
+        </li>
+        <li class="project" data-cursor="View" data-index="02">
+          <a class="project__link" href="#work" aria-label="View project: Monolith">
+            <span class="project__index" aria-hidden="true">02</span>
+            <h3 class="project__name">Monolith</h3>
+            <span class="project__cat">WebGL · Product configurator</span>
+            <span class="project__year">2024</span>
+          </a>
+          <div class="project__preview" aria-hidden="true">
+            <div class="project__preview-img project__preview-img--monolith"></div>
+          </div>
+        </li>
+        <li class="project" data-cursor="View" data-index="03">
+          <a class="project__link" href="#work" aria-label="View project: Field Notes">
+            <span class="project__index" aria-hidden="true">03</span>
+            <h3 class="project__name">Field Notes</h3>
+            <span class="project__cat">Editorial · Digital journal</span>
+            <span class="project__year">2024</span>
+          </a>
+          <div class="project__preview" aria-hidden="true">
+            <div class="project__preview-img project__preview-img--field"></div>
+          </div>
+        </li>
+        <li class="project" data-cursor="View" data-index="04">
+          <a class="project__link" href="#work" aria-label="View project: Pulse">
+            <span class="project__index" aria-hidden="true">04</span>
+            <h3 class="project__name">Pulse</h3>
+            <span class="project__cat">Product · Real-time dashboard</span>
+            <span class="project__year">2023</span>
+          </a>
+          <div class="project__preview" aria-hidden="true">
+            <div class="project__preview-img project__preview-img--pulse"></div>
+          </div>
+        </li>
+        <li class="project" data-cursor="View" data-index="05">
+          <a class="project__link" href="#work" aria-label="View project: Halcyon">
+            <span class="project__index" aria-hidden="true">05</span>
+            <h3 class="project__name">Halcyon</h3>
+            <span class="project__cat">Brand · Immersive launch site</span>
+            <span class="project__year">2023</span>
+          </a>
+          <div class="project__preview" aria-hidden="true">
+            <div class="project__preview-img project__preview-img--halcyon"></div>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="about" id="about" aria-labelledby="about-title">
+      <header class="section-head">
+        <span class="section-head__index" data-reveal>02</span>
+        <h2 class="section-head__title" id="about-title" data-reveal>About</h2>
+      </header>
+      <div class="about__body">
+        <p class="about__lead" data-reveal>
+          I'm Elias. For the past eight years I've sat between design and engineering, building interfaces that are as considered in motion as they are in markup.
+        </p>
+        <div class="about__cols">
+          <p class="about__col" data-reveal>
+            My work lives where performance and emotion meet — WebGL scenes that render in a single frame, scroll that feels physical, typography that holds a room. I care about the details users feel but rarely name.
+          </p>
+          <p class="about__col" data-reveal>
+            Previously I led frontend at studios in Berlin and London. Now independent, partnering with teams who want the web to feel less like software and more like a place.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CAPABILITIES -->
+    <section class="capabilities" id="capabilities" aria-labelledby="capabilities-title">
+      <header class="section-head">
+        <span class="section-head__index" data-reveal>03</span>
+        <h2 class="section-head__title" id="capabilities-title" data-reveal>Capabilities</h2>
+      </header>
+      <ul class="caps__list">
+        <li class="cap" data-reveal>
+          <span class="cap__num" aria-hidden="true">01</span>
+          <h3 class="cap__name">Creative development</h3>
+          <p class="cap__desc">Scroll-driven narratives, WebGL, and interaction that carries a brand's voice end to end.</p>
+        </li>
+        <li class="cap" data-reveal>
+          <span class="cap__num" aria-hidden="true">02</span>
+          <h3 class="cap__name">Design systems</h3>
+          <p class="cap__desc">Token-driven foundations that keep a product consistent from first sketch to shipped release.</p>
+        </li>
+        <li class="cap" data-reveal>
+          <span class="cap__num" aria-hidden="true">03</span>
+          <h3 class="cap__name">Performance</h3>
+          <p class="cap__desc">Frame budgets, code-splitting, and 60fps as a feature rather than an afterthought.</p>
+        </li>
+        <li class="cap" data-reveal>
+          <span class="cap__num" aria-hidden="true">04</span>
+          <h3 class="cap__name">Prototyping</h3>
+          <p class="cap__desc">High-fidelity builds that let teams feel an idea before committing it to a roadmap.</p>
+        </li>
+      </ul>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="contact" id="contact" aria-labelledby="contact-title">
+      <p class="contact__kicker" data-reveal>Have an idea worth building?</p>
+      <a class="contact__cta" href="mailto:hello@eliasmarlow.com" data-reveal>
+        <span class="contact__line">Let's make</span>
+        <span class="contact__line contact__line--italic">something</span>
+        <span class="contact__line">together</span>
+      </a>
+      <div class="contact__foot" data-reveal>
+        <a class="contact__email" href="mailto:hello@eliasmarlow.com">hello@eliasmarlow.com</a>
+        <span class="contact__socials">
+          <a href="#top" rel="noopener">GitHub</a>
+          <a href="#top" rel="noopener">LinkedIn</a>
+          <a href="#top" rel="noopener">Twitter</a>
+        </span>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-foot">
+    <span>© 2025 Elias Marlow</span>
+    <span>Lisbon, PT</span>
+    <a href="#top">Back to top ↑</a>
+  </footer>
+
+  <script src="main.js" defer></script>
+</body>
+</html>
