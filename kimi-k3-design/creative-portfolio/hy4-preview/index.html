@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ivo Marchetti — Frontend as Instrument Making</title>
+<meta name="description" content="Ivo Marchetti is a frontend developer in Rotterdam building interfaces that behave like instruments: shaders, typography systems, and interaction physics. Six selected builds, running live.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0e0f11">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700;1,6..96,400;1,6..96,500&family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-loading>
+
+<a class="skip" href="#hero">Skip to content</a>
+
+<!-- Preloader: loading state -->
+<div class="preloader" id="preloader" role="status" aria-live="polite">
+  <div class="preloader__inner">
+    <div class="preloader__row">
+      <p class="preloader__name">Ivo Marchetti</p>
+      <p class="preloader__count"><output id="count">00</output></p>
+    </div>
+    <p class="preloader__status" id="preloader-status">Requesting fonts</p>
+    <div class="preloader__bar"><span id="preloader-fill"></span></div>
+  </div>
+  <div class="preloader__hint">Compiling shaders and loading type</div>
+</div>
+
+<!-- Motion settings -->
+<div class="motion" id="motion">
+  <button class="motion__toggle" id="motion-toggle" aria-expanded="false" aria-controls="motion-panel">
+    <span class="motion__icon" aria-hidden="true">
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4">
+        <path d="M2 11.5c1.6-2.4 3.2-2.4 4.8 0s3.2 2.4 4.8 0 2-.8 2.4 0"/>
+      </svg>
+    </span>
+    <span class="motion__label">Motion</span>
+    <span class="motion__value" id="motion-value">Standard</span>
+  </button>
+  <div class="motion__panel" id="motion-panel" role="group" aria-label="Motion intensity" hidden>
+    <button data-motion="none" aria-pressed="false">None<span>Instant, no transition</span></button>
+    <button data-motion="reduced" aria-pressed="false">Reduced<span>100ms crossfade</span></button>
+    <button data-motion="standard" aria-pressed="true">Standard<span>Full choreography</span></button>
+    <button data-motion="enhanced" aria-pressed="false">Enhanced<span>Longer, more expressive</span></button>
+  </div>
+</div>
+
+<!-- Progress + signal meter -->
+<div class="meter" aria-hidden="true"><span class="meter__fill" id="meter-fill"></span></div>
+
+<!-- Custom cursor (fine pointers only) -->
+<div class="cursor" id="cursor" aria-hidden="true">
+  <span class="cursor__dot"></span>
+  <span class="cursor__ring"><span class="cursor__text">Run</span></span>
+</div>
+
+<div class="grain" aria-hidden="true"></div>
+
+<header class="head" id="head">
+  <a class="head__mark" href="#hero" data-scroll>
+    <span class="head__markname">Ivo Marchetti</span>
+    <span class="head__marksub">Rotterdam</span>
+  </a>
+  <nav class="head__nav" aria-label="Sections">
+    <a href="#work" data-scroll>Work</a>
+    <a href="#sandbox" data-scroll>Sandbox</a>
+    <a href="#approach" data-scroll>Approach</a>
+    <a href="#writing" data-scroll>Writing</a>
+  </nav>
+  <a class="head__avail" href="#contact" data-scroll>
+    <span class="dot" aria-hidden="true"></span>
+    <span class="head__availtext">Booking Q3 2026</span>
+  </a>
+</header>
+
+<main id="top">
+
+  <!-- ─── HERO ─────────────────────────────────────────── -->
+  <section class="hero" id="hero" data-scene="hero">
+    <p class="rail rail--left" aria-hidden="true">Frontend as instrument making</p>
+
+    <div class="hero__grid">
+      <div class="hero__lead">
+        <p class="eyebrow">
+          <span class="eyebrow__idx">01</span>
+          <span>Portfolio — MMXXVI</span>
+        </p>
+        <h1 class="hero__name" data-split>Ivo Marchetti</h1>
+        <p class="hero__line">
+          I build interfaces that behave like <em>instruments</em>, not posters. Every
+          transition below is running in your browser right now, in the same code that
+          ships.
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--solid" href="#work" data-scroll data-magnetic>
+            <span>See six builds</span>
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2v12M3.5 9.5 8 14l4.5-4.5"/></svg>
+          </a>
+          <a class="btn btn--ghost" href="#contact" data-scroll data-magnetic><span>Start a project</span></a>
+        </div>
+      </div>
+
+      <figure class="slab" id="hero-slab">
+        <figcaption class="slab__bar">
+          <span class="slab__file">hero.reveal.ts</span>
+          <span class="slab__meta" id="slab-fps">—</span>
+          <button class="slab__copy" id="slab-copy" data-copy="#hero-code">
+            <span class="slab__copytext">Copy</span>
+          </button>
+        </figcaption>
+        <pre class="slab__code"><code id="hero-code" data-lang="ts"><span class="c-com">// The reveal you are watching run</span>
+<span class="c-key">export function</span> <span class="c-fn">reveal</span>(el: <span class="c-typ">Element</span>, opts = {}) {
+  <span class="c-key">const</span> { from = <span class="c-num">0.96</span>, blur = <span class="c-num">10</span> } = opts;
+
+  <span class="c-key">return</span> <span class="c-key">new</span> <span class="c-typ">Animation</span>(
+    <span class="c-key">new</span> <span class="c-typ">KeyframeEffect</span>(el, [
+      { opacity: <span class="c-num">0</span>, transform: <span class="c-str">`scale(${from})`</span>, filter: <span class="c-str">`blur(${blur}px)`</span> },
+      { opacity: <span class="c-num">1</span>, transform: <span class="c-str">'none'</span>, filter: <span class="c-str">'none'</span> }
+    ], { duration: <span class="c-num">720</span>, easing: <span class="c-str">'cubic-bezier(.16,1,.3,1)'</span> })
+  );
+}</code></pre>
+        <div class="slab__foot">
+          <span class="chip">Web Animations API</span>
+          <span class="chip">No dependencies</span>
+          <span class="chip">4.1 kB</span>
+        </div>
+      </figure>
+    </div>
+
+    <div class="ticker" aria-label="Selected numbers">
+      <ul class="ticker__list">
+        <li><b data-count="42">0</b><span>Shipped interfaces</span></li>
+        <li><b data-count="9">0</b><span>Years at the keyboard</span></li>
+        <li><b data-count="17">0</b><span>Awwwards honors</span></li>
+        <li><b data-count="60">0</b><span>Frame budget held</span></li>
+      </ul>
+    </div>
+
+    <p class="rail rail--right" aria-hidden="true">51.9244° N, 4.4777° E</p>
+  </section>
+
+  <!-- ─── WORK ─────────────────────────────────────────── -->
+  <section class="work" id="work" data-scene="work">
+    <div class="work__intro">
+      <p class="eyebrow"><span class="eyebrow__idx">02</span><span>Selected work</span></p>
+      <h2 class="h2">Six builds.<br><em>Each one is running.</em></h2>
+      <p class="lede">
+        These are not screenshots. Every panel is the real thing: a canvas, a shader, a
+        physics loop. Move your cursor over one, or open it full screen.
+      </p>
+    </div>
+
+    <div class="rail-wrap" id="rail-wrap">
+      <div class="rail-hint" aria-hidden="true">
+        <span>Scroll</span>
+        <span class="rail-hint__line"></span>
+      </div>
+      <ol class="work__rail" id="work-rail">
+
+        <li class="piece" data-piece="tessellate">
+          <div class="piece__stage">
+            <canvas class="piece__canvas" data-demo="moire" width="760" height="520" role="img" aria-label="Interactive moire interference pattern generated in real time"></canvas>
+            <span class="piece__badge">Live</span>
+          </div>
+          <div class="piece__body">
+            <p class="piece__meta"><span>2026</span><span>Tessellate Engine</span><span>Lead frontend</span></p>
+            <h3 class="piece__title">A tiling engine that never repeats</h3>
+            <p class="piece__desc">
+              A WebGL wallpaper generator for a Rotterdam print studio. Sixteen thousand
+              tiles per frame, zero visible repetition, exported at press resolution.
+            </p>
+            <dl class="piece__stats">
+              <div><dt>Frame time</dt><dd>4.2 ms</dd></div>
+              <div><dt>Bundle</dt><dd>11 kB</dd></div>
+              <div><dt>Lighthouse</dt><dd>100</dd></div>
+            </dl>
+            <details class="piece__more">
+              <summary><span>How it works</span><svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 1v10M1 6h10"/></svg></summary>
+              <div class="piece__moreinner">
+                <p>
+                  Two rotated lattices are composited on the GPU. The interference
+                  frequency is driven by cursor velocity, so the pattern reacts to how
+                  fast you arrive rather than where you are. Repetition is killed by
+                  offsetting each lattice with a low-discrepancy sequence.
+                </p>
+                <p class="piece__stack"><span>GLSL</span><span>WebGL2</span><span>OffscreenCanvas</span><span>Worker</span></p>
+              </div>
+            </details>
+            <button class="btn btn--line" data-open="tessellate" data-magnetic>
+              <span>Run full screen</span>
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 2H2v4M10 14h4v-4M14 6V2h-4M2 10v4h4"/></svg>
+            </button>
+          </div>
+        </li>
+
+        <li class="piece" data-piece="sigil">
+          <div class="piece__stage">
+            <canvas class="piece__canvas" data-demo="glyph" width="760" height="520" role="img" aria-label="Variable font axis animation of the letter R responding to cursor position"></canvas>
+            <span class="piece__badge">Live</span>
+          </div>
+          <div class="piece__body">
+            <p class="piece__meta"><span>2025</span><span>Sigil Type Foundry</span><span>Frontend + type design</span></p>
+            <h3 class="piece__title">A type specimen you can bend</h3>
+            <p class="piece__desc">
+              Four variable axes exposed to the reader. Drag anywhere in the specimen and
+              the whole page reflows against the axes you changed.
+            </p>
+            <dl class="piece__stats">
+              <div><dt>Axes</dt><dd>4 live</dd></div>
+              <div><dt>Weights</dt><dd>200 – 900</dd></div>
+              <div><dt>Reflow</dt><dd>&lt; 1 frame</dd></div>
+            </dl>
+            <details class="piece__more">
+              <summary><span>How it works</span><svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 1v10M1 6h10"/></svg></summary>
+              <div class="piece__moreinner">
+                <p>
+                  Axis values live in a CSS custom property, not in JavaScript state.
+                  Type, leading, and measure are all derived from the same axis value, so
+                  dragging one slider recomposes the page instead of restyling a letter.
+                </p>
+                <p class="piece__stack"><span>Variable fonts</span><span>CSS custom properties</span><span>Pointer Events</span></p>
+              </div>
+            </details>
+            <button class="btn btn--line" data-open="sigil" data-magnetic>
+              <span>Run full screen</span>
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 2H2v4M10 14h4v-4M14 6V2h-4M2 10v4h4"/></svg>
+            </button>
+          </div>
+        </li>
+
+        <li class="piece" data-piece="obsidian">
+          <div class="piece__stage">
+            <canvas class="piece__canvas" data-demo="ledger" width="760" height="520" role="img" aria-label="Streaming ledger chart rendering rows as they arrive"></canvas>
+            <span class="piece__badge">Live</span>
+          </div>
+          <div class="piece__body">
+            <p class="piece__meta"><span>2025</span><span>Obsidian Ledger</span><span>Frontend architect</span></p>
+            <h3 class="piece__title">Nine million rows, one scroll thread</h3>
+            <p class="piece__desc">
+              A compliance ledger for a Nordic bank. Virtualized to the row, streamed in
+              chunks, and readable by a screen reader without a single ARIA grid role.
+            </p>
+            <dl class="piece__stats">
+              <div><dt>Rows</dt><dd>9.1 M</dd></div>
+              <div><dt>Time to first row</dt><dd>310 ms</dd></div>
+              <div><dt>Dropped frames</dt><dd>0</dd></div>
+            </dl>
+            <details class="piece__more">
+              <summary><span>How it works</span><svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 1v10M1 6h10"/></svg></summary>
+              <div class="piece__moreinner">
+                <p>
+                  The window is computed from scroll position, not from a fixed buffer.
+                  Rows are plain list items with real headings, so assistive tech reads a
+                  document instead of a spreadsheet that only looks like one.
+                </p>
+                <p class="piece__stack"><span>Streams</span><span>content-visibility</span><span>ResizeObserver</span></p>
+              </div>
+            </details>
+            <button class="btn btn--line" data-open="obsidian" data-magnetic>
+              <span>Run full screen</span>
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 2H2v4M10 14h4v-4M14 6V2h-4M2 10v4h4"/></svg>
+            </button>
+          </div>
+        </li>
+
+        <li class="piece" data-piece="harbour">
+          <div class="piece__stage">
+            <canvas class="piece__canvas" data-demo="tide" width="760" height="520" role="img" aria-label="Animated tide height chart for a harbour in Rotterdam"></canvas>
+            <span class="piece__badge">Live</span>
+          </div>
+          <div class="piece__body">
+            <p class="piece__meta"><span>2024</span><span>Harbour Tide</span><span>Frontend lead</span></p>
+            <h3 class="piece__title">A public screen that survived a winter</h3>
+            <p class="piece__desc">
+              Sixteen displays across the port, unattended for fourteen months. The
+              hardest part was not the chart, it was the watchdog.
+            </p>
+            <dl class="piece__stats">
+              <div><dt>Uptime</dt><dd>99.98%</dd></div>
+              <div><dt>Memory drift</dt><dd>&lt; 2 MB / day</dd></div>
+              <div><dt>Screens</dt><dd>16</dd></div>
+            </dl>
+            <details class="piece__more">
+              <summary><span>How it works</span><svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 1v10M1 6h10"/></svg></summary>
+              <div class="piece__moreinner">
+                <p>
+                  Every canvas holds a heartbeat the supervisor can read. When a frame
+                  budget is missed three times in a row the display reloads itself during
+                  a blackout window, so nobody in the control room sees it happen.
+                </p>
+                <p class="piece__stack"><span>Canvas2D</span><span>BroadcastChannel</span><span>Self-healing watchdog</span></p>
+              </div>
+            </details>
+            <button class="btn btn--line" data-open="harbour" data-magnetic>
+              <span>Run full screen</span>
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 2H2v4M10 14h4v-4M14 6V2h-4M2 10v4h4"/></svg>
+            </button>
+          </div>
+        </li>
+
+        <li class="piece" data-piece="verre">
+          <div class="piece__stage">
+            <canvas class="piece__canvas" data-demo="glass" width="760" height="520" role="img" aria-label="Refractive glass shapes bending a grid behind them"></canvas>
+            <span class="piece__badge">Live</span>
+          </div>
+          <div class="piece__body">
+            <p class="piece__meta"><span>2024</span><span>Verre Atelier</span><span>Creative developer</span></p>
+            <h3 class="piece__title">Refraction without a single image</h3>
+            <p class="piece__desc">
+              A glassware shop where every product is drawn from its own index of
+              refraction. Change the liquid, change the physics.
+            </p>
+            <dl class="piece__stats">
+              <div><dt>Draw calls</dt><dd>1 / frame</dd></div>
+              <div><dt>Assets</dt><dd>0 images</dd></div>
+              <div><dt>First paint</dt><dd>0.6 s</dd></div>
+            </dl>
+            <details class="piece__more">
+              <summary><span>How it works</span><svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 1v10M1 6h10"/></svg></summary>
+              <div class="piece__moreinner">
+                <p>
+                  One fragment shader does the whole scene. Silhouettes are signed
+                  distance fields, caustics are an approximation of the light transport
+                  through two surfaces, and the fall back is a plain gradient.
+                </p>
+                <p class="piece__stack"><span>SDF</span><span>Fragment shader</span><span>Progressive enhancement</span></p>
+              </div>
+            </details>
+            <button class="btn btn--line" data-open="verre" data-magnetic>
+              <span>Run full screen</span>
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 2H2v4M10 14h4v-4M14 6V2h-4M2 10v4h4"/></svg>
+            </button>
+          </div>
+        </li>
+
+        <li class="piece" data-piece="nacht">
+          <div class="piece__stage">
+            <canvas class="piece__canvas" data-demo="score" width="760" height="520" role="img" aria-label="Generative score being typeset onto a page in real time"></canvas>
+            <span class="piece__badge">Live</span>
+          </div>
+          <div class="piece__body">
+            <p class="piece__meta"><span>2023</span><span>Nachtmuziek</span><span>Developer</span></p>
+            <h3 class="piece__title">Scores that typeset themselves</h3>
+            <p class="piece__desc">
+              A generative music edition for a Rotterdam ensemble. Each night the
+              performance material is laid out again, from scratch, in the browser.
+            </p>
+            <dl class="piece__stats">
+              <div><dt>Layout pass</dt><dd>180 ms</dd></div>
+              <div><dt>Output</dt><dd>Print PDF</dd></div>
+              <div><dt>Editions</dt><dd>1 / night</dd></div>
+            </dl>
+            <details class="piece__more">
+              <summary><span>How it works</span><svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 1v10M1 6h10"/></svg></summary>
+              <div class="piece__moreinner">
+                <p>
+                  Measures are boxes, notes are inline elements, and the whole score is a
+                  normal document flow. Printing works because the browser already knows
+                  how to paginate a document.
+                </p>
+                <p class="piece__stack"><span>Web Audio</span><span>CSS print</span><span>Inline layout</span></p>
+              </div>
+            </details>
+            <button class="btn btn--line" data-open="nacht" data-magnetic>
+              <span>Run full screen</span>
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 2H2v4M10 14h4v-4M14 6V2h-4M2 10v4h4"/></svg>
+            </button>
+          </div>
+        </li>
+
+      </ol>
+    </div>
+  </section>
+
+  <!-- ─── SANDBOX ──────────────────────────────────────── -->
+  <section class="sandbox" id="sandbox" data-scene="sandbox">
+    <div class="sandbox__head">
+      <p class="eyebrow"><span class="eyebrow__idx">03</span><span>Sandbox</span></p>
+      <h2 class="h2">Scroll to <em>tune the physics.</em></h2>
+      <p class="lede">
+        This section is pinned. As you scroll, the spring below is re-tuned in front of
+        you, and the button answers to whatever you land on.
+      </p>
+    </div>
+
+    <div class="sandbox__pin" id="sandbox-pin">
+      <div class="sandbox__grid">
+        <div class="sandbox__panel">
+          <p class="sandbox__label">Spring tension</p>
+          <p class="sandbox__value"><output id="sb-tension">170</output></p>
+          <div class="sandbox__track" aria-hidden="true"><span id="sb-tension-fill"></span></div>
+          <p class="sandbox__label">Damping ratio</p>
+          <p class="sandbox__value"><output id="sb-damping">0.80</output></p>
+          <div class="sandbox__track" aria-hidden="true"><span id="sb-damping-fill"></span></div>
+          <p class="sandbox__readout">
+            <span id="sb-verdict">Crisp. Settles immediately, no overshoot.</span>
+          </p>
+        </div>
+        <div class="sandbox__stage">
+          <button class="pusher" id="pusher" data-magnetic>
+            <span class="pusher__face">Press me</span>
+          </button>
+          <p class="sandbox__hint">Press it, then scroll and press it again.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── APPROACH ─────────────────────────────────────── -->
+  <section class="approach" id="approach" data-scene="approach">
+    <div class="approach__head">
+      <p class="eyebrow"><span class="eyebrow__idx">04</span><span>Approach</span></p>
+      <h2 class="h2">Four moves,<br>in this order.</h2>
+    </div>
+    <ol class="steps">
+      <li class="step" data-reveal>
+        <p class="step__n">01</p>
+        <h3 class="step__t">Name the job</h3>
+        <p class="step__d">
+          Before a layout exists I write one sentence about what the screen is for. If I
+          cannot, the section does not get built yet.
+        </p>
+      </li>
+      <li class="step" data-reveal>
+        <p class="step__n">02</p>
+        <h3 class="step__t">Structure first</h3>
+        <p class="step__d">
+          Real headings, real landmarks, real labels, no styling. Keyboard complete
+          before a single color is chosen.
+        </p>
+      </li>
+      <li class="step" data-reveal>
+        <p class="step__n">03</p>
+        <h3 class="step__t">Build every state</h3>
+        <p class="step__d">
+          Empty, loading, error, overflow, disabled. A screen that only works with good
+          data is a sketch, not a build.
+        </p>
+      </li>
+      <li class="step" data-reveal>
+        <p class="step__n">04</p>
+        <h3 class="step__t">Earn the motion</h3>
+        <p class="step__d">
+          Animation only survives if it explains a state change. Anything decorative gets
+          cut in the last pass, and I usually cut half of what I wrote.
+        </p>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ─── WRITING ──────────────────────────────────────── -->
+  <section class="writing" id="writing" data-scene="writing">
+    <div class="writing__head">
+      <p class="eyebrow"><span class="eyebrow__idx">05</span><span>Writing</span></p>
+      <h2 class="h2">Notes from<br>the keyboard.</h2>
+    </div>
+
+    <div class="filters" role="group" aria-label="Filter writing by topic">
+      <button class="filter is-on" data-filter="all" aria-pressed="true">All <span class="filter__n">4</span></button>
+      <button class="filter" data-filter="motion" aria-pressed="false">Motion <span class="filter__n">2</span></button>
+      <button class="filter" data-filter="type" aria-pressed="false">Type <span class="filter__n">1</span></button>
+      <button class="filter" data-filter="craft" aria-pressed="false">Craft <span class="filter__n">1</span></button>
+      <button class="filter" data-filter="colour" aria-pressed="false">Colour <span class="filter__n">0</span></button>
+    </div>
+
+    <ul class="essays" id="essays">
+      <li class="essay" data-topic="motion">
+        <a class="essay__link" href="#writing">
+          <p class="essay__meta"><time datetime="2026-05-14">14 May 2026</time><span>Motion</span><span>9 min</span></p>
+          <h3 class="essay__t">Springs are a design decision, not a library</h3>
+          <p class="essay__d">Why I stopped reaching for a physics package and wrote thirty lines instead.</p>
+        </a>
+      </li>
+      <li class="essay" data-topic="type">
+        <a class="essay__link" href="#writing">
+          <p class="essay__meta"><time datetime="2026-03-02">2 Mar 2026</time><span>Type</span><span>12 min</span></p>
+          <h3 class="essay__t">A dark interface needs more leading, not less</h3>
+          <p class="essay__d">Light type on dark reads optically thinner. The compensation is measurable.</p>
+        </a>
+      </li>
+      <li class="essay" data-topic="motion">
+        <a class="essay__link" href="#writing">
+          <p class="essay__meta"><time datetime="2026-01-19">19 Jan 2026</time><span>Motion</span><span>6 min</span></p>
+          <h3 class="essay__t">The exit should be faster than the entrance</h3>
+          <p class="essay__d">Leaving is not arriving backwards. A short note on asymmetric timing.</p>
+        </a>
+      </li>
+      <li class="essay" data-topic="craft">
+        <a class="essay__link" href="#writing">
+          <p class="essay__meta"><time datetime="2025-11-08">8 Nov 2025</time><span>Craft</span><span>15 min</span></p>
+          <h3 class="essay__t">Nine million rows and one honest scrollbar</h3>
+          <p class="essay__d">What virtualization takes away from a screen reader, and how to give it back.</p>
+        </a>
+      </li>
+    </ul>
+
+    <div class="empty" id="essays-empty" hidden>
+      <p class="empty__t">Nothing under that topic yet</p>
+      <p class="empty__d">Four notes are published. Try motion, type, or craft.</p>
+      <button class="btn btn--ghost" id="essays-reset"><span>Show all notes</span></button>
+    </div>
+  </section>
+
+  <!-- ─── CONTACT ──────────────────────────────────────── -->
+  <section class="contact" id="contact" data-scene="contact">
+    <div class="contact__grid">
+      <div class="contact__lead">
+        <p class="eyebrow"><span class="eyebrow__idx">06</span><span>Contact</span></p>
+        <h2 class="contact__h" data-split>Tell me what it should do.</h2>
+        <p class="lede">
+          One sentence about the job is enough to start. I answer everything within two
+          working days, including the ones I turn down.
+        </p>
+        <ul class="contact__list">
+          <li><span>Mail</span><a href="mailto:studio@ivomarchetti.nl">studio@ivomarchetti.nl</a></li>
+          <li><span>Studio</span><a href="tel:+31103400922">+31 10 340 0922</a></li>
+          <li><span>Elsewhere</span><a href="#contact">Are.na · GitHub · Read.cv</a></li>
+        </ul>
+      </div>
+
+      <form class="form" id="form" novalidate>
+        <div class="field">
+          <label for="f-name">Your name</label>
+          <input id="f-name" name="name" type="text" autocomplete="name" required placeholder="Ada Lovelace">
+          <p class="field__err" id="e-name" hidden>Add a name so I know who I am answering.</p>
+        </div>
+        <div class="field">
+          <label for="f-mail">Email</label>
+          <input id="f-mail" name="email" type="email" autocomplete="email" required placeholder="ada@example.com">
+          <p class="field__err" id="e-mail" hidden>That address is missing an @ or a domain.</p>
+        </div>
+        <div class="field">
+          <label for="f-job">What should it do?</label>
+          <textarea id="f-job" name="job" rows="4" required placeholder="One sentence is plenty. Long is fine too."></textarea>
+          <p class="field__count"><output id="job-count">0</output> / 600</p>
+          <p class="field__err" id="e-job" hidden>One sentence is enough, but I need at least a few words.</p>
+        </div>
+        <div class="form__foot">
+          <button class="btn btn--solid" type="submit" id="submit" data-magnetic>
+            <span class="btn__text">Send it</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+          <p class="form__note" id="form-note">No newsletter, no tracking, no third parties.</p>
+        </div>
+        <p class="form__ok" id="form-ok" role="status" hidden>
+          Sent. I will answer within two working days from Rotterdam.
+        </p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="foot__marquee" aria-hidden="true">
+    <div class="foot__track">
+      <span>Frontend as instrument making · Rotterdam · Booking Q3 2026 · </span>
+      <span>Frontend as instrument making · Rotterdam · Booking Q3 2026 · </span>
+    </div>
+  </div>
+  <div class="foot__row">
+    <p class="foot__col">Ivo Marchetti · KVK 8841 2207</p>
+    <p class="foot__col">Local time <output id="clock">--:--:--</output> CET</p>
+    <p class="foot__col"><a href="#hero" data-scroll>Back to top</a></p>
+  </div>
+</footer>
+
+<!-- Full screen demo overlay -->
+<div class="stage" id="stage" hidden>
+  <div class="stage__scrim" data-close></div>
+  <div class="stage__panel" role="dialog" aria-modal="true" aria-labelledby="stage-title" id="stage-panel">
+    <header class="stage__bar">
+      <div>
+        <p class="stage__kicker" id="stage-kicker">Live demo</p>
+        <h2 class="stage__title" id="stage-title">Demo</h2>
+      </div>
+      <button class="stage__close" data-close aria-label="Close demo">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg>
+      </button>
+    </header>
+    <div class="stage__canvas">
+      <canvas id="stage-canvas" role="img" aria-label="Full screen interactive demo"></canvas>
+    </div>
+    <footer class="stage__foot">
+      <p class="stage__note" id="stage-note">Move the cursor inside the frame.</p>
+      <div class="stage__ctrl">
+        <label class="ctrl">
+          <span>Intensity</span>
+          <input type="range" id="stage-range" min="0" max="100" value="55">
+          <output id="stage-range-out">55</output>
+        </label>
+        <button class="btn btn--ghost" id="stage-pause" aria-pressed="false"><span class="btn__text">Pause</span></button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

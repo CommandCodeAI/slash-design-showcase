@@ -31,6 +31,7 @@
 |---|---|---:|---:|
 | Fable 5 (Claude) | `Fable-5/` | $0.4200 | 641 |
 | GLM 5.3 | `GLM-5.2/` | $0.0184 | 875 |
+| hy4-preview | `tencent` | $0.048 | 875 |
 | GLM 5.2 | `GLM-5.2/` | $0.0480 | 799 |
 | kimi-k3 | `kimi-k3/` | $0.0740 | 880 |
 | qwen-3.8-max | `qwen-3.8-max/` | $0.0248 | 1,124 |
@@ -48,6 +49,8 @@
 | muse-spark-1.2 | `muse-spark-1.2/` | $0.0187 | 949 |
 | Grok 4.5 | `Grok 4.5` | $0.024 | 507 |
 | muse-spark-1.2-contributor | `muse-spark-1.2-contributor/` | $0.0037 | 1,002 |
+| glm-5.3-flash | `glm-5.3-flash/` | ~$0.0043 | 1,074 |
+| dsv4-flash-test | `dsv4-flash-fast/` | ~$0.0095 (2 passes, vision-fixed) | 857 |
 
 
 ## Method
@@ -95,6 +98,8 @@ Price is why kimi-k3 wins the overall call. At $0.024 it's the second-cheapest b
 - The Node `vm` shim proves the logic runs; it isn't a real browser, so nothing here confirms actual frame pacing, touch input, or that any model's audio truly plays.
 - kimi-k3, GPT-5.6 Sol, and Opus 5 were evaluated by static read and the automated `vm` smoke test only for this update — unlike Fable 5, GLM 5.2, and DeepSeek, none was hand-played in an actual browser, so their Scorecard rows reflect code-level judgment, not a played impression. That's the same caveat the third-view-car-game benchmark in this repo flags for its static-read-only scores. For Opus 5 specifically this means its "cute" score is read off the drawing code (blush, hair tuft, X-eyes on death, medal labels) rather than off a rendered frame, and its ~626 draw calls/frame have not been checked against real frame timing on a low-end device.
 - GPT-5.6 Sol's cost (~$0.15) and Opus 5's (~$0.1039) are formula estimates (bytes ÷ 4 × published output price), not user-reported like the other four; treat both as floors, not metered figures. Opus 5's floor is the least reliable of the two because Opus 5 runs with thinking enabled by default, and reasoning tokens are billed as output but never appear in the kept file — the real number is very likely higher, and the Quality/$ figure of ~46 should be read as an upper bound that falls if the metered cost comes in above $0.1039.
+- glm-5.3-flash's cost (~$0.0043) is the same bytes ÷ 4 × published output price formula, using Z.ai's list rate of $0.50/M output tokens for GLM-5.3-Flash (input tokens are a rounding error on a single short prompt, so they're omitted). Not user-reported, and not independently verified against a metered invoice — treat it as a floor. Z.ai's launch promo ($0.25/M output through 2026-09-09) would roughly halve it to ~$0.0022; the list-price figure is used here since the promo is time-limited.
+- dsv4-flash-test's cost (~$0.0095) is not a single one-shot: the user reports the first pass produced broken/mislabeled UI, so a vision-review step (screenshot → reviewed → fixed) drove a second full-file generation pass before landing on the kept 857-line file. The estimate is the bytes ÷ 4 × published output price formula applied twice (28,702 bytes → ~7,176 output tokens per pass, since the failed first draft wasn't kept for measurement, its size is assumed comparable to the final file), at DeepSeek's off-peak list rate of $0.66/M output tokens for V4-Flash (in effect since the platform's 2026-08-16 peak/off-peak repricing). The screenshot's image-input tokens and both text prompts add only low single-digit-cents-of-a-cent at DeepSeek's off-peak input rate ($0.22/M) and are folded into the estimate rather than broken out. Not user-reported, not independently verified against a metered invoice, and the first-draft-size assumption is a real source of error — treat this as a rough floor. At DeepSeek's peak rate ($1.32/M output, $0.44/M input, weekdays 01:00–04:00 and 06:00–10:00 UTC) the same two-pass generation would cost roughly double, ~$0.019, so the real figure likely sits somewhere in the ~$0.009–$0.019 range depending on when each pass ran.
 - "Spec/cute", "Architecture", and "Polish" are disclosed aesthetic/code judgment, not measurements, unlike the collision-math, resize, audio, and persistence findings, which are cited directly from source.
 
 

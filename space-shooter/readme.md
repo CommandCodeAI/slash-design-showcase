@@ -30,6 +30,7 @@
 | Model | Dir | Context | $/MTok in/out | LOC | Est. cost |
 |---|---|---:|---:|---:|---:|---:|
 | Qwen-3.8 27b | `Qwen` | 1M | $5 / $25 | 990 | ~$0.00728 |
+| GLM 5.3 Flash | `glm-5.3-flash/` | 1M | $0.15 / $0.50 | 1692 | ~$0.0062 |
 | Grok 4.5 | `Grok-4.5/` | 500K | $2 / $6 | 1983 | ~$0.09 |
 | Grok 4.6 | `Grok-4.6/` | 500K | $2 / $6 | 1983 | ~$0.0486 |
 | GPT-5.5 | `GPT-5.5/` | 1.05M | $5 / $30 | 734 | ~$0.11 |
@@ -53,3 +54,4 @@
 - Only Grok's build was actually played by hand. Fable 5's, GPT-5.5's, kimi-k3's, and Opus 5's builds were checked by reading the code and running a headless smoke test, not by playing them — their Scorecard rows are code-read judgments, not played impressions.
 - Opus 5 stays fully on theme (blue futuristic "Neon Vanguard" ship, five enemy/boss archetypes, four formation patterns, procedural Web Audio SFX, five weapon tiers) and uses the same true circle-circle collision test as kimi-k3 and Fable 5 (`opus-5/index.html:493,506,532,542`). Two gaps: it never persists best score — `best` is a plain in-memory variable (`opus-5/index.html:116,325`), reset on reload — and the on-screen FIRE button / tap-to-fire never changes fire rate, since `fire()` runs unconditionally every frame in `update()` (`opus-5/index.html:424`) with no check on `padF` or the fire keys. Auto-fire alone satisfies the prompt's "automatically or with tap/space," so this doesn't cost it on spec fidelity, but the touch fire control is cosmetic.
 - Cost for Grok 4.5, GPT-5.5, Opus 5, and Fable 5 is a rough estimate (output bytes divided by 4, times the published output price per token), not billed usage. kimi-k3's cost is user-reported directly, on a different basis than that formula.
+- GLM 5.3 Flash cost is the same rough estimate (49,687 output bytes / 4 ≈ 12,422 tokens × $0.50/MTok output), using Z.ai's list pricing ($0.15/$0.50 per MTok in/out); a launch promo dropping input to $0.075/MTok (through 2026-09-09) doesn't move this number since input tokens (one short prompt) are negligible either way. Not billed usage.

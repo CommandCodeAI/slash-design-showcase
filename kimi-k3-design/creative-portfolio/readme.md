@@ -19,8 +19,6 @@
 ## Prompt
 
 > Design an Awwwards-winning personal portfolio website for a frontend developer/creative. Dark minimalist aesthetic, bold elegant typography, immersive hero section, smooth scroll animations, micro-interactions, and creative transitions.
->
-> Sections: Hero, Selected Works (with filters), About, Process, Contact and gimme a downloadble .html file
 
 ## Models
 
