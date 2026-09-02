@@ -29,6 +29,7 @@
 
 | Model | Dir | Cost/gen | LOC |
 |---|---|---:|---:|
+| Fable 1 (Claude) | `Fable-5.1/` | $0.40 | 641 |
 | Fable 5 (Claude) | `Fable-5/` | $0.4200 | 641 |
 | GLM 5.3 | `GLM-5.2/` | $0.0184 | 875 |
 | hy4-preview | `tencent` | $0.048 | 875 |
