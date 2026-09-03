@@ -36,11 +36,10 @@
     display: block;
     border-radius: 22px;
     cursor: pointer;
-    background: #d7ead4;
-    box-shadow:
-      0 0 0 3px #8b5a3c,
-      0 0 0 7px #c56a48,
-      inset 0 0 0 1px rgba(255, 244, 220, .25);
+  }
+  #game{
+    width: 450px !important;
+    height: 700px !important;
   }
   #mute{
     position: absolute;
@@ -83,7 +82,7 @@
 (() => {
 "use strict";
 
-const W = 400, H = 640, GROUND_H = 100, GROUND_Y = H - GROUND_H;
+const W = 400, H = 680, GROUND_H = 100, GROUND_Y = H - GROUND_H;
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const muteBtn = document.getElementById("mute");

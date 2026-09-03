@@ -35,6 +35,8 @@
 | hy4-preview | `tencent` | $0.048 | 875 |
 | GLM 5.2 | `GLM-5.2/` | $0.0480 | 799 |
 | kimi-k3 | `kimi-k3/` | $0.0740 | 880 |
+| qwen-3.8-max-0902 | `qwen-3.8-max-0902` | $0.0417 | (2 iteration) | 941 |
+| muse-spark-1.3 | `muse-spark-1.3` | $0.0721 | 831 |
 | qwen-3.8-max | `qwen-3.8-max/` | $0.0248 | 1,124 |
 | Opus 5 (Claude) | `opus-5/` | ~$0.2539 | 497 |
 | Grok 4.6 | `Grok 4.5` | $0.095 | 1040 |
@@ -52,6 +54,7 @@
 | muse-spark-1.2-contributor | `muse-spark-1.2-contributor/` | $0.0037 | 1,002 |
 | glm-5.3-flash | `glm-5.3-flash/` | ~$0.0043 | 1,074 |
 | dsv4-flash-test | `dsv4-flash-fast/` | ~$0.0095 (2 passes, vision-fixed) | 857 |
+| Gemini 3.8 Flash | `gemini-3.8-flash/` | ~$0.205 (est. multi-turn session) | 1,578 |
 
 
 ## Method
@@ -101,6 +104,7 @@ Price is why kimi-k3 wins the overall call. At $0.024 it's the second-cheapest b
 - GPT-5.6 Sol's cost (~$0.15) and Opus 5's (~$0.1039) are formula estimates (bytes ÷ 4 × published output price), not user-reported like the other four; treat both as floors, not metered figures. Opus 5's floor is the least reliable of the two because Opus 5 runs with thinking enabled by default, and reasoning tokens are billed as output but never appear in the kept file — the real number is very likely higher, and the Quality/$ figure of ~46 should be read as an upper bound that falls if the metered cost comes in above $0.1039.
 - glm-5.3-flash's cost (~$0.0043) is the same bytes ÷ 4 × published output price formula, using Z.ai's list rate of $0.50/M output tokens for GLM-5.3-Flash (input tokens are a rounding error on a single short prompt, so they're omitted). Not user-reported, and not independently verified against a metered invoice — treat it as a floor. Z.ai's launch promo ($0.25/M output through 2026-09-09) would roughly halve it to ~$0.0022; the list-price figure is used here since the promo is time-limited.
 - dsv4-flash-test's cost (~$0.0095) is not a single one-shot: the user reports the first pass produced broken/mislabeled UI, so a vision-review step (screenshot → reviewed → fixed) drove a second full-file generation pass before landing on the kept 857-line file. The estimate is the bytes ÷ 4 × published output price formula applied twice (28,702 bytes → ~7,176 output tokens per pass, since the failed first draft wasn't kept for measurement, its size is assumed comparable to the final file), at DeepSeek's off-peak list rate of $0.66/M output tokens for V4-Flash (in effect since the platform's 2026-08-16 peak/off-peak repricing). The screenshot's image-input tokens and both text prompts add only low single-digit-cents-of-a-cent at DeepSeek's off-peak input rate ($0.22/M) and are folded into the estimate rather than broken out. Not user-reported, not independently verified against a metered invoice, and the first-draft-size assumption is a real source of error — treat this as a rough floor. At DeepSeek's peak rate ($1.32/M output, $0.44/M input, weekdays 01:00–04:00 and 06:00–10:00 UTC) the same two-pass generation would cost roughly double, ~$0.019, so the real figure likely sits somewhere in the ~$0.009–$0.019 range depending on when each pass ran.
+- gemini-3.8-flash's cost (~$0.75) estimates the whole `/design` session, not a one-shot generation: ~29 assistant turns with two screenshot vision-review passes and the bundled `/design` skill in context, roughly ~1.4M cumulative input tokens against ~20K output tokens (the kept 48,513-byte file is ~12.1K of those at bytes ÷ 4). Priced at Gemini Flash-tier list rates ($0.50/M input, $3.00/M output) that lands near $0.76; the file-only bytes ÷ 4 × output-price floor the other rows use would be just ~$0.036, so nearly all of this figure is multi-turn context rather than code. Not metered and not verified against an invoice — treat it as a rough order-of-magnitude session cost, not a per-generation price comparable to the one-shot rows above.
 - "Spec/cute", "Architecture", and "Polish" are disclosed aesthetic/code judgment, not measurements, unlike the collision-math, resize, audio, and persistence findings, which are cited directly from source.
 
 

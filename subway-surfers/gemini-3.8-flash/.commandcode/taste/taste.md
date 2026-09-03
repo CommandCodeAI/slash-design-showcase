@@ -1,0 +1,2 @@
+- Prefers agent stays scoped to the requested project/folder and avoids pulling in unrelated files or examples unless directly relevant. Confidence: 0.9
+- Prefers simple, direct execution over complicated multi-step exploration. Confidence: 0.85

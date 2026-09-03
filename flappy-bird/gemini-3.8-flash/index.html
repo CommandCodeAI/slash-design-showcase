@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Flappy Pip • A Whimsical Feather Journey</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-sky-top: #8ae4f8;
+      --bg-sky-bot: #d7f7ff;
+      --panel-bg: rgba(255, 255, 255, 0.94);
+      --panel-border: #f2e2be;
+      --panel-shadow: 0 16px 36px rgba(88, 59, 26, 0.22), 0 4px 10px rgba(0, 0, 0, 0.06);
+      --gold: #ffbe2e;
+      --gold-dark: #cf8d0e;
+      --accent-coral: #ff6b7a;
+      --accent-green: #58cf68;
+      --text-brown: #5d4327;
+      --text-light: #9c7f5f;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 30%, #4cb8ea 0%, #257ba9 65%, #185475 100%);
+      font-family: 'Fredoka', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-brown);
+      padding: 12px;
+    }
+
+    #game-container {
+      position: relative;
+      height: min(94vh, 760px);
+      aspect-ratio: 380 / 640;
+      width: auto;
+      max-width: min(100vw, 450px);
+      box-shadow: 0 24px 60px rgba(10, 32, 52, 0.45), 0 0 0 10px rgba(255, 255, 255, 0.15);
+      border-radius: 28px;
+      overflow: hidden;
+      background: #73c8ef;
+    }
+
+    #game-container{
+      width: 450px !important;
+      height: 700px !important;
+      max-width: 450px !important;
+      max-height: 700px !important;
+      aspect-ratio: auto !important;
+    }
+    @media (max-aspect-ratio: 9/15) and (max-width: 500px) {
+      body {
+        padding: 0;
+      }
+      #game-container {
+        height: 100%;
+        max-width: 100%;
+        width: 100%;
+        border-radius: 0;
+        box-shadow: none;
+      }
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      image-rendering: auto;
+      touch-action: none;
+      cursor: pointer;
+    }
+
+    /* UI Overlays */
+    .ui-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 22px 20px 24px;
+      z-index: 10;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: auto;
+      z-index: 15;
+    }
+
+    .badge-pill {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 2.5px solid #ffffff;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-brown);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(93, 67, 39, 0.12);
+    }
+
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 2.5px solid #ffffff;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-brown);
+      font-size: 18px;
+      box-shadow: 0 4px 12px rgba(93, 67, 39, 0.14);
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s;
+    }
+
+    .icon-btn:hover {
+      transform: scale(1.08);
+      background: #ffffff;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.92);
+    }
+
+    /* Big In-Game Score */
+    .in-game-score {
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 64px;
+      font-weight: 700;
+      color: #ffffff;
+      text-shadow: 
+        0 4px 0 #93683a,
+        0 6px 12px rgba(80, 50, 15, 0.35),
+        -3px -3px 0 #93683a,
+        3px -3px 0 #93683a,
+        -3px 3px 0 #93683a,
+        3px 3px 0 #93683a;
+      pointer-events: none;
+      transition: transform 0.12s ease-out, opacity 0.2s;
+      letter-spacing: 1px;
+      opacity: 0;
+    }
+
+    .in-game-score.visible {
+      opacity: 1;
+    }
+
+    .in-game-score.pop {
+      transform: translateX(-50%) scale(1.22);
+    }
+
+    /* Modals / Screen Panels */
+    .screen-modal {
+      position: absolute;
+      inset: 0;
+      background: rgba(20, 48, 70, 0.42);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 20;
+      pointer-events: auto;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0.3s;
+    }
+
+    .screen-modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .card-dialog {
+      background: var(--panel-bg);
+      border: 4px solid #ffffff;
+      border-radius: 28px;
+      padding: 28px 24px 24px;
+      width: 100%;
+      max-width: 320px;
+      box-shadow: var(--panel-shadow);
+      text-align: center;
+      transform: translateY(20px) scale(0.92);
+      transition: transform 0.35s cubic-bezier(0.34, 1.45, 0.64, 1);
+      position: relative;
+    }
+
+    .screen-modal.active .card-dialog {
+      transform: translateY(0) scale(1);
+    }
+
+    .dialog-header {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text-brown);
+      margin-bottom: 6px;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .dialog-sub {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-light);
+      margin-bottom: 20px;
+    }
+
+    .stats-board {
+      background: #fbf5e8;
+      border: 2px dashed #e3cfad;
+      border-radius: 18px;
+      padding: 16px 18px;
+      margin-bottom: 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stat-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-brown);
+      line-height: 1.1;
+    }
+
+    .stat-value.highlight {
+      color: #e8593a;
+    }
+
+    .medal-box {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #f0e3cc;
+      border: 3px solid #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      box-shadow: 0 4px 12px rgba(93, 67, 39, 0.15);
+      position: relative;
+      margin-right: 14px;
+    }
+
+    .medal-box::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      pointer-events: none;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: linear-gradient(180deg, #ff7a89 0%, #f34c5f 100%);
+      border: none;
+      border-bottom: 5px solid #c7293d;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 18px;
+      font-weight: 700;
+      padding: 14px 28px;
+      border-radius: 50px;
+      width: 100%;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(243, 76, 95, 0.35);
+      transition: all 0.12s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 22px rgba(243, 76, 95, 0.45);
+    }
+
+    .btn-primary:active {
+      transform: translateY(3px);
+      border-bottom-width: 2px;
+      box-shadow: 0 4px 10px rgba(243, 76, 95, 0.3);
+    }
+
+    /* Splash / Start Screen overlay */
+    #start-overlay {
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    .title-banner {
+      font-size: 40px;
+      font-weight: 700;
+      color: #fff;
+      text-align: center;
+      line-height: 1.05;
+      text-shadow: 
+        0 4px 0 #5b3e21,
+        0 8px 18px rgba(70, 40, 10, 0.4),
+        -3px -3px 0 #5b3e21,
+        3px -3px 0 #5b3e21,
+        -3px 3px 0 #5b3e21,
+        3px 3px 0 #5b3e21;
+      margin-bottom: 6px;
+      animation: floatTitle 3s ease-in-out infinite;
+    }
+
+    @keyframes floatTitle {
+      0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+      50% { transform: translateY(-8px) rotate(1.5deg); }
+    }
+
+    .title-tagline {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      background: rgba(93, 67, 39, 0.65);
+      padding: 5px 16px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+      backdrop-filter: blur(4px);
+    }
+
+    .tap-hint {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 3px solid #ffffff;
+      padding: 16px 26px;
+      border-radius: 24px;
+      box-shadow: 0 10px 24px rgba(80, 50, 20, 0.18);
+      animation: pulseHint 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseHint {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .tap-hint-text {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-brown);
+    }
+
+    .keys-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-light);
+    }
+
+    .key-badge {
+      background: #ece3d0;
+      border: 1px solid #d8caa7;
+      border-bottom: 2px solid #b7a680;
+      padding: 3px 8px;
+      border-radius: 6px;
+      color: var(--text-brown);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* Tips ribbon */
+    .controls-hint {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.95);
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="game-container">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Top UI Bar -->
+    <div class="ui-layer">
+      <div class="top-bar">
+        <div class="badge-pill" id="best-pill">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffb703" stroke="#b57a05" stroke-width="1.5">
+            <path d="M2 19h20v2H2zM2 5l5 7 5-8 5 8 5-7v12H2z"/>
+          </svg>
+          <span style="color: #8c6843;">BEST:</span>
+          <span id="best-score-display">0</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="icon-btn" id="mute-btn" title="Toggle Sound" aria-label="Toggle Sound">
+            <span id="mute-icon" style="display: flex; align-items: center; justify-content: center;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+              </svg>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div class="in-game-score" id="score-val">0</div>
+
+      <div class="controls-hint" id="footer-hint">Space / Tap to Jump • P to Pause</div>
+    </div>
+
+    <!-- Start / Splash Screen -->
+    <div class="screen-modal active" id="start-overlay">
+      <div class="title-banner">FLAPPY<br>PIP</div>
+      <div class="title-tagline">The Sweet Sky Adventure</div>
+
+      <div class="tap-hint">
+        <div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+          <svg width="44" height="44" viewBox="0 0 40 40">
+            <!-- Cute Bird Mini Icon -->
+            <ellipse cx="20" cy="22" rx="16" ry="14" fill="#ffd738" stroke="#5d4327" stroke-width="2.5"/>
+            <circle cx="26" cy="17" r="5" fill="#ffffff" stroke="#5d4327" stroke-width="1.8"/>
+            <circle cx="27.5" cy="17" r="2.8" fill="#3c2817"/>
+            <circle cx="26.5" cy="15.8" r="1.2" fill="#ffffff"/>
+            <ellipse cx="24" cy="25" rx="3.5" ry="2.2" fill="#ff708a"/>
+            <!-- Beak -->
+            <path d="M31 19 L39 21 L31 25 Z" fill="#ff8a00" stroke="#5d4327" stroke-width="1.8"/>
+            <!-- Wing -->
+            <ellipse cx="14" cy="22" rx="7" ry="5" fill="#f4b518" stroke="#5d4327" stroke-width="1.8"/>
+          </svg>
+        </div>
+        <div class="tap-hint-text">TAP OR PRESS SPACE</div>
+        <div class="keys-row">
+          <span class="key-badge">SPACE</span> or <span class="key-badge">CLICK</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div class="screen-modal" id="gameover-modal">
+      <div class="card-dialog">
+        <div class="dialog-header">
+          <span>Game Over!</span>
+        </div>
+        <div class="dialog-sub">Pip had a little tumble!</div>
+
+        <div class="stats-board">
+          <div class="medal-box" id="medal-icon">
+            <svg id="medal-svg" width="36" height="36" viewBox="0 0 24 24" fill="#cf792a" stroke="#8a480e" stroke-width="1.5">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M12 7l1.5 3 3.5.5-2.5 2.5.5 3.5-3-1.5-3 1.5.5-3.5-2.5-2.5 3.5-.5z" fill="#fff" stroke="none"/>
+            </svg>
+          </div>
+          <div class="stat-box" style="text-align: left; padding-left: 6px;">
+            <div class="stat-label">Score</div>
+            <div class="stat-value highlight" id="modal-score">0</div>
+          </div>
+          <div class="stat-box" style="text-align: right;">
+            <div class="stat-label">Best</div>
+            <div class="stat-value" id="modal-best">0</div>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="restart-btn">
+          <span>PLAY AGAIN</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =====================================================================
+       AUDIO SYNTHESIZER (Web Audio API - No external files required)
+       ===================================================================== */
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playFlap() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(580, now + 0.12);
+
+        gain.gain.setValueAtTime(0.28, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      }
+
+      playScore() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        
+        // Two-tone cheerful chime
+        const notes = [587.33, 880]; // D5, A5
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const startTime = now + idx * 0.08;
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, startTime);
+
+          gain.gain.setValueAtTime(0.3, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.22);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.23);
+        });
+      }
+
+      playHit() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(45, now + 0.28);
+
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.32);
+      }
+
+      playMedal() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const chord = [523.25, 659.25, 783.99, 1046.50]; // C Major
+        chord.forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const startTime = now + i * 0.06;
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, startTime);
+
+          gain.gain.setValueAtTime(0.2, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.45);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.5);
+        });
+      }
+    }
+
+    const sound = new SoundEngine();
+
+    /* =====================================================================
+       GAME CONSTANTS & SETUP
+       ===================================================================== */
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('game-container');
+
+    // UI elements
+    const startOverlay = document.getElementById('start-overlay');
+    const gameoverModal = document.getElementById('gameover-modal');
+    const scoreVal = document.getElementById('score-val');
+    const modalScore = document.getElementById('modal-score');
+    const modalBest = document.getElementById('modal-best');
+    const medalIcon = document.getElementById('medal-icon');
+    const bestScoreDisplay = document.getElementById('best-score-display');
+    const restartBtn = document.getElementById('restart-btn');
+    const muteBtn = document.getElementById('mute-btn');
+    const muteIcon = document.getElementById('mute-icon');
+
+    // World Virtual Dimensions (High Resolution 9:16 Canvas)
+    const VW = 380;
+    const VH = 640;
+
+    // High DPI Scaling
+    let dpr = window.devicePixelRatio || 1;
+    function resizeCanvas() {
+      const rect = container.getBoundingClientRect();
+      dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale((rect.width * dpr) / VW, (rect.height * dpr) / VH);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Game States
+    const STATES = { START: 0, PLAYING: 1, GAMEOVER: 2 };
+    let currentState = STATES.START;
+
+    let score = 0;
+    let highScore = parseInt(localStorage.getItem('flappy_pip_best') || '0', 10);
+    bestScoreDisplay.textContent = highScore;
+
+    let paused = false;
+    let screenShake = 0;
+
+    /* =====================================================================
+       PARTICLE SYSTEM (Feathers, Sparkles, Collision Puffs)
+       ===================================================================== */
+    class Particle {
+      constructor(x, y, type = 'feather') {
+        this.x = x;
+        this.y = y;
+        this.type = type;
+        this.life = 1.0;
+        this.decay = Math.random() * 0.025 + 0.02;
+
+        if (type === 'feather') {
+          this.vx = (Math.random() - 0.5) * 3 - 2;
+          this.vy = Math.random() * 2 - 1.5;
+          this.gravity = 0.08;
+          this.rot = Math.random() * Math.PI * 2;
+          this.vRot = (Math.random() - 0.5) * 0.15;
+          this.size = Math.random() * 6 + 7;
+          this.color = Math.random() > 0.4 ? '#fff078' : '#ffffff';
+        } else if (type === 'sparkle') {
+          this.vx = (Math.random() - 0.5) * 4;
+          this.vy = (Math.random() - 0.5) * 4;
+          this.gravity = 0.02;
+          this.rot = Math.random() * Math.PI;
+          this.vRot = 0.1;
+          this.size = Math.random() * 6 + 6;
+          this.color = '#ffeb3b';
+        } else if (type === 'puff') {
+          this.vx = (Math.random() - 0.5) * 4;
+          this.vy = (Math.random() - 0.5) * 4;
+          this.gravity = -0.02;
+          this.size = Math.random() * 8 + 10;
+          this.color = 'rgba(255, 255, 255, 0.8)';
+        }
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += this.gravity || 0;
+        if (this.vRot) this.rot += this.vRot;
+        this.life -= this.decay;
+      }
+
+      draw(c) {
+        if (this.life <= 0) return;
+        c.save();
+        c.globalAlpha = Math.max(0, this.life);
+        c.translate(this.x, this.y);
+
+        if (this.type === 'feather') {
+          c.rotate(this.rot);
+          c.fillStyle = this.color;
+          c.beginPath();
+          c.ellipse(0, 0, this.size, this.size * 0.4, 0, 0, Math.PI * 2);
+          c.fill();
+        } else if (this.type === 'sparkle') {
+          c.rotate(this.rot);
+          c.fillStyle = this.color;
+          c.beginPath();
+          for (let i = 0; i < 4; i++) {
+            c.lineTo(Math.cos(i * Math.PI / 2) * this.size, Math.sin(i * Math.PI / 2) * this.size);
+            c.lineTo(Math.cos(i * Math.PI / 2 + Math.PI / 4) * (this.size * 0.3), Math.sin(i * Math.PI / 2 + Math.PI / 4) * (this.size * 0.3));
+          }
+          c.closePath();
+          c.fill();
+        } else if (this.type === 'puff') {
+          c.fillStyle = this.color;
+          c.beginPath();
+          c.arc(0, 0, this.size * (1 - this.life * 0.3), 0, Math.PI * 2);
+          c.fill();
+        }
+        c.restore();
+      }
+    }
+
+    let particles = [];
+    function spawnFeathers(x, y) {
+      for (let i = 0; i < 3; i++) {
+        particles.push(new Particle(x, y, 'feather'));
+      }
+    }
+    function spawnSparkles(x, y) {
+      for (let i = 0; i < 8; i++) {
+        particles.push(new Particle(x, y, 'sparkle'));
+      }
+    }
+    function spawnImpact(x, y) {
+      for (let i = 0; i < 12; i++) {
+        particles.push(new Particle(x, y, 'puff'));
+        particles.push(new Particle(x, y, 'feather'));
+      }
+    }
+
+    /* Floating Score Popups */
+    let floatingTexts = [];
+    class FloatingText {
+      constructor(text, x, y) {
+        this.text = text;
+        this.x = x;
+        this.y = y;
+        this.life = 1.0;
+        this.vy = -1.8;
+      }
+      update() {
+        this.y += this.vy;
+        this.life -= 0.03;
+      }
+      draw(c) {
+        if (this.life <= 0) return;
+        c.save();
+        c.globalAlpha = Math.max(0, this.life);
+        c.font = '700 24px Fredoka, sans-serif';
+        c.fillStyle = '#ffbe2e';
+        c.strokeStyle = '#5d4327';
+        c.lineWidth = 4;
+        c.textAlign = 'center';
+        c.strokeText(this.text, this.x, this.y);
+        c.fillText(this.text, this.x, this.y);
+        c.restore();
+      }
+    }
+
+    /* =====================================================================
+       CUTE BIRD (PIP) WITH FLAPPING & ROTATION PHYSICS
+       ===================================================================== */
+    const bird = {
+      x: 95,
+      y: 270,
+      radius: 17,
+      vy: 0,
+      gravity: 0.36,
+      jumpStrength: -6.8,
+      rotation: 0,
+      wingCycle: 0,
+      wingSpeed: 0.2,
+      squash: 1,
+      stretch: 1,
+
+      reset() {
+        this.x = 95;
+        this.y = 270;
+        this.vy = 0;
+        this.rotation = 0;
+        this.wingCycle = 0;
+        this.squash = 1;
+        this.stretch = 1;
+      },
+
+      flap() {
+        this.vy = this.jumpStrength;
+        this.stretch = 1.25;
+        this.squash = 0.8;
+        this.wingSpeed = 0.45;
+        sound.playFlap();
+        spawnFeathers(this.x - 10, this.y + 4);
+      },
+
+      update() {
+        if (currentState === STATES.START) {
+          // Gentle floating hover idle animation
+          this.wingCycle += 0.12;
+          this.y = 270 + Math.sin(this.wingCycle * 0.8) * 9;
+          this.rotation = Math.sin(this.wingCycle * 0.8) * 0.08;
+          return;
+        }
+
+        this.vy += this.gravity;
+        this.y += this.vy;
+
+        // Smooth rotation based on vertical speed
+        const targetRotation = Math.min(Math.PI / 2.5, Math.max(-Math.PI / 6, (this.vy * 0.09)));
+        this.rotation += (targetRotation - this.rotation) * 0.22;
+
+        // Wing flapping speed
+        this.wingCycle += this.wingSpeed;
+        if (this.wingSpeed > 0.18) this.wingSpeed *= 0.94;
+
+        // Return squash/stretch to normal
+        this.squash += (1 - this.squash) * 0.15;
+        this.stretch += (1 - this.stretch) * 0.15;
+
+        // Ceiling collision
+        if (this.y - this.radius < 0) {
+          this.y = this.radius;
+          this.vy = 0;
+        }
+
+        // Floor collision check handled in game loop
+      },
+
+      draw(c) {
+        c.save();
+        c.translate(this.x, this.y);
+        c.rotate(this.rotation);
+        c.scale(this.stretch, this.squash);
+
+        // Bird Body Colors (Sunny Pastel Yellow with Soft Gradient)
+        const bodyGrad = c.createRadialGradient(-4, -6, 2, 0, 0, 22);
+        bodyGrad.addColorStop(0, '#fffbe6');
+        bodyGrad.addColorStop(0.35, '#ffdd42');
+        bodyGrad.addColorStop(1, '#f7b71d');
+
+        // Drop shadow under bird
+        c.save();
+        c.shadowColor = 'rgba(50, 40, 20, 0.18)';
+        c.shadowBlur = 8;
+        c.shadowOffsetY = 4;
+
+        // Main Chubby Body (Circle/Egg)
+        c.fillStyle = bodyGrad;
+        c.beginPath();
+        c.arc(0, 0, 18, 0, Math.PI * 2);
+        c.fill();
+        c.restore();
+
+        // Chubby Outline
+        c.strokeStyle = '#5d4327';
+        c.lineWidth = 2.4;
+        c.stroke();
+
+        // Rosy Blushing Cheek
+        c.fillStyle = 'rgba(255, 114, 134, 0.55)';
+        c.beginPath();
+        c.ellipse(6, 4, 4.5, 3.2, 0, 0, Math.PI * 2);
+        c.fill();
+
+        // Big Cute Eye
+        // Sclera (White)
+        c.fillStyle = '#ffffff';
+        c.beginPath();
+        c.arc(7, -6, 6.5, 0, Math.PI * 2);
+        c.fill();
+        c.strokeStyle = '#5d4327';
+        c.lineWidth = 2;
+        c.stroke();
+
+        // Pupil (Dark with shine)
+        c.fillStyle = '#3c2817';
+        c.beginPath();
+        c.arc(8.5, -6, 3.6, 0, Math.PI * 2);
+        c.fill();
+
+        // Eye Light Reflections
+        c.fillStyle = '#ffffff';
+        c.beginPath();
+        c.arc(7.2, -7.5, 1.6, 0, Math.PI * 2);
+        c.fill();
+        c.beginPath();
+        c.arc(9.8, -4.8, 0.8, 0, Math.PI * 2);
+        c.fill();
+
+        // Cute Orange Beak (Curved triangular beak)
+        const beakGrad = c.createLinearGradient(12, -2, 25, 3);
+        beakGrad.addColorStop(0, '#ff9924');
+        beakGrad.addColorStop(1, '#e06000');
+
+        c.fillStyle = beakGrad;
+        c.beginPath();
+        c.moveTo(12, -4);
+        c.quadraticCurveTo(24, -1, 23, 2);
+        c.quadraticCurveTo(18, 6, 11, 4);
+        c.closePath();
+        c.fill();
+        c.strokeStyle = '#5d4327';
+        c.lineWidth = 2;
+        c.stroke();
+
+        // Beak smile highlight
+        c.strokeStyle = '#ffe494';
+        c.lineWidth = 1.2;
+        c.beginPath();
+        c.moveTo(13, -1);
+        c.lineTo(19, 0);
+        c.stroke();
+
+        // Animated Flapping Wing
+        const wingAngle = Math.sin(this.wingCycle) * 0.75;
+        c.save();
+        c.translate(-4, 2);
+        c.rotate(wingAngle);
+
+        const wingGrad = c.createLinearGradient(-10, -6, 6, 6);
+        wingGrad.addColorStop(0, '#ffffff');
+        wingGrad.addColorStop(0.4, '#ffe769');
+        wingGrad.addColorStop(1, '#f0a316');
+
+        c.fillStyle = wingGrad;
+        c.beginPath();
+        c.ellipse(-3, 0, 11, 7.5, -0.2, 0, Math.PI * 2);
+        c.fill();
+        c.strokeStyle = '#5d4327';
+        c.lineWidth = 2.2;
+        c.stroke();
+
+        // Wing feather line detail
+        c.strokeStyle = '#d4880c';
+        c.lineWidth = 1.5;
+        c.beginPath();
+        c.arc(-4, 0, 5, -0.8, 1.2);
+        c.stroke();
+        c.restore();
+
+        // Tiny Head Tuft / Feather Crown
+        c.fillStyle = '#ffcf26';
+        c.beginPath();
+        c.moveTo(-4, -17);
+        c.quadraticCurveTo(-7, -24, -13, -20);
+        c.quadraticCurveTo(-8, -16, -2, -16);
+        c.fill();
+        c.strokeStyle = '#5d4327';
+        c.lineWidth = 1.8;
+        c.stroke();
+
+        c.restore();
+      }
+    };
+
+    /* =====================================================================
+       PARALLAX BACKGROUND SYSTEM
+       ===================================================================== */
+    const background = {
+      cloudOffset: 0,
+      farHillOffset: 0,
+      nearHillOffset: 0,
+      groundOffset: 0,
+      groundY: 540,
+
+      // Predefined cute puffy cloud objects
+      clouds: [
+        { x: 40, y: 70, scale: 0.9, speed: 0.25 },
+        { x: 190, y: 110, scale: 0.65, speed: 0.2 },
+        { x: 310, y: 55, scale: 1.1, speed: 0.3 }
+      ],
+
+      update(gameSpeed) {
+        this.cloudOffset += 0.35;
+        this.farHillOffset += gameSpeed * 0.25;
+        this.nearHillOffset += gameSpeed * 0.6;
+        this.groundOffset = (this.groundOffset + gameSpeed * 1.8) % 40;
+
+        this.clouds.forEach(cl => {
+          cl.x -= cl.speed;
+          if (cl.x < -100) cl.x = VW + 80;
+        });
+      },
+
+      drawSky(c) {
+        // Soft Pastel Daybreak Sky Gradient
+        const skyGrad = c.createLinearGradient(0, 0, 0, this.groundY);
+        skyGrad.addColorStop(0, '#75d6fa');
+        skyGrad.addColorStop(0.55, '#c0f0ff');
+        skyGrad.addColorStop(1, '#fff5dc');
+        c.fillStyle = skyGrad;
+        c.fillRect(0, 0, VW, this.groundY);
+
+        // Distant Warm Sun
+        const sunGrad = c.createRadialGradient(280, 100, 10, 280, 100, 75);
+        sunGrad.addColorStop(0, 'rgba(255, 255, 230, 0.95)');
+        sunGrad.addColorStop(0.4, 'rgba(255, 243, 160, 0.45)');
+        sunGrad.addColorStop(1, 'rgba(255, 240, 180, 0)');
+        c.fillStyle = sunGrad;
+        c.beginPath();
+        c.arc(280, 100, 75, 0, Math.PI * 2);
+        c.fill();
+      },
+
+      drawCloud(c, x, y, scale) {
+        c.save();
+        c.translate(x, y);
+        c.scale(scale, scale);
+        c.fillStyle = '#ffffff';
+
+        // Puffy cloud puffs
+        c.beginPath();
+        c.arc(0, 0, 20, 0, Math.PI * 2);
+        c.arc(22, -6, 26, 0, Math.PI * 2);
+        c.arc(52, -2, 22, 0, Math.PI * 2);
+        c.arc(68, 8, 16, 0, Math.PI * 2);
+        c.arc(-14, 8, 15, 0, Math.PI * 2);
+        c.closePath();
+        c.fill();
+
+        // Soft cloud shadow on bottom
+        c.fillStyle = 'rgba(195, 228, 245, 0.45)';
+        c.beginPath();
+        c.arc(22, 8, 22, 0, Math.PI);
+        c.arc(50, 10, 18, 0, Math.PI);
+        c.fill();
+
+        c.restore();
+      },
+
+      drawFarHills(c) {
+        // Distant pastel lilac / blue mountains
+        c.fillStyle = '#94cee8';
+        c.beginPath();
+        c.moveTo(0, this.groundY);
+        for (let x = 0; x <= VW + 50; x += 30) {
+          const hillY = 380 + Math.sin((x + this.farHillOffset) * 0.008) * 45;
+          c.lineTo(x, hillY);
+        }
+        c.lineTo(VW, this.groundY);
+        c.closePath();
+        c.fill();
+      },
+
+      drawNearHills(c) {
+        // Midground lush rolling green hills with cute trees
+        c.fillStyle = '#7ac978';
+        c.beginPath();
+        c.moveTo(0, this.groundY);
+        for (let x = 0; x <= VW + 50; x += 25) {
+          const hillY = 445 + Math.sin((x + this.nearHillOffset) * 0.012) * 32;
+          c.lineTo(x, hillY);
+        }
+        c.lineTo(VW, this.groundY);
+        c.closePath();
+        c.fill();
+
+        // Decorative distant round trees on hilltops
+        c.fillStyle = '#61b15f';
+        for (let i = 0; i < 4; i++) {
+          const treeX = ((i * 120 - this.nearHillOffset * 0.8) % (VW + 100)) - 30;
+          const treeY = 445 + Math.sin((treeX + this.nearHillOffset) * 0.012) * 32;
+          c.beginPath();
+          c.arc(treeX, treeY - 8, 12, 0, Math.PI * 2);
+          c.fill();
+        }
+      },
+
+      drawGround(c) {
+        const gy = this.groundY;
+        const gh = VH - gy;
+
+        // Dirt Base Layer
+        const dirtGrad = c.createLinearGradient(0, gy + 16, 0, VH);
+        dirtGrad.addColorStop(0, '#dcb579');
+        dirtGrad.addColorStop(0.3, '#bf9557');
+        dirtGrad.addColorStop(1, '#946d37');
+        c.fillStyle = dirtGrad;
+        c.fillRect(0, gy + 14, VW, gh - 14);
+
+        // Lush Top Grass Ribbon
+        c.fillStyle = '#70c946';
+        c.fillRect(0, gy, VW, 16);
+
+        // Grass Highlight Rim
+        c.fillStyle = '#9ae657';
+        c.fillRect(0, gy, VW, 4);
+
+        // Grass Border Outline
+        c.fillStyle = '#488c29';
+        c.fillRect(0, gy + 14, VW, 2.5);
+
+        // Stylized Grass Tufts & Cobblestones Moving with groundOffset
+        c.fillStyle = '#5fb237';
+        for (let x = -this.groundOffset; x < VW + 40; x += 36) {
+          // Tuft triangle
+          c.beginPath();
+          c.moveTo(x, gy + 14);
+          c.lineTo(x + 5, gy + 5);
+          c.lineTo(x + 10, gy + 14);
+          c.fill();
+
+          // Pebbles in the dirt
+          c.fillStyle = 'rgba(255, 240, 210, 0.45)';
+          c.beginPath();
+          c.arc(x + 18, gy + 32, 3.5, 0, Math.PI * 2);
+          c.fill();
+
+          c.fillStyle = 'rgba(100, 60, 20, 0.25)';
+          c.beginPath();
+          c.arc(x + 28, gy + 54, 4.5, 0, Math.PI * 2);
+          c.fill();
+          c.fillStyle = '#5fb237';
+        }
+      },
+
+      draw(c) {
+        this.drawSky(c);
+        this.clouds.forEach(cl => this.drawCloud(c, cl.x, cl.y, cl.scale));
+        this.drawFarHills(c);
+        this.drawNearHills(c);
+        this.drawGround(c);
+      }
+    };
+
+    /* =====================================================================
+       CUTE PIPE OBSTACLES (Rounded Pillars with Caps & Details)
+       ===================================================================== */
+    class Pipe {
+      constructor(x) {
+        this.x = x;
+        this.width = 62;
+        this.gap = 135; // comfortable friendly opening
+        this.scored = false;
+
+        // Randomize opening position between boundaries
+        const minTop = 65;
+        const maxTop = background.groundY - this.gap - 75;
+        this.topHeight = Math.floor(Math.random() * (maxTop - minTop + 1)) + minTop;
+        this.bottomY = this.topHeight + this.gap;
+        this.bottomHeight = background.groundY - this.bottomY;
+
+        // Decoration: flower or mushroom badge on pipe cap
+        this.hasFlower = Math.random() > 0.5;
+        this.flowerColor = Math.random() > 0.5 ? '#ff6584' : '#ffc837';
+      }
+
+      update(speed) {
+        this.x -= speed;
+      }
+
+      draw(c) {
+        const w = this.width;
+        const capH = 26;
+        const capOverhang = 6;
+
+        // Pipe Gradient: Vibrant Lush Moss/Bamboo Forest Green
+        const makePipeGrad = (x1, x2) => {
+          const g = c.createLinearGradient(x1, 0, x2, 0);
+          g.addColorStop(0, '#82d33d');
+          g.addColorStop(0.18, '#abed64'); // soft highlight sheen
+          g.addColorStop(0.65, '#5bb72d');
+          g.addColorStop(1, '#3b851b'); // deep shadow side
+          return g;
+        };
+
+        const pipeFill = makePipeGrad(this.x, this.x + w);
+        const capFill = makePipeGrad(this.x - capOverhang, this.x + w + capOverhang);
+
+        // --- TOP PIPE ---
+        // Shaft
+        c.fillStyle = pipeFill;
+        c.fillRect(this.x, 0, w, this.topHeight - capH);
+        c.strokeStyle = '#2b6113';
+        c.lineWidth = 2.5;
+        c.strokeRect(this.x, -2, w, this.topHeight - capH + 2);
+
+        // Top Pipe Cap (Flange)
+        c.fillStyle = capFill;
+        drawRoundRect(c, this.x - capOverhang, this.topHeight - capH, w + capOverhang * 2, capH, 7);
+        c.fill();
+        c.stroke();
+
+        // Top Cap Highlight Lip
+        c.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        c.fillRect(this.x - capOverhang + 4, this.topHeight - capH + 3, w + capOverhang * 2 - 8, 3.5);
+
+        // --- BOTTOM PIPE ---
+        // Bottom Pipe Cap
+        c.fillStyle = capFill;
+        drawRoundRect(c, this.x - capOverhang, this.bottomY, w + capOverhang * 2, capH, 7);
+        c.fill();
+        c.stroke();
+
+        // Bottom Cap Highlight Lip
+        c.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        c.fillRect(this.x - capOverhang + 4, this.bottomY + 3, w + capOverhang * 2 - 8, 3.5);
+
+        // Bottom Shaft
+        c.fillStyle = pipeFill;
+        c.fillRect(this.x, this.bottomY + capH, w, this.bottomHeight - capH);
+        c.strokeRect(this.x, this.bottomY + capH, w, this.bottomHeight - capH + 4);
+
+        // Cute Little Sprout / Flower on Top Cap
+        if (this.hasFlower) {
+          c.save();
+          c.translate(this.x + w * 0.5, this.topHeight - capH);
+          c.fillStyle = this.flowerColor;
+          // 4 Little petals
+          for (let p = 0; p < 4; p++) {
+            c.beginPath();
+            const ang = p * Math.PI / 2;
+            c.arc(Math.cos(ang) * 5, Math.sin(ang) * 5 - 4, 3.8, 0, Math.PI * 2);
+            c.fill();
+          }
+          // Flower Center
+          c.fillStyle = '#ffffff';
+          c.beginPath();
+          c.arc(0, -4, 3, 0, Math.PI * 2);
+          c.fill();
+          c.restore();
+        }
+      }
+
+      collidesWith(b) {
+        const capOverhang = 6;
+        const capH = 26;
+
+        // Check Top Pipe Collision
+        // Shaft
+        if (circleRectCollide(b.x, b.y, b.radius - 2, this.x, 0, this.width, this.topHeight - capH)) {
+          return true;
+        }
+        // Top Cap
+        if (circleRectCollide(b.x, b.y, b.radius - 2, this.x - capOverhang, this.topHeight - capH, this.width + capOverhang * 2, capH)) {
+          return true;
+        }
+
+        // Check Bottom Pipe Collision
+        // Bottom Cap
+        if (circleRectCollide(b.x, b.y, b.radius - 2, this.x - capOverhang, this.bottomY, this.width + capOverhang * 2, capH)) {
+          return true;
+        }
+        // Shaft
+        if (circleRectCollide(b.x, b.y, b.radius - 2, this.x, this.bottomY + capH, this.width, this.bottomHeight - capH)) {
+          return true;
+        }
+
+        return false;
+      }
+    }
+
+    /* Helper: Rounded Rect on Canvas */
+    function drawRoundRect(c, x, y, width, height, radius) {
+      c.beginPath();
+      c.moveTo(x + radius, y);
+      c.lineTo(x + width - radius, y);
+      c.quadraticCurveTo(x + width, y, x + width, y + radius);
+      c.lineTo(x + width, y + height - radius);
+      c.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      c.lineTo(x + radius, y + height);
+      c.quadraticCurveTo(x, y + height, x, y + height - radius);
+      c.lineTo(x, y + radius);
+      c.quadraticCurveTo(x, y, x + radius, y);
+      c.closePath();
+    }
+
+    /* Helper: Circle vs AABB Collision */
+    function circleRectCollide(cx, cy, r, rx, ry, rw, rh) {
+      const closestX = Math.max(rx, Math.min(cx, rx + rw));
+      const closestY = Math.max(ry, Math.min(cy, ry + rh));
+      const dx = cx - closestX;
+      const dy = cy - closestY;
+      return (dx * dx + dy * dy) < (r * r);
+    }
+
+    /* Pipes Manager */
+    let pipes = [];
+    const PIPE_INTERVAL = 190; // distance between consecutive pipes
+
+    function initPipes() {
+      pipes = [];
+      pipes.push(new Pipe(VW + 100));
+      pipes.push(new Pipe(VW + 100 + PIPE_INTERVAL));
+    }
+
+    /* =====================================================================
+       GAME LOOP & LOGIC
+       ===================================================================== */
+    const GAME_SPEED = 2.2;
+
+    function resetGame() {
+      score = 0;
+      scoreVal.textContent = '0';
+      scoreVal.classList.remove('visible');
+      bird.reset();
+      initPipes();
+      particles = [];
+      floatingTexts = [];
+      screenShake = 0;
+    }
+
+    function triggerGameOver() {
+      currentState = STATES.GAMEOVER;
+      sound.playHit();
+      screenShake = 14;
+      scoreVal.classList.remove('visible');
+      spawnImpact(bird.x, bird.y);
+
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('flappy_pip_best', highScore.toString());
+        bestScoreDisplay.textContent = highScore;
+        sound.playMedal();
+      }
+
+      // Populate Game Over Modal
+      modalScore.textContent = score;
+      modalBest.textContent = highScore;
+
+      // Medal Assignment with beautiful vector icons
+      if (score >= 30) {
+        medalIcon.innerHTML = `
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="#00d2ff" stroke="#0077b6" stroke-width="1.5">
+            <polygon points="12 2 19 8.5 16 21 8 21 5 8.5 12 2" />
+            <polygon points="12 2 16 8.5 12 21 8 8.5 12 2" fill="#70e000" opacity="0.4" />
+          </svg>`;
+        medalIcon.title = 'Diamond Medal';
+      } else if (score >= 20) {
+        medalIcon.innerHTML = `
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="#ffd000" stroke="#b57a05" stroke-width="1.5">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 7l1.5 3 3.5.5-2.5 2.5.5 3.5-3-1.5-3 1.5.5-3.5-2.5-2.5 3.5-.5z" fill="#fff" stroke="none"/>
+          </svg>`;
+        medalIcon.title = 'Gold Medal';
+      } else if (score >= 10) {
+        medalIcon.innerHTML = `
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="#d8e2dc" stroke="#8d99ae" stroke-width="1.5">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 7l1.5 3 3.5.5-2.5 2.5.5 3.5-3-1.5-3 1.5.5-3.5-2.5-2.5 3.5-.5z" fill="#fff" stroke="none"/>
+          </svg>`;
+        medalIcon.title = 'Silver Medal';
+      } else {
+        medalIcon.innerHTML = `
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="#d48b52" stroke="#874719" stroke-width="1.5">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 7l1.5 3 3.5.5-2.5 2.5.5 3.5-3-1.5-3 1.5.5-3.5-2.5-2.5 3.5-.5z" fill="#fff" stroke="none"/>
+          </svg>`;
+        medalIcon.title = 'Bronze Medal';
+      }
+
+      // Animate modal in
+      setTimeout(() => {
+        gameoverModal.classList.add('active');
+      }, 350);
+    }
+
+    function handleAction() {
+      sound.init();
+
+      if (currentState === STATES.START) {
+        startOverlay.classList.remove('active');
+        scoreVal.classList.add('visible');
+        currentState = STATES.PLAYING;
+        bird.flap();
+      } else if (currentState === STATES.PLAYING) {
+        if (!paused) {
+          bird.flap();
+        }
+      }
+    }
+
+    // Input Listeners
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.code === 'ArrowUp') {
+        e.preventDefault();
+        handleAction();
+      } else if (e.code === 'KeyP') {
+        if (currentState === STATES.PLAYING) {
+          paused = !paused;
+        }
+      }
+    });
+
+    container.addEventListener('pointerdown', (e) => {
+      // Ignore if clicking UI buttons
+      if (e.target.closest('#mute-btn') || e.target.closest('#restart-btn')) return;
+      handleAction();
+    });
+
+    restartBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sound.init();
+      gameoverModal.classList.remove('active');
+      resetGame();
+      scoreVal.classList.add('visible');
+      currentState = STATES.PLAYING;
+      bird.flap();
+    });
+
+    muteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sound.init();
+      sound.muted = !sound.muted;
+      if (sound.muted) {
+        muteIcon.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27l4.73 4.73H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+          </svg>`;
+      } else {
+        muteIcon.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+          </svg>`;
+      }
+    });
+
+    /* Main Render & Animation Loop */
+    let lastTime = performance.now();
+
+    function gameLoop(now) {
+      requestAnimationFrame(gameLoop);
+
+      const dt = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
+
+      if (paused) return;
+
+      // Screen Shake Decay
+      let shakeX = 0;
+      let shakeY = 0;
+      if (screenShake > 0) {
+        shakeX = (Math.random() - 0.5) * screenShake;
+        shakeY = (Math.random() - 0.5) * screenShake;
+        screenShake *= 0.88;
+        if (screenShake < 0.2) screenShake = 0;
+      }
+
+      // --- UPDATE PHASE ---
+      if (currentState === STATES.PLAYING) {
+        background.update(GAME_SPEED);
+        bird.update();
+
+        // Update Pipes
+        for (let i = 0; i < pipes.length; i++) {
+          const pipe = pipes[i];
+          pipe.update(GAME_SPEED);
+
+          // Check Score passing
+          if (!pipe.scored && pipe.x + pipe.width < bird.x) {
+            pipe.scored = true;
+            score++;
+            scoreVal.textContent = score;
+            scoreVal.classList.add('pop');
+            setTimeout(() => scoreVal.classList.remove('pop'), 140);
+
+            sound.playScore();
+            spawnSparkles(bird.x + 10, bird.y);
+            floatingTexts.push(new FloatingText('+1', bird.x, bird.y - 18));
+          }
+
+          // Check collision with pipe
+          if (pipe.collidesWith(bird)) {
+            triggerGameOver();
+            break;
+          }
+        }
+
+        // Recycle / Spawn Pipes
+        if (pipes.length > 0 && pipes[0].x + pipes[0].width < -40) {
+          pipes.shift();
+          const lastPipe = pipes[pipes.length - 1];
+          pipes.push(new Pipe(lastPipe.x + PIPE_INTERVAL));
+        }
+
+        // Check Ground Collision
+        if (bird.y + bird.radius >= background.groundY) {
+          bird.y = background.groundY - bird.radius;
+          triggerGameOver();
+        }
+
+      } else if (currentState === STATES.START) {
+        background.update(0.8);
+        bird.update();
+      } else if (currentState === STATES.GAMEOVER) {
+        // Fall to ground if in air
+        if (bird.y + bird.radius < background.groundY) {
+          bird.vy += bird.gravity;
+          bird.y += bird.vy;
+          bird.rotation = Math.min(Math.PI / 2, bird.rotation + 0.1);
+        } else {
+          bird.y = background.groundY - bird.radius;
+        }
+      }
+
+      // Update Particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update();
+        if (particles[i].life <= 0) particles.splice(i, 1);
+      }
+
+      // Update Floating Texts
+      for (let i = floatingTexts.length - 1; i >= 0; i--) {
+        floatingTexts[i].update();
+        if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
+      }
+
+      // --- DRAW PHASE ---
+      ctx.save();
+      // Apply screen shake
+      if (shakeX || shakeY) {
+        ctx.translate(shakeX, shakeY);
+      }
+
+      // Draw Parallax World
+      background.draw(ctx);
+
+      // Draw Pipes
+      if (currentState !== STATES.START) {
+        pipes.forEach(p => p.draw(ctx));
+      }
+
+      // Draw Particles behind bird
+      particles.forEach(p => p.draw(ctx));
+
+      // Draw Bird
+      bird.draw(ctx);
+
+      // Draw Floating Texts
+      floatingTexts.forEach(t => t.draw(ctx));
+
+      ctx.restore();
+    }
+
+    // Initialize Game
+    resetGame();
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
