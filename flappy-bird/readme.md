@@ -35,8 +35,8 @@
 | hy4-preview | `tencent` | $0.048 | 875 |
 | GLM 5.2 | `GLM-5.2/` | $0.0480 | 799 |
 | kimi-k3 | `kimi-k3/` | $0.0740 | 880 |
-| qwen-3.8-max-0902 | `qwen-3.8-max-0902` | $0.0417 | (2 iteration) | 941 |
-| muse-spark-1.3 | `muse-spark-1.3` | $0.0721 | 831 |
+| qwen-3.8-max-0902 | `qwen-3.8-max-0902` | $0.0417 | 941 |
+| muse-spark-1.3 | `muse-spark-1.3` | $0.0721 | (2 iteration) 831 |
 | qwen-3.8-max | `qwen-3.8-max/` | $0.0248 | 1,124 |
 | Opus 5 (Claude) | `opus-5/` | ~$0.2539 | 497 |
 | Grok 4.6 | `Grok 4.5` | $0.095 | 1040 |

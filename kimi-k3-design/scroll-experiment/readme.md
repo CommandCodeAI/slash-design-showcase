@@ -1,4 +1,4 @@
-# Scroll-Driven Experimental Portfolio: one prompt, two models
+# Scroll-Driven Experimental Portfolio: one prompt, four models
 
 > ### Try this benchmark yourself — with Command Code
 > This benchmark was built in one-shot with [`/design`](https://commandcode.ai/docs/slash-commands/design) in [Command Code](https://commandcode.ai).
@@ -29,6 +29,7 @@ https://commandcode.ai/share/15f62a1d
 | Kimi K3 | `kimi-k3/` | 960 | ~$0.24* |
 | Opus 5 | `opus-5/` | 1,277 | ~$0.37 |
 | qwen3.8-max | `qwen3.8-max/` | 1,205 | ~$0.065 |
+| Fable 5.1 (Claude) | `fable-5.1/` | 602 | ~$0.41§ |
 
 One prompt-thread per model, no re-rolls. Kimi K3 sent 3 prompts (build → continue → "scroll feels jumpy, make it smooth"); Opus 5 and qwen3.8-max were each a single `/design` invocation.
 
@@ -38,4 +39,6 @@ Opus 5's ~$0.37 is a straight floor from its single one-shot generation (59,494 
 
 † qwen3.8-max's ~$0.04 is a floor only (56,230 bytes ÷ 4 × the repo-implied ~$2.91/MTok output rate) and isn't comparable to the two figures above. This repo's one actually-metered qwen3.8-max `/design` run, `creative-portfolio/qwen3.8-max`, billed a real $6.70 for a similarly-sized file — driven by call count and accumulated input context (35 API calls, 2.7M input tokens, mostly cache reads), not by output size. This build's own call count wasn't logged, so treat ~$0.04 as a lower bound, not the real cost.
 
-**On the numbers that are actually comparable, Kimi K3 wins on cost**: ~$0.24 vs Opus 5's ~$0.37, while shipping a leaner file (960 LOC / 40.7KB vs 1,277 LOC / 59.5KB) at a lower per-byte output rate ($15/MTok vs $25/MTok) for the same brief.
+§ Fable 5.1's ~$0.41 is a one-shot floor, not user-reported or metered: 32,576 bytes ÷ 4 ≈ 8,144 output tokens × $50/MTok, this repo's established Fable-family output rate (see chrome-dino, story-telling). It counts output tokens only for the kept file — no input tokens, no `/design` session overhead — so treat it as a lower bound like qwen3.8-max's figure, not as directly comparable to Kimi K3's or Opus 5's numbers above.
+
+**On the numbers that are actually comparable, Kimi K3 wins on cost**: ~$0.24 vs Opus 5's ~$0.37, while shipping a leaner file (960 LOC / 40.7KB vs 1,277 LOC / 59.5KB) at a lower per-byte output rate ($15/MTok vs $25/MTok) for the same brief. Fable 5.1 lands as the most expensive floor in the set (~$0.41) despite shipping the *least* code of any of the four (602 LOC / 31.8KB, less than half Opus 5's) — Claude's $50/MTok output rate is 2x Opus 5's and 3.3x Kimi K3's, so the smaller file doesn't translate into the cheapest build.

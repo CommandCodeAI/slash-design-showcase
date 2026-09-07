@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en" class="is-loading">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>Leo Voss — Creative Frontend Developer</title>
+  <meta name="description" content="Leo Voss is an independent creative frontend developer in Lisbon, building immersive interfaces where typography, motion and code converge.">
+  <meta name="theme-color" content="#0c0b0a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230c0b0a'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-style='italic' font-size='15' fill='%23ff4d1a' text-anchor='middle'%3Elv%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- ░░ Preloader ░░ -->
+  <div class="loader" id="loader" aria-hidden="true">
+    <div class="loader__grid">
+      <span class="loader__mark mask"><span><em>lv</em></span></span>
+      <span class="loader__name mask"><span>Leo&nbsp;Voss</span></span>
+      <span class="loader__role mask"><span>Creative Frontend Developer</span></span>
+      <span class="loader__count" id="loaderCount">000</span>
+    </div>
+    <div class="loader__bar"><i id="loaderBar"></i></div>
+  </div>
+
+  <!-- ░░ Atmosphere: grain + column hairlines ░░ -->
+  <div class="grain" aria-hidden="true"></div>
+  <div class="rules" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+
+  <!-- ░░ Custom cursor ░░ -->
+  <div class="cursor" id="cursor" aria-hidden="true">
+    <span class="cursor__ring"></span>
+    <span class="cursor__dot"></span>
+    <span class="cursor__label" id="cursorLabel">View</span>
+  </div>
+
+  <!-- ░░ Scroll progress ░░ -->
+  <div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
+
+  <!-- ░░ Header ░░ -->
+  <header class="nav" id="nav">
+    <a class="nav__logo" href="#top" aria-label="Leo Voss — back to top">
+      <span class="nav__logo-mark"><em>lv</em></span>
+      <span class="nav__logo-name">Leo&nbsp;Voss<sup>®</sup></span>
+    </a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="#about" data-magnetic><span>About</span></a>
+      <a href="#work" data-magnetic><span>Work</span></a>
+      <a href="#approach" data-magnetic><span>Approach</span></a>
+      <a href="#contact" data-magnetic><span>Contact</span></a>
+    </nav>
+    <div class="nav__side">
+      <p class="status"><i class="status__dot" aria-hidden="true"></i> Available — Q3 2026</p>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="menu" data-cursor="menu">
+        <span class="menu-btn__label">Menu</span>
+        <span class="menu-btn__bars" aria-hidden="true"><i></i><i></i></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ░░ Fullscreen menu ░░ -->
+  <div class="menu" id="menu" inert>
+    <div class="menu__inner">
+      <nav class="menu__nav" aria-label="Expanded">
+        <a href="#about"><i>01</i><span class="mask"><span>About</span></span><em>About</em></a>
+        <a href="#work"><i>02</i><span class="mask"><span>Work</span></span><em>Work</em></a>
+        <a href="#approach"><i>03</i><span class="mask"><span>Approach</span></span><em>Approach</em></a>
+        <a href="#capabilities"><i>04</i><span class="mask"><span>Capabilities</span></span><em>Capabilities</em></a>
+        <a href="#contact"><i>05</i><span class="mask"><span>Contact</span></span><em>Contact</em></a>
+      </nav>
+      <div class="menu__foot">
+        <a class="menu__mail" href="mailto:hello@leovoss.studio">hello@leovoss.studio</a>
+        <ul class="menu__social" role="list">
+          <li><a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+          <li><a href="https://x.com" target="_blank" rel="noopener noreferrer">X</a></li>
+          <li><a href="https://dribbble.com" target="_blank" rel="noopener noreferrer">Dribbble</a></li>
+          <li><a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <main id="main" tabindex="-1">
+    <!-- ░░ 01 — Hero ░░ -->
+    <section class="hero" id="top">
+      <aside class="hero__rail" aria-hidden="true">
+        <ul role="list">
+          <li><a href="https://github.com" target="_blank" rel="noopener noreferrer" tabindex="-1">Gh</a></li>
+          <li><a href="https://x.com" target="_blank" rel="noopener noreferrer" tabindex="-1">X</a></li>
+          <li><a href="https://dribbble.com" target="_blank" rel="noopener noreferrer" tabindex="-1">Dr</a></li>
+        </ul>
+      </aside>
+
+      <div class="hero__top">
+        <p class="mono" data-reveal="fade">(Portfolio) — Vol. 04, MMXXVI</p>
+        <p class="mono" data-reveal="fade" style="--rd:.12s">Lisbon 38.72° N / 9.14° W</p>
+        <p class="mono" data-reveal="fade" style="--rd:.24s">Local time <span class="clock" data-clock>--:--:--</span></p>
+      </div>
+
+      <h1 class="hero__title">
+        <span class="mask"><span>Making the</span></span>
+        <span class="mask"><span>web feel</span></span>
+        <span class="mask"><span><em class="hero__em">alive</em><span class="hero__period" aria-hidden="true">.</span></span></span>
+      </h1>
+
+      <div class="hero__bottom">
+        <p class="hero__role mono">
+          <span class="hero__role-idx" aria-hidden="true">/</span>
+          <span data-rotator data-rotate-items="Creative Frontend Developer,Motion &amp; Interaction,Design Engineer">Creative Frontend Developer</span>
+        </p>
+        <p class="hero__intro" data-reveal="fade" style="--rd:.5s">
+          Independent developer crafting immersive interfaces where
+          typography, motion and engineering converge — for studios and
+          brands that refuse the template.
+        </p>
+        <p class="hero__scroll mono" data-reveal="fade" style="--rd:.62s">
+          <span>Scroll to explore</span>
+          <i class="hero__scroll-line" aria-hidden="true"></i>
+        </p>
+      </div>
+    </section>
+
+    <!-- ░░ Marquee divider ░░ -->
+    <div class="marquee marquee--hero" data-marquee data-speed="0.55" aria-hidden="true">
+      <div class="marquee__track">
+        <span>Selected works</span><i>✦</i><span>Motion design</span><i>✦</i><span>Creative development</span><i>✦</i><span>Design engineering</span><i>✦</i><span>Type &amp; detail</span><i>✦</i>
+        <span>Selected works</span><i>✦</i><span>Motion design</span><i>✦</i><span>Creative development</span><i>✦</i><span>Design engineering</span><i>✦</i><span>Type &amp; detail</span><i>✦</i>
+      </div>
+    </div>
+
+    <!-- ░░ 02 — About ░░ -->
+    <section class="about section" id="about">
+      <header class="section__head">
+        <h2 class="section__label mono" data-scramble data-reveal="fade">(01 — About)</h2>
+        <i class="section__rule" data-reveal="fade" aria-hidden="true"></i>
+        <p class="section__note mono" data-reveal="fade" style="--rd:.1s">Lisbon / Remote worldwide</p>
+      </header>
+
+      <div class="about__grid">
+        <div class="about__sticky">
+          <figure class="portrait" data-reveal="fade">
+            <div class="portrait__art art art--portrait" aria-hidden="true"><span>lv</span></div>
+            <figcaption class="mono">Leo Voss — Fig. 01, at the studio, 2026</figcaption>
+          </figure>
+          <dl class="facts" data-reveal="fade" style="--rd:.12s">
+            <div><dt>Name</dt><dd>Leo Voss</dd></div>
+            <div><dt>Role</dt><dd>Creative Frontend Developer</dd></div>
+            <div><dt>Based</dt><dd>Lisbon, Portugal</dd></div>
+            <div><dt>Focus</dt><dd>Motion · Type · Performance</dd></div>
+            <div><dt>Status</dt><dd class="facts__live"><i class="status__dot" aria-hidden="true"></i>Open to select projects</dd></div>
+          </dl>
+        </div>
+
+        <div class="about__body">
+          <p class="about__statement" data-words data-reveal="words">
+            I build interfaces that behave like <em>physical things</em> — weight,
+            momentum, response. Eight years between design and engineering,
+            obsessed with the frames in between: the easing curve, the masked
+            line, the hover that answers back.
+          </p>
+          <p class="about__text" data-reveal="fade">
+            I work independently with studios, agencies and product teams — from
+            brand sites and launch moments to design systems that survive real
+            roadmaps. The stack changes; the standard doesn't: <strong>60fps or it
+            doesn't ship</strong>, accessible by default, and no detail too small to
+            argue about.
+          </p>
+          <p class="about__text" data-reveal="fade" style="--rd:.1s">
+            Before going solo I led frontend at a Lisbon product studio and spent
+            two seasons inside an agency machine, learning that the best work
+            happens when the person drawing the curve is the person shipping it.
+          </p>
+          <ul class="about__marks mono" role="list" data-reveal="fade" style="--rd:.16s">
+            <li>Awwwards — SOTD ×3</li>
+            <li>CSS Design Awards — Best UI</li>
+            <li>FWA — Site of the Day</li>
+            <li>Speaker — Smashing Conf '25</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ░░ 03 — Work ░░ -->
+    <section class="work section" id="work">
+      <header class="section__head">
+        <h2 class="section__label mono" data-scramble data-reveal="fade">(02 — Selected Work)</h2>
+        <i class="section__rule" data-reveal="fade" aria-hidden="true"></i>
+        <p class="section__note mono" data-reveal="fade" style="--rd:.1s">05 projects — 2024/26</p>
+      </header>
+
+      <ol class="work__list" role="list">
+        <li class="work-item" data-variant="aurora">
+          <button class="work-row" type="button" aria-expanded="false" aria-controls="wd-01" data-cursor="view">
+            <span class="work-row__idx mono">01</span>
+            <span class="work-row__name">
+              <span class="work-row__title">Aurora Studio</span>
+              <span class="work-row__title work-row__title--em" aria-hidden="true"><em>Aurora Studio</em></span>
+            </span>
+            <span class="work-row__cat mono">Brand site · WebGL configurator</span>
+            <span class="work-row__year mono">'26</span>
+            <span class="work-row__plus" aria-hidden="true"><i></i><i></i></span>
+          </button>
+          <div class="work-details" id="wd-01" role="region" aria-label="Aurora Studio details">
+            <div class="work-details__inner">
+              <p>A real-time 3D configurator for a lighting studio — customers sculpt, dim and finish bespoke lamps in the browser, then drop the exact piece into a room-scale scene.</p>
+              <ul class="chips" role="list"><li>Three.js</li><li>GLSL</li><li>Next.js</li><li>R3F</li></ul>
+              <p class="work-details__stat mono">+34% time on page — locked 60fps on mid-tier mobile</p>
+            </div>
+          </div>
+          <figure class="work-thumb"><div class="art art--aurora" aria-hidden="true"></div><figcaption class="mono">Aurora Studio — configurator still</figcaption></figure>
+        </li>
+
+        <li class="work-item" data-variant="nocturne">
+          <button class="work-row" type="button" aria-expanded="false" aria-controls="wd-02" data-cursor="view">
+            <span class="work-row__idx mono">02</span>
+            <span class="work-row__name">
+              <span class="work-row__title">Nocturne Records</span>
+              <span class="work-row__title work-row__title--em" aria-hidden="true"><em>Nocturne Records</em></span>
+            </span>
+            <span class="work-row__cat mono">E-commerce · Vinyl subscription</span>
+            <span class="work-row__year mono">'25</span>
+            <span class="work-row__plus" aria-hidden="true"><i></i><i></i></span>
+          </button>
+          <div class="work-details" id="wd-02" role="region" aria-label="Nocturne Records details">
+            <div class="work-details__inner">
+              <p>Editorial commerce for an independent label. Every release page scrubs audio as you scroll — the groove of the record drives the groove of the page.</p>
+              <ul class="chips" role="list"><li>React</li><li>GSAP</li><li>Web Audio</li><li>Sanity</li></ul>
+              <p class="work-details__stat mono">2.1× subscription conversion — 41s median session</p>
+            </div>
+          </div>
+          <figure class="work-thumb"><div class="art art--nocturne" aria-hidden="true"></div><figcaption class="mono">Nocturne Records — release page</figcaption></figure>
+        </li>
+
+        <li class="work-item" data-variant="meridian">
+          <button class="work-row" type="button" aria-expanded="false" aria-controls="wd-03" data-cursor="view">
+            <span class="work-row__idx mono">03</span>
+            <span class="work-row__name">
+              <span class="work-row__title">Meridian Labs</span>
+              <span class="work-row__title work-row__title--em" aria-hidden="true"><em>Meridian Labs</em></span>
+            </span>
+            <span class="work-row__cat mono">Product UI · Design system</span>
+            <span class="work-row__year mono">'25</span>
+            <span class="work-row__plus" aria-hidden="true"><i></i><i></i></span>
+          </button>
+          <div class="work-details" id="wd-03" role="region" aria-label="Meridian Labs details">
+            <div class="work-details__inner">
+              <p>Design system and analytics dashboard for a climate-data platform — 140+ tokens-driven components, dense data tables that stay legible, and dark mode that was dark mode from day one.</p>
+              <ul class="chips" role="list"><li>TypeScript</li><li>React</li><li>D3</li><li>Storybook</li></ul>
+              <p class="work-details__stat mono">140+ components — WCAG 2.2 AA across the system</p>
+            </div>
+          </div>
+          <figure class="work-thumb"><div class="art art--meridian" aria-hidden="true"></div><figcaption class="mono">Meridian Labs — system sheet</figcaption></figure>
+        </li>
+
+        <li class="work-item" data-variant="halcyon">
+          <button class="work-row" type="button" aria-expanded="false" aria-controls="wd-04" data-cursor="view">
+            <span class="work-row__idx mono">04</span>
+            <span class="work-row__name">
+              <span class="work-row__title">Halcyon Travel</span>
+              <span class="work-row__title work-row__title--em" aria-hidden="true"><em>Halcyon Travel</em></span>
+            </span>
+            <span class="work-row__cat mono">Editorial · Scroll experience</span>
+            <span class="work-row__year mono">'24</span>
+            <span class="work-row__plus" aria-hidden="true"><i></i><i></i></span>
+          </button>
+          <div class="work-details" id="wd-04" role="region" aria-label="Halcyon Travel details">
+            <div class="work-details__inner">
+              <p>A long-form scroll journey through twelve slow-travel destinations — canvas-drawn horizons, parallax field notes, and a reading rhythm that never loses its place.</p>
+              <ul class="chips" role="list"><li>Astro</li><li>Canvas</li><li>Lenis</li><li>GSAP</li></ul>
+              <p class="work-details__stat mono">Awwwards Honorable Mention — 3.2 min median read</p>
+            </div>
+          </div>
+          <figure class="work-thumb"><div class="art art--halcyon" aria-hidden="true"></div><figcaption class="mono">Halcyon Travel — chapter IV</figcaption></figure>
+        </li>
+
+        <li class="work-item" data-variant="form">
+          <button class="work-row" type="button" aria-expanded="false" aria-controls="wd-05" data-cursor="view">
+            <span class="work-row__idx mono">05</span>
+            <span class="work-row__name">
+              <span class="work-row__title">Form &amp; Function</span>
+              <span class="work-row__title work-row__title--em" aria-hidden="true"><em>Form &amp; Function</em></span>
+            </span>
+            <span class="work-row__cat mono">Experiment · Variable type</span>
+            <span class="work-row__year mono">'24</span>
+            <span class="work-row__plus" aria-hidden="true"><i></i><i></i></span>
+          </button>
+          <div class="work-details" id="wd-05" role="region" aria-label="Form and Function details">
+            <div class="work-details__inner">
+              <p>An open-source variable-font playground: one glyph, a thousand expressions. Drag any axis — weight, optical size, slant — and watch the letterform answer at 60fps.</p>
+              <ul class="chips" role="list"><li>WebGL</li><li>Variable fonts</li><li>Vite</li><li>OSS</li></ul>
+              <p class="work-details__stat mono">28k monthly visitors — 1.9k stars on GitHub</p>
+            </div>
+          </div>
+          <figure class="work-thumb"><div class="art art--form" aria-hidden="true"></div><figcaption class="mono">Form &amp; Function — axis study</figcaption></figure>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ░░ 04 — Approach (stacked cards) ░░ -->
+    <section class="approach section" id="approach">
+      <header class="section__head">
+        <h2 class="section__label mono" data-scramble data-reveal="fade">(03 — Approach)</h2>
+        <i class="section__rule" data-reveal="fade" aria-hidden="true"></i>
+        <p class="section__note mono" data-reveal="fade" style="--rd:.1s">How the work gets made</p>
+      </header>
+
+      <div class="stack" data-stack>
+        <article class="stack__card" style="--i:0" data-reveal="fade">
+          <p class="stack__idx mono">01</p>
+          <h3 class="stack__title">Design <em>engineering</em></h3>
+          <p class="stack__text">I erase the seam between design and code. Prototypes live in the browser from day one, so decisions get made in the real material — real type, real motion, real latency.</p>
+          <p class="stack__foot mono">Figma → Code, same week</p>
+        </article>
+        <article class="stack__card" style="--i:1" data-reveal="fade">
+          <p class="stack__idx mono">02</p>
+          <h3 class="stack__title">Motion with <em>meaning</em></h3>
+          <p class="stack__text">Animation answers questions before they're asked: where did this come from, what just changed, what can I touch. Easing curves carry intent — nothing moves for attention alone.</p>
+          <p class="stack__foot mono">Transform &amp; opacity only</p>
+        </article>
+        <article class="stack__card" style="--i:2" data-reveal="fade">
+          <p class="stack__idx mono">03</p>
+          <h3 class="stack__title">Performance is <em>craft</em></h3>
+          <p class="stack__text">A 16.7ms frame budget is a design constraint like any other. Compositor-only animation, lazy everything, Core Web Vitals in the green — or it doesn't ship.</p>
+          <p class="stack__foot mono">98+ median Lighthouse</p>
+        </article>
+        <article class="stack__card" style="--i:3" data-reveal="fade">
+          <p class="stack__idx mono">04</p>
+          <h3 class="stack__title">Details <em>compound</em></h3>
+          <p class="stack__text">Kerning, focus rings, empty states, the three-hundredth hover. Craft is what remains when you care about the parts nobody consciously sees — they add up to the feeling.</p>
+          <p class="stack__foot mono">Accessible by default</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ░░ 05 — Capabilities + Stats ░░ -->
+    <section class="caps section" id="capabilities">
+      <header class="section__head">
+        <h2 class="section__label mono" data-scramble data-reveal="fade">(04 — Capabilities)</h2>
+        <i class="section__rule" data-reveal="fade" aria-hidden="true"></i>
+        <p class="section__note mono" data-reveal="fade" style="--rd:.1s">What I bring to a build</p>
+      </header>
+
+      <div class="caps__grid">
+        <div class="caps__list">
+          <div class="cap" data-reveal="fade">
+            <h3>Creative development</h3>
+            <p>Brand sites, portfolios, product launches — the surfaces where first impressions are the whole job.</p>
+          </div>
+          <div class="cap" data-reveal="fade" style="--rd:.08s">
+            <h3>Motion &amp; interaction</h3>
+            <p>Scroll choreography, page transitions, micro-interactions — a motion system, not scattered effects.</p>
+          </div>
+          <div class="cap" data-reveal="fade" style="--rd:.16s">
+            <h3>Design systems</h3>
+            <p>Tokens, components and documentation teams actually use — built to survive real roadmaps.</p>
+          </div>
+          <div class="cap" data-reveal="fade" style="--rd:.24s">
+            <h3>Performance &amp; access</h3>
+            <p>Core Web Vitals budgets, keyboard paths, screen-reader passes, 200% zoom — quality you can measure.</p>
+          </div>
+        </div>
+
+        <aside class="caps__tools" data-reveal="fade" style="--rd:.1s">
+          <p class="caps__tools-label mono">Toolkit — daily drivers</p>
+          <ul class="tools" role="list">
+            <li>TypeScript</li><li>React</li><li>Next.js</li><li>GSAP</li>
+            <li>Three.js</li><li>WebGL / GLSL</li><li>Lenis</li><li>Astro</li>
+            <li>Figma</li><li>Node</li><li>Web Audio</li><li>CSS architecture</li>
+          </ul>
+          <p class="caps__tools-note mono">Also fluent in: your stack, by Friday.</p>
+        </aside>
+      </div>
+
+      <div class="stats" data-reveal="fade">
+        <div class="stat">
+          <p class="stat__num mono"><span data-count="8" data-pad="2">00</span>+</p>
+          <p class="stat__label">Years of craft</p>
+        </div>
+        <div class="stat">
+          <p class="stat__num mono"><span data-count="47">0</span></p>
+          <p class="stat__label">Projects shipped</p>
+        </div>
+        <div class="stat">
+          <p class="stat__num mono"><span data-count="6" data-pad="2">00</span></p>
+          <p class="stat__label">Awards &amp; honors</p>
+        </div>
+        <div class="stat">
+          <p class="stat__num mono"><span data-count="99">0</span></p>
+          <p class="stat__label">Median Lighthouse</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ░░ Quote ░░ -->
+    <section class="quote section" aria-label="Testimonial">
+      <blockquote data-reveal="quote">
+        <p class="quote__text"><span class="mask"><span>“Leo doesn't build interfaces.</span></span><span class="mask"><span>He <em>choreographs</em> them — every</span></span><span class="mask"><span>scroll feels inevitable.”</span></span></p>
+        <footer class="quote__by mono">
+          <span data-reveal="fade">Ana Ferreira</span>
+          <span data-reveal="fade" style="--rd:.1s">Creative Director, Meridian Labs</span>
+        </footer>
+      </blockquote>
+    </section>
+
+  </main>
+
+    <!-- ░░ 06 — Contact (contentinfo) ░░ -->
+    <footer class="contact section" id="contact">
+      <div class="marquee marquee--contact" data-marquee data-speed="-0.45" aria-hidden="true">
+        <div class="marquee__track">
+          <span>Available for freelance — Q3 2026</span><i>✦</i><span>Lisbon &amp; remote</span><i>✦</i><span>Let's talk</span><i>✦</i>
+          <span>Available for freelance — Q3 2026</span><i>✦</i><span>Lisbon &amp; remote</span><i>✦</i><span>Let's talk</span><i>✦</i>
+        </div>
+      </div>
+
+      <div class="contact__grid">
+        <h2 class="section__label mono" data-scramble data-reveal="fade">(05 — Contact)</h2>
+        <h2 class="contact__title">
+          <span class="mask"><span>Let's build</span></span>
+          <span class="mask"><span>something <em>alive</em></span></span>
+        </h2>
+        <div class="contact__actions" data-reveal="fade" style="--rd:.2s">
+          <a class="cta" href="mailto:hello@leovoss.studio" data-magnetic data-cursor="hide">
+            <span class="cta__text">Say hello</span>
+            <span class="cta__arrow" aria-hidden="true">↗</span>
+          </a>
+          <div class="contact__direct">
+            <a class="contact__mail" href="mailto:hello@leovoss.studio">hello@leovoss.studio</a>
+            <p class="mono">Replies within 24h — project or just a good link.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="contact__foot">
+        <div class="contact__col" data-reveal="fade">
+          <p class="mono contact__col-label">Elsewhere</p>
+          <ul role="list" class="contact__social">
+            <li><a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></li>
+            <li><a href="https://x.com" target="_blank" rel="noopener noreferrer">X <span aria-hidden="true">↗</span></a></li>
+            <li><a href="https://dribbble.com" target="_blank" rel="noopener noreferrer">Dribbble <span aria-hidden="true">↗</span></a></li>
+            <li><a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">LinkedIn <span aria-hidden="true">↗</span></a></li>
+          </ul>
+        </div>
+        <div class="contact__col" data-reveal="fade" style="--rd:.08s">
+          <p class="mono contact__col-label">Studio time — Lisbon</p>
+          <p class="contact__clock mono"><span data-clock>--:--:--</span> <span data-clock-zone>WEST</span></p>
+          <p class="mono">38.72° N / 9.14° W</p>
+        </div>
+        <div class="contact__col" data-reveal="fade" style="--rd:.16s">
+          <p class="mono contact__col-label">Colophon</p>
+          <p class="mono">Set in Instrument Serif &amp; Space Grotesk.<br>Handcrafted — no templates, no page builders.</p>
+        </div>
+      </div>
+
+      <div class="contact__base">
+        <p class="mono">© <span data-year>2026</span> Leo Voss — All rights reserved.</p>
+        <button class="to-top" id="toTop" type="button" data-magnetic>
+          <span class="mono">Back to top</span>
+          <i class="to-top__arrow" aria-hidden="true">↑</i>
+        </button>
+      </div>
+    </footer>
+
+  <!-- ░░ Floating work preview (fine pointers) ░░ -->
+  <div class="follower" id="follower" aria-hidden="true">
+    <div class="follower__art art art--aurora"></div>
+    <div class="follower__art art art--nocturne"></div>
+    <div class="follower__art art art--meridian"></div>
+    <div class="follower__art art art--halcyon"></div>
+    <div class="follower__art art art--form"></div>
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>

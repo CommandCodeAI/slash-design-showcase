@@ -1,0 +1,2769 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#08080a">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Kaelen Thorne — Creative Technologist & Senior Frontend Engineer crafting fluid editorial web realities, WebGL shaders, and high-performance design systems.">
+  <title>Kaelen Thorne — Creative Engineer & Interface Director</title>
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* ==========================================================================
+       DESIGN TOKENS & SYSTEM ARCHITECTURE (OKLCH Color Space)
+       ========================================================================== */
+    :root {
+      /* Pure tonal canvas */
+      --bg: oklch(0.12 0.012 275);
+      --bg-surface: oklch(0.155 0.016 275);
+      --bg-surface-elev: oklch(0.19 0.018 275);
+      --bg-surface-trans: oklch(0.14 0.014 275 / 0.72);
+      
+      /* Luminous Ink & Accents */
+      --ink: oklch(0.96 0.012 95);
+      --ink-secondary: oklch(0.78 0.018 270);
+      --ink-muted: oklch(0.54 0.022 270);
+      --ink-subtle: oklch(0.38 0.020 270);
+      
+      /* Electric Amber/Gold Accent - Haute couture precision */
+      --accent: oklch(0.78 0.165 68);
+      --accent-glow: oklch(0.78 0.165 68 / 0.28);
+      --accent-ink: oklch(0.14 0.04 68);
+      --accent-secondary: oklch(0.68 0.21 28);
+      
+      /* Precision Borders & Lines */
+      --border: oklch(0.24 0.018 275);
+      --border-subtle: oklch(0.18 0.014 275);
+      --border-focus: var(--accent);
+
+      /* Typography */
+      --font-display: 'Cinzel', serif, Georgia;
+      --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'Space Mono', ui-monospace, monospace;
+
+      /* Spatial Rhythm (1-4-9 Base) */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-6: 24px;
+      --space-9: 36px;
+      --space-12: 48px;
+      --space-18: 72px;
+      --space-27: 108px;
+      --space-36: 144px;
+
+      /* Layout */
+      --pad-x: clamp(1.25rem, 5vw, 5.5rem);
+      --nav-h: 76px;
+      --container-max: 1560px;
+      
+      /* Motion Curves */
+      --ease-quart: cubic-bezier(0.25, 1, 0.5, 1);
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out-cinematic: cubic-bezier(0.85, 0, 0.15, 1);
+      --dur-fast: 240ms;
+      --dur-base: 450ms;
+      --dur-slow: 850ms;
+      
+      /* Z-layers */
+      --z-bg: 0;
+      --z-canvas: 1;
+      --z-content: 10;
+      --z-nav: 100;
+      --z-cursor: 900;
+      --z-overlay: 1000;
+    }
+
+    /* ==========================================================================
+       RESET & BASE ELEMENTS
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    html {
+      background-color: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) var(--bg);
+    }
+
+    body {
+      position: relative;
+      background-color: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: default;
+    }
+
+    body.loading {
+      overflow: hidden;
+    }
+
+    ::selection {
+      background: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    :focus-visible {
+      outline: 2px dashed var(--accent);
+      outline-offset: 4px;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    button {
+      background: none;
+      border: none;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    img, video, canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+
+    ul, ol {
+      list-style: none;
+    }
+
+    .skip-link {
+      position: fixed;
+      top: -100px;
+      left: var(--pad-x);
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      z-index: 2000;
+      transition: top 0.25s var(--ease-out-expo);
+    }
+    .skip-link:focus {
+      top: 20px;
+    }
+
+    /* Screen-reader utility */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* ==========================================================================
+       NOISE & AMBIENT ATMOSPHERE
+       ========================================================================== */
+    .film-grain {
+      position: fixed;
+      inset: -50%;
+      width: 200%;
+      height: 200%;
+      pointer-events: none;
+      z-index: 99;
+      opacity: 0.038;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      animation: grainShift 8s steps(10) infinite;
+    }
+
+    @keyframes grainShift {
+      0%, 100% { transform: translate(0, 0); }
+      10% { transform: translate(-4%, -8%); }
+      20% { transform: translate(6%, 3%); }
+      30% { transform: translate(-7%, 4%); }
+      40% { transform: translate(2%, -6%); }
+      50% { transform: translate(-3%, 7%); }
+      60% { transform: translate(5%, -4%); }
+      70% { transform: translate(-6%, -2%); }
+      80% { transform: translate(3%, 5%); }
+      90% { transform: translate(-2%, -3%); }
+    }
+
+    /* WebGL Fluid Interactive Canvas */
+    #hero-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: var(--z-canvas);
+      opacity: 0.85;
+      transition: opacity 1.2s ease;
+    }
+
+    /* Scroll progress indicator */
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+      transform-origin: 0 50%;
+      transform: scaleX(0);
+      z-index: 1001;
+      will-change: transform;
+    }
+
+    /* ==========================================================================
+       CUSTOM DUAL-STAGE CURSOR (Hardware accelerated)
+       ========================================================================== */
+    .cursor-follower, .cursor-dot {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      border-radius: 50%;
+      z-index: var(--z-cursor);
+      transform: translate3d(-50%, -50%, 0);
+      display: none;
+    }
+
+    .cursor-dot {
+      width: 6px;
+      height: 6px;
+      background-color: var(--ink);
+      mix-blend-mode: difference;
+      transition: opacity 0.2s ease, transform 0.15s var(--ease-out-expo);
+    }
+
+    .cursor-follower {
+      width: 44px;
+      height: 44px;
+      border: 1px solid oklch(0.96 0.012 95 / 0.45);
+      mix-blend-mode: difference;
+      transition: width 0.35s var(--ease-out-expo), height 0.35s var(--ease-out-expo),
+                  background-color 0.35s ease, border-color 0.35s ease;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cursor-follower span {
+      opacity: 0;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #000;
+      transform: scale(0.6);
+      transition: all 0.25s var(--ease-out-expo);
+    }
+
+    body.cursor-active .cursor-follower {
+      width: 88px;
+      height: 88px;
+      background-color: var(--ink);
+      border-color: transparent;
+      mix-blend-mode: normal;
+    }
+
+    body.cursor-active .cursor-follower span {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    body.cursor-active .cursor-dot {
+      opacity: 0;
+    }
+
+    body.cursor-magnetic .cursor-follower {
+      width: 64px;
+      height: 64px;
+      border-color: var(--accent);
+      background-color: var(--accent-glow);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .cursor-follower, .cursor-dot {
+        display: flex;
+      }
+      body.has-custom-cursor {
+        cursor: none;
+      }
+      body.has-custom-cursor a,
+      body.has-custom-cursor button {
+        cursor: none;
+      }
+    }
+
+    /* ==========================================================================
+       CURTAIN / PAGE LOADER
+       ========================================================================== */
+    .loader-curtain {
+      position: fixed;
+      inset: 0;
+      background-color: oklch(0.08 0.01 270);
+      z-index: var(--z-overlay);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: var(--pad-x);
+      transition: transform 1.1s var(--ease-in-out-cinematic);
+    }
+
+    .loader-curtain.loaded {
+      transform: translateY(-100%);
+    }
+
+    .loader-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+    }
+
+    .loader-counter {
+      font-family: var(--font-display);
+      font-size: clamp(4.5rem, 16vw, 15rem);
+      font-weight: 800;
+      line-height: 0.85;
+      color: var(--ink);
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+
+    .loader-counter .symbol {
+      font-size: 0.35em;
+      color: var(--accent);
+      font-family: var(--font-mono);
+    }
+
+    .loader-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: var(--space-4);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--ink-secondary);
+    }
+
+    .loader-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      width: 0%;
+      background: var(--accent);
+      transition: width 0.1s linear;
+    }
+
+    /* ==========================================================================
+       HEADER & NAVIGATION
+       ========================================================================== */
+    .site-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: var(--nav-h);
+      padding: 0 var(--pad-x);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: var(--z-nav);
+      transition: background-color 0.4s var(--ease-quart), border-color 0.4s var(--ease-quart), backdrop-filter 0.4s;
+    }
+
+    .site-header.scrolled {
+      background-color: var(--bg-surface-trans);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-family: var(--font-display);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      font-size: 1.15rem;
+    }
+
+    .brand-mark .monogram {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--accent);
+      background: oklch(0.18 0.015 275 / 0.5);
+      transition: border-color 0.3s ease, transform 0.4s var(--ease-out-expo);
+    }
+
+    .brand-mark:hover .monogram {
+      border-color: var(--accent);
+      transform: rotate(90deg);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: var(--space-9);
+    }
+
+    .nav-item {
+      position: relative;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink-secondary);
+      padding: var(--space-2) 0;
+      transition: color 0.3s ease;
+    }
+
+    .nav-item::before {
+      content: attr(data-index);
+      font-size: 0.65rem;
+      color: var(--accent);
+      margin-right: 6px;
+      opacity: 0.7;
+    }
+
+    .nav-item::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: 100% 50%;
+      transition: transform 0.4s var(--ease-out-expo);
+    }
+
+    .nav-item:hover, .nav-item.active {
+      color: var(--ink);
+    }
+
+    .nav-item:hover::after, .nav-item.active::after {
+      transform: scaleX(1);
+      transform-origin: 0 50%;
+    }
+
+    .nav-status {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: 6px 14px;
+      background: oklch(0.18 0.015 275 / 0.6);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+    }
+
+    .status-pulse {
+      width: 7px;
+      height: 7px;
+      background-color: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent);
+      animation: pulseGlow 2.5s infinite;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.4; }
+    }
+
+    .mobile-nav-toggle {
+      display: none;
+      width: 44px;
+      height: 44px;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      z-index: 101;
+    }
+
+    .mobile-nav-toggle span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background-color: var(--ink);
+      transition: all 0.3s ease;
+    }
+
+    /* ==========================================================================
+       SECTION SCAFFOLDING
+       ========================================================================== */
+    .section-wrap {
+      position: relative;
+      padding: var(--space-27) var(--pad-x);
+      max-width: var(--container-max);
+      margin: 0 auto;
+      z-index: var(--z-content);
+    }
+
+    .section-header {
+      margin-bottom: var(--space-18);
+      position: relative;
+    }
+
+    .section-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: var(--space-4);
+    }
+
+    .section-badge::before {
+      content: '—';
+      color: var(--ink-muted);
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.2rem, 5.5vw, 4.75rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+
+    .section-title .italic-flair {
+      font-style: italic;
+      font-weight: 400;
+      color: var(--ink-secondary);
+      font-family: var(--font-display);
+    }
+
+    /* ==========================================================================
+       HERO: IMMERSIVE THEATRICAL VIEWPORT
+       ========================================================================== */
+    .hero-viewport {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: calc(var(--nav-h) + var(--space-9)) var(--pad-x) var(--space-12);
+      position: relative;
+      max-width: var(--container-max);
+      margin: 0 auto;
+      z-index: var(--z-content);
+    }
+
+    .hero-manifesto {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: flex-start;
+      gap: var(--space-9);
+      margin-bottom: var(--space-9);
+    }
+
+    .hero-coords {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--ink-muted);
+      letter-spacing: 0.1em;
+      line-height: 1.7;
+    }
+
+    .hero-coords strong {
+      color: var(--ink);
+    }
+
+    .hero-headline-wrap {
+      margin: auto 0;
+      position: relative;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.8rem, 8.5vw, 8.8rem);
+      font-weight: 900;
+      line-height: 0.92;
+      letter-spacing: -0.035em;
+      text-transform: uppercase;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero-title .line {
+      display: block;
+      overflow: hidden;
+    }
+
+    .hero-title .line-inner {
+      display: inline-block;
+      transform: translateY(110%);
+      transition: transform 1.2s var(--ease-out-expo);
+      will-change: transform;
+    }
+
+    .hero-title .h-sub {
+      color: var(--ink-secondary);
+      font-weight: 400;
+      font-style: italic;
+      letter-spacing: -0.01em;
+    }
+
+    .hero-title .highlight-text {
+      background: linear-gradient(135deg, var(--ink) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: var(--space-12);
+      align-items: flex-end;
+      padding-top: var(--space-12);
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .hero-bio {
+      font-size: clamp(1.05rem, 1.4vw, 1.35rem);
+      font-weight: 300;
+      color: var(--ink-secondary);
+      line-height: 1.6;
+      max-width: 58ch;
+    }
+
+    .hero-bio strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .hero-meta-col {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+
+    .hero-meta-label {
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: var(--space-2);
+    }
+
+    .hero-meta-value {
+      color: var(--ink);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .scroll-down-affordance {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      justify-self: end;
+      transition: transform 0.3s ease;
+    }
+
+    .scroll-down-affordance:hover {
+      transform: translateY(4px);
+    }
+
+    .scroll-mouse-icon {
+      width: 20px;
+      height: 32px;
+      border: 1.5px solid var(--accent);
+      border-radius: 12px;
+      position: relative;
+    }
+
+    .scroll-mouse-icon::after {
+      content: '';
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      width: 3px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 2px;
+      transform: translateX(-50%);
+      animation: wheelBounce 2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+    }
+
+    @keyframes wheelBounce {
+      0% { transform: translate(-50%, 0); opacity: 1; }
+      80% { transform: translate(-50%, 12px); opacity: 0; }
+      81% { transform: translate(-50%, 0); opacity: 0; }
+      100% { transform: translate(-50%, 0); opacity: 1; }
+    }
+
+    /* ==========================================================================
+       MARQUEE TICKER (Art Direction Accent)
+       ========================================================================== */
+    .infinite-marquee {
+      position: relative;
+      width: 100vw;
+      margin-left: calc(-50vw + 50%);
+      overflow: hidden;
+      padding: var(--space-6) 0;
+      background: oklch(0.14 0.015 275);
+      border-top: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+      user-select: none;
+    }
+
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: marqueeRun 32s linear infinite;
+    }
+
+    .infinite-marquee:hover .marquee-track {
+      animation-play-state: paused;
+    }
+
+    .marquee-group {
+      display: flex;
+      align-items: center;
+      gap: var(--space-9);
+      padding-right: var(--space-9);
+    }
+
+    .marquee-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-secondary);
+      white-space: nowrap;
+    }
+
+    .marquee-item .bullet {
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    @keyframes marqueeRun {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* ==========================================================================
+       FEATURED WORKS (Awwwards-Style Project Gallery)
+       ========================================================================== */
+    .project-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      margin-bottom: var(--space-12);
+      padding-bottom: var(--space-6);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .filter-btn {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 8px 18px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--ink-muted);
+      transition: all 0.3s var(--ease-out-expo);
+    }
+
+    .filter-btn:hover {
+      color: var(--ink);
+      border-color: var(--ink-secondary);
+    }
+
+    .filter-btn.active {
+      color: var(--accent-ink);
+      background: var(--accent);
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+
+    .works-stream {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-27);
+    }
+
+    .work-card {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: var(--space-12);
+      align-items: center;
+      padding: var(--space-9);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: border-color 0.4s var(--ease-quart), transform 0.5s var(--ease-quart);
+    }
+
+    .work-card:nth-child(even) {
+      grid-template-columns: 0.85fr 1.15fr;
+    }
+    .work-card:nth-child(even) .work-media-stage {
+      order: 2;
+    }
+    .work-card:nth-child(even) .work-info {
+      order: 1;
+    }
+
+    .work-card:hover {
+      border-color: var(--border);
+      transform: translateY(-6px);
+    }
+
+    .work-media-stage {
+      position: relative;
+      aspect-ratio: 16 / 10;
+      border-radius: 8px;
+      overflow: hidden;
+      background: oklch(0.08 0.01 270);
+    }
+
+    .work-canvas-preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.01);
+      transition: transform 0.8s var(--ease-out-expo), filter 0.8s ease;
+      filter: grayscale(20%) contrast(105%);
+    }
+
+    .work-card:hover .work-canvas-preview {
+      transform: scale(1.08);
+      filter: grayscale(0%) contrast(110%);
+    }
+
+    .work-media-badges {
+      position: absolute;
+      top: var(--space-4);
+      left: var(--space-4);
+      display: flex;
+      gap: var(--space-2);
+      z-index: 2;
+    }
+
+    .work-pill {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      background: oklch(0.1 0.01 270 / 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--ink);
+    }
+
+    .work-pill.award {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .work-info {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+
+    .work-header-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--ink-muted);
+    }
+
+    .work-header-meta .work-num {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .work-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3.2vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+
+    .work-desc {
+      font-size: 1.05rem;
+      color: var(--ink-secondary);
+      line-height: 1.7;
+    }
+
+    .work-tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin-top: var(--space-2);
+    }
+
+    .tech-tag {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--ink-muted);
+      background: oklch(0.18 0.01 270 / 0.5);
+      border: 1px solid var(--border-subtle);
+      padding: 3px 9px;
+      border-radius: 4px;
+    }
+
+    .work-cta-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      margin-top: var(--space-4);
+    }
+
+    .btn-case-study {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--accent);
+      padding: 10px 20px;
+      border: 1px solid var(--accent);
+      border-radius: 999px;
+      transition: all 0.3s var(--ease-out-expo);
+    }
+
+    .btn-case-study:hover {
+      background: var(--accent);
+      color: var(--accent-ink);
+      transform: translateX(4px);
+    }
+
+    .btn-live-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--ink-secondary);
+      padding: 10px 16px;
+      transition: color 0.2s ease;
+    }
+    .btn-live-link:hover {
+      color: var(--ink);
+    }
+
+    /* ==========================================================================
+       TECHNICAL MASTERY & ARCHITECTURAL DISCIPLINE
+       ========================================================================== */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-6);
+    }
+
+    .skill-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: var(--space-9);
+      position: relative;
+      transition: border-color 0.3s ease, transform 0.4s var(--ease-out-expo);
+    }
+
+    .skill-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+    }
+
+    .skill-card-icon {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--accent);
+      margin-bottom: var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .skill-card-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: var(--space-3);
+      letter-spacing: -0.01em;
+    }
+
+    .skill-card-desc {
+      font-size: 0.95rem;
+      color: var(--ink-secondary);
+      line-height: 1.65;
+      margin-bottom: var(--space-6);
+    }
+
+    .skill-tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .skill-mini-pill {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--ink-secondary);
+      background: oklch(0.2 0.015 275 / 0.4);
+      border: 1px solid var(--border-subtle);
+      padding: 2px 8px;
+      border-radius: 3px;
+    }
+
+    /* ==========================================================================
+       LAB EXPERIMENTS (Interactive Micro-Interactions & Shaders)
+       ========================================================================== */
+    .lab-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-6);
+    }
+
+    .lab-card {
+      position: relative;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: var(--space-6);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      aspect-ratio: 1 / 1.15;
+      overflow: hidden;
+      transition: border-color 0.3s ease;
+    }
+
+    .lab-card:hover {
+      border-color: var(--accent);
+    }
+
+    .lab-interactive-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.65;
+      transition: opacity 0.4s ease;
+      z-index: 1;
+    }
+
+    .lab-card:hover .lab-interactive-canvas {
+      opacity: 0.95;
+    }
+
+    .lab-meta {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--ink-muted);
+    }
+
+    .lab-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .lab-name {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: var(--space-1);
+    }
+
+    .lab-specs {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--accent);
+    }
+
+    /* ==========================================================================
+       PHILOSOPHY & EDITORIAL ESSAY
+       ========================================================================== */
+    .editorial-container {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: var(--space-18);
+      align-items: flex-start;
+    }
+
+    .editorial-quote {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3.2vw, 3.6rem);
+      line-height: 1.15;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      position: sticky;
+      top: calc(var(--nav-h) + var(--space-9));
+    }
+
+    .editorial-quote span {
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    .editorial-paragraphs {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-9);
+      font-size: 1.2rem;
+      font-weight: 300;
+      color: var(--ink-secondary);
+      line-height: 1.85;
+    }
+
+    .editorial-paragraphs p strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-6);
+      padding: var(--space-9) 0;
+      border-top: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+      margin-top: var(--space-9);
+    }
+
+    .metric-item {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+
+    .metric-num {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--ink);
+    }
+
+    .metric-label {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-muted);
+    }
+
+    /* ==========================================================================
+       INTERACTIVE MODAL / PROJECT STUDY DRAWER
+       ========================================================================== */
+    .modal-drawer {
+      position: fixed;
+      inset: 0;
+      background: oklch(0.08 0.01 270 / 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 1500;
+      display: flex;
+      justify-content: flex-end;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s var(--ease-quart);
+    }
+
+    .modal-drawer.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-drawer-panel {
+      width: min(840px, 92vw);
+      height: 100%;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border);
+      padding: var(--space-12) var(--space-9);
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.6s var(--ease-out-expo);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-9);
+    }
+
+    .modal-drawer.open .modal-drawer-panel {
+      transform: translateX(0);
+    }
+
+    .modal-close-btn {
+      align-self: flex-end;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      transition: all 0.2s ease;
+    }
+
+    .modal-close-btn:hover {
+      background: var(--accent);
+      color: var(--accent-ink);
+      border-color: var(--accent);
+    }
+
+    /* ==========================================================================
+       CONTACT & COLLABORATION TERMINAL
+       ========================================================================== */
+    .contact-container {
+      background: oklch(0.14 0.016 275);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: var(--space-18) var(--pad-x);
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: var(--space-18);
+    }
+
+    .contact-hero-text {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 4.8vw, 5.2rem);
+      font-weight: 900;
+      line-height: 1.02;
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+    }
+
+    .contact-hero-text span {
+      color: var(--accent);
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-6);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .form-label {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-secondary);
+    }
+
+    .form-input, .form-textarea {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: var(--space-4) var(--space-4);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .form-input:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .form-textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+
+    .submit-btn {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-3);
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 16px 36px;
+      border-radius: 999px;
+      margin-top: var(--space-4);
+      transition: all 0.3s var(--ease-out-expo);
+    }
+
+    .submit-btn:hover {
+      background: var(--ink);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px oklch(0 0 0 / 0.4);
+    }
+
+    /* Feedback message toast */
+    .form-feedback {
+      display: none;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--accent);
+      padding: var(--space-3);
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      background: oklch(0.2 0.05 68 / 0.2);
+    }
+
+    /* ==========================================================================
+       FOOTER COLOPHON
+       ========================================================================== */
+    .site-footer {
+      max-width: var(--container-max);
+      margin: 0 auto;
+      padding: var(--space-12) var(--pad-x) var(--space-18);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--ink-muted);
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: var(--space-6);
+    }
+
+    .footer-link {
+      color: var(--ink-secondary);
+      transition: color 0.2s ease;
+    }
+    .footer-link:hover {
+      color: var(--accent);
+    }
+
+    /* ==========================================================================
+       SOUND TOGGLE & CONTROLS HUD
+       ========================================================================== */
+    .audio-hud-toggle {
+      position: fixed;
+      bottom: var(--space-6);
+      left: var(--pad-x);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      background: oklch(0.14 0.015 275 / 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-secondary);
+      transition: all 0.3s ease;
+    }
+
+    .audio-hud-toggle:hover {
+      border-color: var(--accent);
+      color: var(--ink);
+    }
+
+    .sound-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 12px;
+    }
+
+    .sound-bar {
+      width: 2px;
+      height: 4px;
+      background: var(--ink-muted);
+      border-radius: 1px;
+      transition: height 0.2s ease;
+    }
+
+    .audio-hud-toggle.playing .sound-bar:nth-child(1) { animation: soundWave 0.8s ease infinite alternate; }
+    .audio-hud-toggle.playing .sound-bar:nth-child(2) { animation: soundWave 1.1s ease 0.2s infinite alternate; }
+    .audio-hud-toggle.playing .sound-bar:nth-child(3) { animation: soundWave 0.9s ease 0.4s infinite alternate; }
+    .audio-hud-toggle.playing .sound-bar { background: var(--accent); }
+
+    @keyframes soundWave {
+      0% { height: 3px; }
+      100% { height: 12px; }
+    }
+
+    /* ==========================================================================
+       RESPONSIVE ADAPTATIONS
+       ========================================================================== */
+    @media (max-width: 1024px) {
+      .hero-footer-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .scroll-down-affordance {
+        display: none;
+      }
+      .work-card, .work-card:nth-child(even) {
+        grid-template-columns: 1fr;
+      }
+      .work-card:nth-child(even) .work-media-stage {
+        order: 1;
+      }
+      .work-card:nth-child(even) .work-info {
+        order: 2;
+      }
+      .skills-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .lab-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .editorial-container {
+        grid-template-columns: 1fr;
+        gap: var(--space-9);
+      }
+      .editorial-quote {
+        position: static;
+      }
+      .contact-container {
+        grid-template-columns: 1fr;
+        gap: var(--space-9);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links, .nav-status {
+        display: none;
+      }
+      .mobile-nav-toggle {
+        display: flex;
+      }
+      .hero-manifesto {
+        grid-template-columns: 1fr;
+      }
+      .hero-footer-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-6);
+      }
+      .skills-grid {
+        grid-template-columns: 1fr;
+      }
+      .lab-grid {
+        grid-template-columns: 1fr;
+      }
+      .site-footer {
+        flex-direction: column;
+        gap: var(--space-4);
+        align-items: flex-start;
+      }
+    }
+
+    /* Mobile overlay menu */
+    .mobile-menu-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 99;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: var(--pad-x);
+      transform: translateY(-100%);
+      transition: transform 0.6s var(--ease-in-out-cinematic);
+    }
+    .mobile-menu-overlay.open {
+      transform: translateY(0);
+    }
+    .mobile-nav-items {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-6);
+    }
+    .mobile-nav-link {
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+  </style>
+</head>
+<body class="loading has-custom-cursor">
+
+  <a href="#main-content" class="skip-link">Skip to main content [Tab]</a>
+
+  <!-- Ambient Audio Synthesizer toggle -->
+  <button class="audio-hud-toggle" id="audioToggle" aria-label="Toggle ambient atmospheric audio synthesis">
+    <div class="sound-bars">
+      <div class="sound-bar"></div>
+      <div class="sound-bar"></div>
+      <div class="sound-bar"></div>
+    </div>
+    <span class="sound-label">Audio: Off</span>
+  </button>
+
+  <!-- Dual-Stage Kinetic Cursor -->
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-follower" id="cursorFollower">
+    <span id="cursorText">VIEW</span>
+  </div>
+
+  <!-- Noise Film Grain Overlay -->
+  <div class="film-grain" aria-hidden="true"></div>
+
+  <!-- WebGL Liquid Canvas Background -->
+  <canvas id="hero-canvas" aria-hidden="true"></canvas>
+
+  <!-- Global Scroll Reading Progress Bar -->
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <!-- Loader Curtain -->
+  <div class="loader-curtain" id="loaderCurtain" aria-hidden="true">
+    <div class="loader-top">
+      <span>Kaelen Thorne Studio</span>
+      <span>Index / 2026 Edition</span>
+    </div>
+    <div class="loader-counter">
+      <span id="loaderNum">00</span><span class="symbol">%</span>
+    </div>
+    <div class="loader-bottom">
+      <span>INITIALIZING GEOMETRIC SHADERS & TOKENS...</span>
+      <span>ED-2026</span>
+    </div>
+    <div class="loader-bar" id="loaderBar"></div>
+  </div>
+
+  <!-- Mobile Drawer Overlay Navigation -->
+  <div class="mobile-menu-overlay" id="mobileMenu" aria-hidden="true">
+    <div class="mobile-nav-items">
+      <a href="#work" class="mobile-nav-link" onclick="toggleMobileMenu()">Projects</a>
+      <a href="#expertise" class="mobile-nav-link" onclick="toggleMobileMenu()">Architecture</a>
+      <a href="#laboratory" class="mobile-nav-link" onclick="toggleMobileMenu()">Laboratory</a>
+      <a href="#manifesto" class="mobile-nav-link" onclick="toggleMobileMenu()">Manifesto</a>
+      <a href="#contact" class="mobile-nav-link" onclick="toggleMobileMenu()">Contact</a>
+    </div>
+  </div>
+
+  <!-- Site Header -->
+  <header class="site-header" id="siteHeader">
+    <a href="#" class="brand-mark" aria-label="Kaelen Thorne Homepage">
+      <span class="monogram">KT</span>
+      <span>KAELEN THORNE</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary navigation">
+      <a href="#work" class="nav-item" data-index="01">Works</a>
+      <a href="#expertise" class="nav-item" data-index="02">Systems</a>
+      <a href="#laboratory" class="nav-item" data-index="03">Lab</a>
+      <a href="#manifesto" class="nav-item" data-index="04">Ethos</a>
+      <a href="#contact" class="nav-item" data-index="05">Signal</a>
+    </nav>
+
+    <div class="nav-status">
+      <span class="status-pulse" aria-hidden="true"></span>
+      <span>AVAILABLE Q3/Q4</span>
+    </div>
+
+    <button class="mobile-nav-toggle" id="mobileToggle" aria-label="Open mobile navigation" aria-expanded="false">
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <main id="main-content">
+    <!-- ========================================================================
+         HERO SECTION
+         ======================================================================== -->
+    <section class="hero-viewport" aria-label="Introduction">
+      <div class="hero-manifesto">
+        <div class="hero-coords">
+          <div>LAT: 52.5200° N, 13.4050° E — BERLIN / GLOBAL</div>
+          <div>CREATIVE DIRECTION & SENIOR FRONTEND ARCHITECTURE</div>
+        </div>
+        <div class="hero-coords" style="text-align: right;">
+          <div>RECOGNITION: <strong>AWWWARDS SOTD × 4</strong></div>
+          <div>FWA OF THE DAY × 2 · CSS DESIGN AWARDS</div>
+        </div>
+      </div>
+
+      <div class="hero-headline-wrap">
+        <h1 class="hero-title">
+          <span class="line"><span class="line-inner">DIGITAL REALITY</span></span>
+          <span class="line"><span class="line-inner h-sub">THROUGH SHARP</span></span>
+          <span class="line"><span class="line-inner highlight-text">CODE & POETRY.</span></span>
+        </h1>
+      </div>
+
+      <div class="hero-footer-grid">
+        <p class="hero-bio">
+          I bridge high-fashion visual disciplines with zero-compromise frontend engineering. Crafting WebGL realities, GPU-accelerated micro-interactions, and design systems for tomorrow's iconic brands.
+        </p>
+
+        <div class="hero-meta-col">
+          <div class="hero-meta-label">Discipline Spectrum</div>
+          <div class="hero-meta-value">Creative Dev / GLSL / TS</div>
+        </div>
+
+        <a href="#work" class="scroll-down-affordance" aria-label="Scroll to featured works">
+          <span>EXPLORE INDEX</span>
+          <div class="scroll-mouse-icon"></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Infinite Marquee Art Ribbon -->
+    <div class="infinite-marquee" aria-hidden="true">
+      <div class="marquee-track">
+        <div class="marquee-group">
+          <div class="marquee-item"><span>WebGL Shaders</span><span class="bullet"></span></div>
+          <div class="marquee-item"><span>Kinetic Typography</span><span class="bullet"></span></div>
+          <div class="marquee-item"><span>60FPS Physics Animation</span><span class="bullet"></span></div>
+          <div class="marquee-item"><span>Design System Tokenization</span><span class="bullet"></span></div>
+          <div class="marquee-item"><span>Creative Direction</span><span class="bullet"></span></div>
+          <div class="marquee-item"><span>Ultra-Low Latency UI</span><span class="bullet"></span></div>
+        </div>
+        <div class="marquee-group">
+          <div class="marquee-item"><span>WebGL Shaders</span><span class="bullet"></span></div>
+          <div class="marquee-item"><span>Kinetic Typography</span><span class="bullet"></span></div>
+          <div class="marquee-item"><span>60FPS Physics Animation</span><span class="bullet"></span></div>
+          <div class="marquee-item"><span>Design System Tokenization</span><span class="bullet"></span></div>
+          <div class="marquee-item"><span>Creative Direction</span><span class="bullet"></span></div>
+          <div class="marquee-item"><span>Ultra-Low Latency UI</span><span class="bullet"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================
+         FEATURED WORKS
+         ======================================================================== -->
+    <section id="work" class="section-wrap" aria-label="Featured Works">
+      <div class="section-header">
+        <div class="section-badge">Selected Works (2024 — 2026)</div>
+        <h2 class="section-title">ENGINEERED <span class="italic-flair">MIRACLES</span></h2>
+      </div>
+
+      <!-- Category Filter Controls -->
+      <div class="project-filter-bar" role="tablist" aria-label="Project category filters">
+        <button class="filter-btn active" data-filter="all" role="tab" aria-selected="true">All Works [04]</button>
+        <button class="filter-btn" data-filter="webgl" role="tab" aria-selected="false">WebGL / Three.js [02]</button>
+        <button class="filter-btn" data-filter="design-system" role="tab" aria-selected="false">Design Systems [01]</button>
+        <button class="filter-btn" data-filter="fintech" role="tab" aria-selected="false">High-Frequency UI [01]</button>
+      </div>
+
+      <div class="works-stream">
+        <!-- Work 01 -->
+        <article class="work-card" data-category="webgl" data-project-id="solis">
+          <div class="work-media-stage">
+            <div class="work-media-badges">
+              <span class="work-pill award">★ AWWWARDS SOTD</span>
+              <span class="work-pill">GLSL SHADERS</span>
+            </div>
+            <!-- Procedural Generative SVG Canvas as artwork -->
+            <svg class="work-canvas-preview" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <radialGradient id="solisGrad" cx="60%" cy="40%" r="70%">
+                  <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.8"/>
+                  <stop offset="40%" stop-color="#d97706" stop-opacity="0.4"/>
+                  <stop offset="100%" stop-color="#0a0a0f" stop-opacity="0.95"/>
+                </radialGradient>
+                <filter id="disp1">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" result="noise"/>
+                  <feDisplacementMap in="SourceGraphic" in2="noise" scale="25" xChannelSelector="R" yChannelSelector="G"/>
+                </filter>
+              </defs>
+              <rect width="100%" height="100%" fill="#0a0a0f"/>
+              <circle cx="500" cy="250" r="180" fill="url(#solisGrad)" filter="url(#disp1)"/>
+              <path d="M 50,450 Q 250,150 450,300 T 800,100" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.6"/>
+              <text x="60" y="440" font-family="'Space Mono'" font-size="14" fill="#f59e0b" letter-spacing="4">SOLIS // KINETIC OBSERVATORY</text>
+            </svg>
+          </div>
+          <div class="work-info">
+            <div class="work-header-meta">
+              <span class="work-num">01 / 04</span>
+              <span>2026 RELEASE</span>
+            </div>
+            <h3 class="work-title">SOLIS CHRONICLES</h3>
+            <p class="work-desc">
+              An interactive WebGL cosmological simulation designed for the European Space Observatory. Built with custom GPGPU particle swarms executing at 60 FPS across desktop and high-end mobile devices.
+            </p>
+            <div class="work-tech-stack">
+              <span class="tech-tag">WebGL 2.0</span>
+              <span class="tech-tag">Three.js</span>
+              <span class="tech-tag">GLSL Shaders</span>
+              <span class="tech-tag">Web Audio API</span>
+            </div>
+            <div class="work-cta-row">
+              <button class="btn-case-study" onclick="openStudy('solis')">EXPLORE STUDY →</button>
+              <a href="#" class="btn-live-link">Live Deployment ↗</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Work 02 -->
+        <article class="work-card" data-category="fintech" data-project-id="aether">
+          <div class="work-media-stage">
+            <div class="work-media-badges">
+              <span class="work-pill award">★ FWA OF THE DAY</span>
+              <span class="work-pill">ULTRA-LOW LATENCY</span>
+            </div>
+            <svg class="work-canvas-preview" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="aetherGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.7"/>
+                  <stop offset="100%" stop-color="#1e1b4b" stop-opacity="0.95"/>
+                </linearGradient>
+              </defs>
+              <rect width="100%" height="100%" fill="#07070a"/>
+              <g stroke="#3b82f6" stroke-width="1" opacity="0.4">
+                <line x1="50" y1="50" x2="750" y2="50"/>
+                <line x1="50" y1="150" x2="750" y2="150"/>
+                <line x1="50" y1="250" x2="750" y2="250"/>
+                <line x1="50" y1="350" x2="750" y2="350"/>
+                <line x1="50" y1="450" x2="750" y2="450"/>
+              </g>
+              <polyline points="50,380 180,320 300,340 420,180 540,220 660,110 750,90" fill="none" stroke="#60a5fa" stroke-width="3"/>
+              <circle cx="660" cy="110" r="6" fill="#60a5fa"/>
+              <text x="60" y="440" font-family="'Space Mono'" font-size="14" fill="#60a5fa" letter-spacing="4">AETHER // DERIVATIVES RADAR</text>
+            </svg>
+          </div>
+          <div class="work-info">
+            <div class="work-header-meta">
+              <span class="work-num">02 / 04</span>
+              <span>2025 RELEASE</span>
+            </div>
+            <h3 class="work-title">AETHER PROTOCOL</h3>
+            <p class="work-desc">
+              Institutional algorithmic trading terminal delivering sub-16ms tick updates via binary WebSockets, custom Canvas2D orderbook depth rendering, and zero-re-render state architecture.
+            </p>
+            <div class="work-tech-stack">
+              <span class="tech-tag">TypeScript</span>
+              <span class="tech-tag">HTML5 Canvas</span>
+              <span class="tech-tag">WebSockets</span>
+              <span class="tech-tag">Web Workers</span>
+            </div>
+            <div class="work-cta-row">
+              <button class="btn-case-study" onclick="openStudy('aether')">EXPLORE STUDY →</button>
+              <a href="#" class="btn-live-link">Live Terminal ↗</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Work 03 -->
+        <article class="work-card" data-category="design-system" data-project-id="prism">
+          <div class="work-media-stage">
+            <div class="work-media-badges">
+              <span class="work-pill award">★ CSSDA BEST UI</span>
+              <span class="work-pill">DESIGN SYSTEM</span>
+            </div>
+            <svg class="work-canvas-preview" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+              <rect width="100%" height="100%" fill="#0a0a0d"/>
+              <rect x="120" y="80" width="260" height="340" rx="12" fill="#14141e" stroke="#2e2e42" stroke-width="1.5"/>
+              <rect x="420" y="140" width="260" height="280" rx="12" fill="#1b1b28" stroke="#f59e0b" stroke-width="1.5"/>
+              <circle cx="250" cy="180" r="40" fill="#3b82f6" opacity="0.8"/>
+              <circle cx="550" cy="240" r="40" fill="#f59e0b" opacity="0.8"/>
+              <text x="60" y="440" font-family="'Space Mono'" font-size="14" fill="#a1a1aa" letter-spacing="4">PRISM // OKLCH TOKENS</text>
+            </svg>
+          </div>
+          <div class="work-info">
+            <div class="work-header-meta">
+              <span class="work-num">03 / 04</span>
+              <span>2025 RELEASE</span>
+            </div>
+            <h3 class="work-title">PRISM OS SYSTEM</h3>
+            <p class="work-desc">
+              Comprehensive enterprise design token architecture built entirely in OKLCH perceptual color space. Adopted across 18 teams, saving 40% dev-to-production handoff overhead with automatic accessible contrast guarantees.
+            </p>
+            <div class="work-tech-stack">
+              <span class="tech-tag">OKLCH</span>
+              <span class="tech-tag">Style Dictionary</span>
+              <span class="tech-tag">React Server Components</span>
+              <span class="tech-tag">Tailwind</span>
+            </div>
+            <div class="work-cta-row">
+              <button class="btn-case-study" onclick="openStudy('prism')">EXPLORE STUDY →</button>
+              <a href="#" class="btn-live-link">Docs & Repo ↗</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Work 04 -->
+        <article class="work-card" data-category="webgl" data-project-id="chronos">
+          <div class="work-media-stage">
+            <div class="work-media-badges">
+              <span class="work-pill award">★ AWWWARDS INNOVATION</span>
+              <span class="work-pill">CREATIVE COMMERCE</span>
+            </div>
+            <svg class="work-canvas-preview" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <radialGradient id="chronosG" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#ec4899" stop-opacity="0.6"/>
+                  <stop offset="100%" stop-color="#09090c" stop-opacity="0.95"/>
+                </radialGradient>
+              </defs>
+              <rect width="100%" height="100%" fill="#09090c"/>
+              <circle cx="400" cy="250" r="170" fill="none" stroke="#ec4899" stroke-width="1"/>
+              <circle cx="400" cy="250" r="120" fill="url(#chronosG)"/>
+              <path d="M 400 80 L 400 250 L 520 250" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+              <text x="60" y="440" font-family="'Space Mono'" font-size="14" fill="#ec4899" letter-spacing="4">CHRONOS // SWISS HOROLOGY</text>
+            </svg>
+          </div>
+          <div class="work-info">
+            <div class="work-header-meta">
+              <span class="work-num">04 / 04</span>
+              <span>2024 RELEASE</span>
+            </div>
+            <h3 class="work-title">HAUTE HOROLOGY</h3>
+            <p class="work-desc">
+              Immersive interactive 3D product showcase for an independent Swiss watchmaker. Real-time glass refraction, physical tourbillon mechanical gear physics, and seamless cinematic transitions.
+            </p>
+            <div class="work-tech-stack">
+              <span class="tech-tag">Three.js</span>
+              <span class="tech-tag">Physically Based Rendering</span>
+              <span class="tech-tag">GSAP ScrollTrigger</span>
+            </div>
+            <div class="work-cta-row">
+              <button class="btn-case-study" onclick="openStudy('chronos')">EXPLORE STUDY →</button>
+              <a href="#" class="btn-live-link">Live Experience ↗</a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ========================================================================
+         ENGINEERING DISCIPLINES & ARCHITECTURE
+         ======================================================================== -->
+    <section id="expertise" class="section-wrap" aria-label="Technical Expertise">
+      <div class="section-header">
+        <div class="section-badge">Core Pillars</div>
+        <h2 class="section-title">THE ARCHITECTURAL <span class="italic-flair">STANDARD</span></h2>
+      </div>
+
+      <div class="skills-grid">
+        <div class="skill-card">
+          <div class="skill-card-icon">
+            <i data-lucide="sparkles"></i>
+            <span>01 // CREATIVE</span>
+          </div>
+          <h3 class="skill-card-title">Creative Engineering</h3>
+          <p class="skill-card-desc">
+            Bridging raw WebGL shaders with fluid browser rendering. Crafting emotional transitions that transform mundane user interaction into cinematic theatre.
+          </p>
+          <div class="skill-tag-list">
+            <span class="skill-mini-pill">GLSL Shaders</span>
+            <span class="skill-mini-pill">Three.js</span>
+            <span class="skill-mini-pill">Fluid Sim</span>
+            <span class="skill-mini-pill">Framer Motion</span>
+          </div>
+        </div>
+
+        <div class="skill-card">
+          <div class="skill-card-icon">
+            <i data-lucide="layers"></i>
+            <span>02 // ARCHITECTURE</span>
+          </div>
+          <h3 class="skill-card-title">Scalable Systems</h3>
+          <p class="skill-card-desc">
+            Designing resilient, modular frontend engines. Tokenizing typography, spacing, and OKLCH color palettes into bulletproof multi-brand design systems.
+          </p>
+          <div class="skill-tag-list">
+            <span class="skill-mini-pill">TypeScript</span>
+            <span class="skill-mini-pill">Next.js / Vite</span>
+            <span class="skill-mini-pill">OKLCH Spaces</span>
+            <span class="skill-mini-pill">Micro-frontends</span>
+          </div>
+        </div>
+
+        <div class="skill-card">
+          <div class="skill-card-icon">
+            <i data-lucide="gauge"></i>
+            <span>03 // OPTIMIZATION</span>
+          </div>
+          <h3 class="skill-card-title">Performance & A11y</h3>
+          <p class="skill-card-desc">
+            Strict adherence to 100 Lighthouse metrics, WCAG AAA accessibility, semantic ARIA landmarks, zero layout shifts, and native keyboard navigation.
+          </p>
+          <div class="skill-tag-list">
+            <span class="skill-mini-pill">Sub-100ms INP</span>
+            <span class="skill-mini-pill">WCAG 2.2 AAA</span>
+            <span class="skill-mini-pill">Web Workers</span>
+            <span class="skill-mini-pill">Zero CLS</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================
+         LABORATORY EXPERIMENTS (Live Interactive Canvases)
+         ======================================================================== -->
+    <section id="laboratory" class="section-wrap" aria-label="Creative Laboratory">
+      <div class="section-header">
+        <div class="section-badge">R&D / Sandbox</div>
+        <h2 class="section-title">THE SHADER <span class="italic-flair">LABORATORY</span></h2>
+      </div>
+
+      <div class="lab-grid">
+        <!-- Lab item 1: Noise Flow Field -->
+        <div class="lab-card" data-lab="flow">
+          <canvas class="lab-interactive-canvas" id="labCanvas1"></canvas>
+          <div class="lab-meta">
+            <span>EXP #081</span>
+            <span>GPU 60FPS</span>
+          </div>
+          <div class="lab-content">
+            <h4 class="lab-name">Perlin Vector Flow</h4>
+            <span class="lab-specs">Math / Trigonometric fields</span>
+          </div>
+        </div>
+
+        <!-- Lab item 2: Kinetic Typography Wave -->
+        <div class="lab-card" data-lab="wave">
+          <canvas class="lab-interactive-canvas" id="labCanvas2"></canvas>
+          <div class="lab-meta">
+            <span>EXP #094</span>
+            <span>HARMONIC</span>
+          </div>
+          <div class="lab-content">
+            <h4 class="lab-name">Magnetic Mesh</h4>
+            <span class="lab-specs">Spring physics dynamics</span>
+          </div>
+        </div>
+
+        <!-- Lab item 3: Raymarching Sphere -->
+        <div class="lab-card" data-lab="ray">
+          <canvas class="lab-interactive-canvas" id="labCanvas3"></canvas>
+          <div class="lab-meta">
+            <span>EXP #109</span>
+            <span>SDF RAYMARCH</span>
+          </div>
+          <div class="lab-content">
+            <h4 class="lab-name">Topological Warp</h4>
+            <span class="lab-specs">Signed Distance Functions</span>
+          </div>
+        </div>
+
+        <!-- Lab item 4: Optical Lens Refraction -->
+        <div class="lab-card" data-lab="lens">
+          <canvas class="lab-interactive-canvas" id="labCanvas4"></canvas>
+          <div class="lab-meta">
+            <span>EXP #122</span>
+            <span>CHROMATIC</span>
+          </div>
+          <div class="lab-content">
+            <h4 class="lab-name">Optical Dispersion</h4>
+            <span class="lab-specs">RGB split caustics</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================
+         ETHOS & EDITORIAL PHILOSOPHY
+         ======================================================================== -->
+    <section id="manifesto" class="section-wrap" aria-label="Design Philosophy">
+      <div class="editorial-container">
+        <div class="editorial-quote">
+          “THE WEB IS NOT A STATIC BROCHURE. IT IS AN <span>ALIVE, RESPONSIVE MEMBRANE</span> OF LIGHT AND LOGIC.”
+        </div>
+        <div class="editorial-paragraphs">
+          <p>
+            Too much modern software has surrendered to sterile templates and cookie-cutter component libraries. We have mastered corporate utility at the tragic expense of wonder, craft, and visceral resonance.
+          </p>
+          <p>
+            <strong>My engineering ethos rejects the generic.</strong> I treat browser rendering engines as musical instruments—measuring frame times not simply to satisfy benchmarks, but to make sure an animation moves with the organic breathing tempo of the human pulse.
+          </p>
+          <p>
+            When code is treated with the rigor of architecture and the soul of haute couture typography, users don't just consume an interface—they remember it.
+          </p>
+
+          <div class="metric-row">
+            <div class="metric-item">
+              <span class="metric-num">09+</span>
+              <span class="metric-label">Years of Craft</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-num">34+</span>
+              <span class="metric-label">Global Shipments</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-num">99.9%</span>
+              <span class="metric-label">Uptime Stability</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================
+         CONTACT & INQUIRY TERMINAL
+         ======================================================================== -->
+    <section id="contact" class="section-wrap" aria-label="Contact and Inquiries">
+      <div class="contact-container">
+        <div>
+          <div class="section-badge">Transmit Signal</div>
+          <h2 class="contact-hero-text">
+            LET'S CRAFT <span>SOMETHING</span> UNFORGETTABLE.
+          </h2>
+          <p style="color: var(--ink-secondary); font-size: 1.15rem; margin-top: var(--space-6); max-width: 44ch;">
+            Currently accepting select commissions for Q3/Q4 2026. Available for creative direction, boutique web design, and high-performance frontend architecture.
+          </p>
+
+          <div style="margin-top: var(--space-9); font-family: var(--font-mono); font-size: 0.85rem; color: var(--ink-muted); line-height: 2;">
+            <div>DIRECT: <a href="mailto:kaelen@thorne.digital" style="color: var(--accent); text-decoration: underline;">kaelen@thorne.digital</a></div>
+            <div>PGP FINGERPRINT: 4A8F B129 90E1 C3D0</div>
+            <div>STATUS: AVAILABLE FOR SELECT CLIENTS</div>
+          </div>
+        </div>
+
+        <form class="contact-form" id="contactForm" onsubmit="handleFormSubmit(event)">
+          <div class="form-group">
+            <label class="form-label" for="clientName">Your Identity / Studio *</label>
+            <input class="form-input" type="text" id="clientName" required placeholder="e.g. Elena Rostova / Studio Aethel">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="clientEmail">Electronic Mail *</label>
+            <input class="form-input" type="email" id="clientEmail" required placeholder="elena@studioaethel.com">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="projectScope">Engagement Scope</label>
+            <input class="form-input" type="text" id="projectScope" placeholder="e.g. WebGL Experience / Global Redesign / Design System">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="clientMessage">Project Manifesto & Timeline *</label>
+            <textarea class="form-textarea" id="clientMessage" required placeholder="Describe your vision, target audience, and desired launch window..."></textarea>
+          </div>
+
+          <button type="submit" class="submit-btn" id="submitBtn">
+            <span>TRANSMIT DISPATCH</span>
+            <i data-lucide="arrow-right"></i>
+          </button>
+
+          <div class="form-feedback" id="formFeedback">
+            Signal received. Transmission encrypted and logged into priority triage. I will respond within 24 hours.
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- ========================================================================
+       STUDY DETAILS MODAL / DRAWER
+       ======================================================================== -->
+  <div class="modal-drawer" id="studyModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-drawer-panel">
+      <button class="modal-close-btn" onclick="closeStudy()">
+        <span>CLOSE [ESC]</span>
+        <i data-lucide="x"></i>
+      </button>
+
+      <div class="section-badge" id="modalBadge">CASE STUDY ARCHIVE</div>
+      <h3 class="section-title" id="modalTitle" style="font-size: 2.5rem;">PROJECT NAME</h3>
+      
+      <div id="modalBody" style="display: flex; flex-direction: column; gap: var(--space-6); font-size: 1.1rem; color: var(--ink-secondary); line-height: 1.8;">
+        <!-- Injected via JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Site Colophon Footer -->
+  <footer class="site-footer">
+    <div>
+      © 2026 KAELEN THORNE. ALL RIGHTS RESERVED.
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com" target="_blank" rel="noopener" class="footer-link">GITHUB</a>
+      <a href="https://twitter.com" target="_blank" rel="noopener" class="footer-link">TWITTER / X</a>
+      <a href="https://linkedin.com" target="_blank" rel="noopener" class="footer-link">LINKEDIN</a>
+      <a href="https://awwwards.com" target="_blank" rel="noopener" class="footer-link">AWWWARDS</a>
+    </div>
+  </footer>
+
+  <!-- ========================================================================
+       CORE SCRIPT: WEBGL SHADERS, AUDIO SYNTH, LOADER, INTERACTIONS
+       ======================================================================== -->
+  <script>
+    /* Initialize Lucide icons */
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    });
+
+    /* ==========================================================================
+       1. AMBIENT AUDIO SYNTHESIZER (Web Audio API - Minimal harmonic drone)
+       ========================================================================== */
+    class AmbientSoundscape {
+      constructor() {
+        this.ctx = null;
+        this.osc1 = null;
+        this.osc2 = null;
+        this.filter = null;
+        this.gainNode = null;
+        this.isPlaying = false;
+      }
+
+      init() {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioContext();
+
+        // Dual harmonic oscillator: Warm low-frequency drone (A1 = 55Hz & E2 = 82.4Hz)
+        this.osc1 = this.ctx.createOscillator();
+        this.osc2 = this.ctx.createOscillator();
+        this.osc1.type = 'sine';
+        this.osc2.type = 'triangle';
+        this.osc1.frequency.setValueAtTime(55, this.ctx.currentTime);
+        this.osc2.frequency.setValueAtTime(82.4, this.ctx.currentTime);
+
+        // Lowpass filter for smooth warmth
+        this.filter = this.ctx.createBiquadFilter();
+        this.filter.type = 'lowpass';
+        this.filter.frequency.setValueAtTime(320, this.ctx.currentTime);
+
+        // Master gain
+        this.gainNode = this.ctx.createGain();
+        this.gainNode.gain.setValueAtTime(0.001, this.ctx.currentTime);
+
+        this.osc1.connect(this.filter);
+        this.osc2.connect(this.filter);
+        this.filter.connect(this.gainNode);
+        this.gainNode.connect(this.ctx.destination);
+
+        this.osc1.start();
+        this.osc2.start();
+      }
+
+      toggle() {
+        if (!this.ctx) {
+          this.init();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+
+        if (this.isPlaying) {
+          // Fade out smoothly
+          this.gainNode.gain.setTargetAtTime(0.0001, this.ctx.currentTime, 0.4);
+          this.isPlaying = false;
+        } else {
+          // Fade in warm ambience
+          this.gainNode.gain.setTargetAtTime(0.065, this.ctx.currentTime, 0.8);
+          this.isPlaying = true;
+        }
+        return this.isPlaying;
+      }
+    }
+
+    const soundscape = new AmbientSoundscape();
+    const audioBtn = document.getElementById('audioToggle');
+    audioBtn.addEventListener('click', () => {
+      const playing = soundscape.toggle();
+      audioBtn.classList.toggle('playing', playing);
+      audioBtn.querySelector('.sound-label').textContent = playing ? 'Audio: On' : 'Audio: Off';
+    });
+
+    /* ==========================================================================
+       2. CURTAIN LOADER & INTRO SEQUENCING
+       ========================================================================== */
+    const loaderNum = document.getElementById('loaderNum');
+    const loaderBar = document.getElementById('loaderBar');
+    const loaderCurtain = document.getElementById('loaderCurtain');
+    let loadProgress = 0;
+
+    const loaderInterval = setInterval(() => {
+      loadProgress += Math.floor(Math.random() * 12) + 4;
+      if (loadProgress >= 100) {
+        loadProgress = 100;
+        clearInterval(loaderInterval);
+        loaderNum.textContent = "100";
+        loaderBar.style.width = "100%";
+
+        setTimeout(() => {
+          loaderCurtain.classList.add('loaded');
+          document.body.classList.remove('loading');
+
+          // Trigger hero headline staggered entrance
+          document.querySelectorAll('.hero-title .line-inner').forEach((line, idx) => {
+            setTimeout(() => {
+              line.style.transform = 'translateY(0%)';
+            }, idx * 160 + 200);
+          });
+        }, 350);
+      } else {
+        loaderNum.textContent = loadProgress.toString().padStart(2, '0');
+        loaderBar.style.width = loadProgress + "%";
+      }
+    }, 45);
+
+    /* ==========================================================================
+       3. LIQUID GLSL INTERACTIVE BACKGROUND SHADER (WebGL)
+       ========================================================================== */
+    const canvas = document.getElementById('hero-canvas');
+    const gl = canvas.getContext('webgl');
+
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      if (gl) gl.viewport(0, 0, width, height);
+    });
+
+    if (gl) {
+      // Vertex shader
+      const vsSource = `
+        attribute vec2 position;
+        void main() {
+          gl_Position = vec4(position, 0.0, 1.0);
+        }
+      `;
+
+      // Fragment shader: Fluid organic plasma with mouse interaction
+      const fsSource = `
+        precision highp float;
+        uniform vec2 u_resolution;
+        uniform float u_time;
+        uniform vec2 u_mouse;
+
+        // Simplex noise utilities
+        vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+
+        float snoise(vec2 v) {
+          const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+          vec2 i  = floor(v + dot(v, C.yy));
+          vec2 x0 = v -   i + dot(i, C.xx);
+          vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+          vec4 x12 = x0.xyxy + C.xxzz;
+          x12.xy -= i1;
+          i = mod289(i);
+          vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
+          vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+          m = m*m;
+          m = m*m;
+          vec3 x = 2.0 * fract(p * C.www) - 1.0;
+          vec3 h = abs(x) - 0.5;
+          vec3 ox = floor(x + 0.5);
+          vec3 a0 = x - ox;
+          m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
+          vec3 g;
+          g.x  = a0.x  * x0.x  + h.x  * x0.y;
+          g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+          return 130.0 * dot(m, g);
+        }
+
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          st.x *= u_resolution.x / u_resolution.y;
+
+          vec2 mouse = u_mouse / u_resolution.xy;
+          mouse.x *= u_resolution.x / u_resolution.y;
+
+          float dist = distance(st, mouse);
+          float mouseInfluence = smoothstep(0.45, 0.0, dist) * 0.35;
+
+          float t = u_time * 0.12;
+          float n1 = snoise(st * 1.6 + vec2(t * 0.8, -t * 0.5));
+          float n2 = snoise(st * 3.2 - vec2(t * 0.4, t * 0.6) + n1 + mouseInfluence);
+
+          // Dark luxury palette: deep charcoal indigo base with faint amber-gold luminescence
+          vec3 colBase = vec3(0.038, 0.038, 0.048);
+          vec3 colGold = vec3(0.35, 0.22, 0.06);
+          vec3 colAccent = vec3(0.12, 0.09, 0.16);
+
+          float pattern = smoothstep(-0.2, 0.8, n2);
+          vec3 finalColor = mix(colBase, colAccent, pattern);
+          finalColor += colGold * (pow(max(0.0, n1), 3.0) * 0.65 + mouseInfluence * 0.5);
+
+          gl_FragColor = vec4(finalColor, 1.0);
+        }
+      `;
+
+      function createShader(gl, type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        return shader;
+      }
+
+      const program = gl.createProgram();
+      gl.attachShader(program, createShader(gl, gl.VERTEX_SHADER, vsSource));
+      gl.attachShader(program, createShader(gl, gl.FRAGMENT_SHADER, fsSource));
+      gl.linkProgram(program);
+      gl.useProgram(program);
+
+      const posBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+        -1, -1,  1, -1, -1,  1,
+        -1,  1,  1, -1,  1,  1
+      ]), gl.STATIC_DRAW);
+
+      const posLoc = gl.getAttribLocation(program, 'position');
+      gl.enableVertexAttribArray(posLoc);
+      gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+      const uRes = gl.getUniformLocation(program, 'u_resolution');
+      const uTime = gl.getUniformLocation(program, 'u_time');
+      const uMouse = gl.getUniformLocation(program, 'u_mouse');
+
+      let mouseX = width / 2;
+      let mouseY = height / 2;
+      let targetMouseX = width / 2;
+      let targetMouseY = height / 2;
+
+      window.addEventListener('mousemove', (e) => {
+        targetMouseX = e.clientX;
+        targetMouseY = height - e.clientY;
+      });
+
+      let startTime = performance.now();
+
+      function renderShader() {
+        const now = (performance.now() - startTime) * 0.001;
+        
+        // Damped smooth mouse interpolation
+        mouseX += (targetMouseX - mouseX) * 0.05;
+        mouseY += (targetMouseY - mouseY) * 0.05;
+
+        gl.uniform2f(uRes, width, height);
+        gl.uniform1f(uTime, now);
+        gl.uniform2f(uMouse, mouseX, mouseY);
+
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        requestAnimationFrame(renderShader);
+      }
+      requestAnimationFrame(renderShader);
+    }
+
+    /* ==========================================================================
+       4. HARDWARE ACCELERATED DUAL-STAGE CURSOR
+       ========================================================================== */
+    const cursorDot = document.getElementById('cursorDot');
+    const cursorFollower = document.getElementById('cursorFollower');
+    const cursorText = document.getElementById('cursorText');
+
+    let curX = -100, curY = -100;
+    let followX = -100, followY = -100;
+
+    window.addEventListener('mousemove', (e) => {
+      curX = e.clientX;
+      curY = e.clientY;
+      cursorDot.style.transform = `translate3d(${curX}px, ${curY}px, 0)`;
+    });
+
+    function animateCursor() {
+      followX += (curX - followX) * 0.14;
+      followY += (curY - followY) * 0.14;
+      cursorFollower.style.transform = `translate3d(${followX}px, ${followY}px, 0)`;
+      requestAnimationFrame(animateCursor);
+    }
+    requestAnimationFrame(animateCursor);
+
+    // Magnetic interaction on buttons, links & project cards
+    document.querySelectorAll('a, button, .work-card, .filter-btn').forEach((el) => {
+      el.addEventListener('mouseenter', () => {
+        if (el.classList.contains('work-card')) {
+          document.body.classList.add('cursor-active');
+          cursorText.textContent = 'EXPLORE';
+        } else {
+          document.body.classList.add('cursor-magnetic');
+        }
+      });
+      el.addEventListener('mouseleave', () => {
+        document.body.classList.remove('cursor-active', 'cursor-magnetic');
+      });
+    });
+
+    /* ==========================================================================
+       5. SCROLL PROGRESS & HEADER FROST DYNAMICS
+       ========================================================================== */
+    const scrollProgress = document.getElementById('scrollProgress');
+    const siteHeader = document.getElementById('siteHeader');
+
+    window.addEventListener('scroll', () => {
+      const totalScroll = document.documentElement.scrollTop || document.body.scrollTop;
+      const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const progress = totalScroll / scrollHeight;
+      scrollProgress.style.transform = `scaleX(${progress})`;
+
+      if (totalScroll > 50) {
+        siteHeader.classList.add('scrolled');
+      } else {
+        siteHeader.classList.remove('scrolled');
+      }
+    }, { passive: true });
+
+    /* ==========================================================================
+       6. PROJECT FILTERING LOGIC
+       ========================================================================== */
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const workCards = document.querySelectorAll('.work-card');
+
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterButtons.forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-selected', 'false');
+        });
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+
+        const filter = btn.getAttribute('data-filter');
+
+        workCards.forEach(card => {
+          const category = card.getAttribute('data-category');
+          if (filter === 'all' || category === filter) {
+            card.style.display = 'grid';
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+              card.style.transition = 'opacity 0.4s ease, transform 0.4s var(--ease-out-expo)';
+              card.style.opacity = '1';
+              card.style.transform = 'translateY(0)';
+            }, 50);
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+
+    /* ==========================================================================
+       7. INTERACTIVE LAB EXPERIMENTS (Canvases in Lab Section)
+       ========================================================================== */
+    // Lab 1: Vector Flow Field
+    const labC1 = document.getElementById('labCanvas1');
+    if (labC1) {
+      const ctx1 = labC1.getContext('2d');
+      labC1.width = 300;
+      labC1.height = 350;
+      let pTime = 0;
+
+      function renderLab1() {
+        ctx1.fillStyle = 'rgba(10, 10, 15, 0.12)';
+        ctx1.fillRect(0, 0, labC1.width, labC1.height);
+        ctx1.strokeStyle = '#f59e0b';
+        ctx1.lineWidth = 1;
+
+        pTime += 0.02;
+        ctx1.beginPath();
+        for (let i = 0; i < 40; i++) {
+          const x = (Math.sin(pTime + i * 0.4) * 0.4 + 0.5) * labC1.width;
+          const y = (Math.cos(pTime * 0.8 + i * 0.3) * 0.4 + 0.5) * labC1.height;
+          ctx1.arc(x, y, 1.5, 0, Math.PI * 2);
+        }
+        ctx1.stroke();
+        requestAnimationFrame(renderLab1);
+      }
+      renderLab1();
+    }
+
+    // Lab 2: Wave Mesh
+    const labC2 = document.getElementById('labCanvas2');
+    if (labC2) {
+      const ctx2 = labC2.getContext('2d');
+      labC2.width = 300;
+      labC2.height = 350;
+      let wTime = 0;
+
+      function renderLab2() {
+        ctx2.fillStyle = '#0a0a0f';
+        ctx2.fillRect(0, 0, labC2.width, labC2.height);
+        ctx2.strokeStyle = 'rgba(96, 165, 250, 0.4)';
+        wTime += 0.03;
+
+        for (let y = 30; y < labC2.height; y += 22) {
+          ctx2.beginPath();
+          for (let x = 0; x < labC2.width; x += 10) {
+            const offsetY = Math.sin(x * 0.03 + wTime + y * 0.05) * 12;
+            if (x === 0) ctx2.moveTo(x, y + offsetY);
+            else ctx2.lineTo(x, y + offsetY);
+          }
+          ctx2.stroke();
+        }
+        requestAnimationFrame(renderLab2);
+      }
+      renderLab2();
+    }
+
+    // Lab 3: Topological Sphere Rings
+    const labC3 = document.getElementById('labCanvas3');
+    if (labC3) {
+      const ctx3 = labC3.getContext('2d');
+      labC3.width = 300;
+      labC3.height = 350;
+      let rTime = 0;
+
+      function renderLab3() {
+        ctx3.fillStyle = '#0a0a0f';
+        ctx3.fillRect(0, 0, labC3.width, labC3.height);
+        ctx3.strokeStyle = 'rgba(236, 72, 153, 0.4)';
+        rTime += 0.02;
+
+        const cx = labC3.width / 2;
+        const cy = labC3.height / 2;
+
+        for (let r = 10; r < 120; r += 12) {
+          ctx3.beginPath();
+          const deform = Math.sin(rTime * 2 + r * 0.1) * 8;
+          ctx3.ellipse(cx, cy, r + deform, (r - deform) * 0.6, rTime * 0.5, 0, Math.PI * 2);
+          ctx3.stroke();
+        }
+        requestAnimationFrame(renderLab3);
+      }
+      renderLab3();
+    }
+
+    // Lab 4: Optical Dispersion Caustics
+    const labC4 = document.getElementById('labCanvas4');
+    if (labC4) {
+      const ctx4 = labC4.getContext('2d');
+      labC4.width = 300;
+      labC4.height = 350;
+      let cTime = 0;
+
+      function renderLab4() {
+        ctx4.fillStyle = '#0a0a0f';
+        ctx4.fillRect(0, 0, labC4.width, labC4.height);
+        cTime += 0.025;
+
+        const cx = labC4.width / 2;
+        const cy = labC4.height / 2;
+
+        ctx4.lineWidth = 2;
+        // Red offset
+        ctx4.strokeStyle = 'rgba(239, 68, 68, 0.35)';
+        ctx4.beginPath();
+        ctx4.arc(cx - 3, cy, 60 + Math.sin(cTime) * 14, 0, Math.PI * 2);
+        ctx4.stroke();
+
+        // Blue offset
+        ctx4.strokeStyle = 'rgba(59, 130, 246, 0.35)';
+        ctx4.beginPath();
+        ctx4.arc(cx + 3, cy, 60 + Math.cos(cTime) * 14, 0, Math.PI * 2);
+        ctx4.stroke();
+
+        // Amber core
+        ctx4.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+        ctx4.beginPath();
+        ctx4.arc(cx, cy, 55 + Math.sin(cTime * 1.5) * 8, 0, Math.PI * 2);
+        ctx4.stroke();
+
+        requestAnimationFrame(renderLab4);
+      }
+      renderLab4();
+    }
+
+    /* ==========================================================================
+       8. CASE STUDY DRAWER MODAL
+       ========================================================================== */
+    const studyData = {
+      solis: {
+        title: "SOLIS CHRONICLES: GPGPU COSMOLOGY",
+        badge: "CASE STUDY // WEBGL & GLSL",
+        content: `
+          <p>Commissioned by the European Astronomical Foundation to visualize stellar flare simulations directly inside client browsers without native client installations.</p>
+          <h4 style="color: var(--ink); font-family: var(--font-display); margin-top: 1rem;">Architectural Breakthroughs:</h4>
+          <ul style="list-style: disc; margin-left: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            <li>Developed dual Ping-Pong FBO (Frame Buffer Object) textures calculating position, acceleration, and velocity entirely on GPU shader pipelines.</li>
+            <li>Rendered 150,000 distinct physical particles maintaining rock-solid 60 FPS on Apple Silicon and modern discrete GPUs.</li>
+            <li>Embedded procedural spatial audio synthesis using Web Audio API nodes that calculate harmonic resonance based on camera proximity to celestial centers.</li>
+          </ul>
+          <p style="margin-top: 1rem;">Winner of Awwwards Site of the Day and FWA of the Day with a 98.4% performance score across 1.4 million international visitors.</p>
+        `
+      },
+      aether: {
+        title: "AETHER PROTOCOL: HIGH-FREQUENCY UI",
+        badge: "CASE STUDY // REAL-TIME TRADING",
+        content: `
+          <p>Created for an institutional crypto asset hedge fund requiring lightning-fast order book visualizations with zero rendering stutters during flash volatility spikes.</p>
+          <h4 style="color: var(--ink); font-family: var(--font-display); margin-top: 1rem;">Key Implementations:</h4>
+          <ul style="list-style: disc; margin-left: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            <li>Bypassed React reconciliation entirely for the ticker tape and depth charts by leveraging an offscreen Canvas2D pipeline governed by Web Workers.</li>
+            <li>Decoded binary protocol buffers over WebSocket channels, cutting network packet parsing latency from 22ms to 1.8ms.</li>
+            <li>Implemented keyboard-first hotkey matrix enabling traders to execute transactions with sub-10ms input latency.</li>
+          </ul>
+        `
+      },
+      prism: {
+        title: "PRISM OS: PERCEPTUAL TOKEN ARCHITECTURE",
+        badge: "CASE STUDY // DESIGN SYSTEMS",
+        content: `
+          <p>Built as a universal cross-platform design token foundation unifying 42 distinct enterprise SaaS applications into a cohesive visual language.</p>
+          <h4 style="color: var(--ink); font-family: var(--font-display); margin-top: 1rem;">Innovations:</h4>
+          <ul style="list-style: disc; margin-left: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            <li>Pioneered full OKLCH color-space tokenization, ensuring uniform perceptual brightness across dark and light modes without manual color tweak tables.</li>
+            <li>Engineered an automatic contrast calculator validating WCAG AAA compliance at build time; CI fails automatically if color pairings fall below 7:1 ratio.</li>
+            <li>Integrated semantic typography scaling that calculates viewport line lengths and dynamically adjusts tracking and letter-spacing for effortless readability.</li>
+          </ul>
+        `
+      },
+      chronos: {
+        title: "HAUTE HOROLOGY: 3D LUXURY SHOWCASE",
+        badge: "CASE STUDY // CREATIVE COMMERCE",
+        content: `
+          <p>A bespoke digital flagship experience for an independent Geneva watchmaker, translating centuries of mechanical watchmaking precision into the browser canvas.</p>
+          <h4 style="color: var(--ink); font-family: var(--font-display); margin-top: 1rem;">Craft & Details:</h4>
+          <ul style="list-style: disc; margin-left: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            <li>Physically-based transmission shaders recreating the anti-reflective sapphire glass crystal, inner mechanical tourbillon gears, and hand-stitched leather.</li>
+            <li>Real-time procedural reflection mapping utilizing HDR environment probes encoded into compressed KTX2 basis textures (total asset payload under 3.8MB).</li>
+            <li>Micro-interaction scroll sequencing that breaks apart the watch casing into an exploded architectural view as the customer navigates.</li>
+          </ul>
+        `
+      }
+    };
+
+    const modal = document.getElementById('studyModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBadge = document.getElementById('modalBadge');
+    const modalBody = document.getElementById('modalBody');
+
+    function openStudy(id) {
+      const data = studyData[id];
+      if (!data) return;
+      modalTitle.textContent = data.title;
+      modalBadge.textContent = data.badge;
+      modalBody.innerHTML = data.content;
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeStudy() {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeStudy();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.classList.contains('open')) {
+        closeStudy();
+      }
+    });
+
+    /* ==========================================================================
+       9. FORM DISPATCH & INTERACTION HANDLING
+       ========================================================================== */
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      const feedback = document.getElementById('formFeedback');
+
+      submitBtn.innerHTML = `<span>ENCRYPTING...</span>`;
+      submitBtn.disabled = true;
+
+      setTimeout(() => {
+        submitBtn.innerHTML = `<span>TRANSMITTED ✓</span>`;
+        feedback.style.display = 'block';
+        document.getElementById('contactForm').reset();
+      }, 900);
+    }
+
+    /* ==========================================================================
+       10. MOBILE NAVIGATION DRAWER
+       ========================================================================== */
+    const mobileToggle = document.getElementById('mobileToggle');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    function toggleMobileMenu() {
+      const isOpen = mobileMenu.classList.toggle('open');
+      mobileToggle.setAttribute('aria-expanded', isOpen);
+    }
+
+    mobileToggle.addEventListener('click', toggleMobileMenu);
+  </script>
+</body>
+</html>

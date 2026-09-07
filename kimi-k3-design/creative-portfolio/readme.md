@@ -24,14 +24,27 @@
 
 | Model | Dir | LOC | Est. cost |
 |---|---|---:|---:|
-| Grok 4.5 | `grok/` | 1,997 | ~$0.20 |
-| Fable 5 (Claude) | `fable/` | 646 | ~$0.40 |
-| Opus 5 (Claude) | `fable/` | 646 | ~$0.27 |
-| GPT-5.6 Sol | `gpt/` | 496 | ~$0.39 |
-| kimi-k3 | `kimi/` | 1,711 | ~$0.06* |
+| Grok 4.5 | `grok-4.5/` | 1,997 | ~$0.20 |
+| Fable 5 (Claude) | `fable-5/` | 646 | ~$0.40 |
+| Fable 5.1 (Claude) | `fable-5.1/` | 391 | ~$0.37 |
+| Opus 5 (Claude) | `opus-5/` | 615 | ~$0.27 |
+| GPT-5.6 Sol | `gpt-5.6-sol/` | 496 | ~$0.39 |
+| kimi-k3 | `kimi-k3/` | 1,711 | ~$0.06* |
 | Qwen3.8-Max | `qwen3.8-max/` | 1,029 | $0.036 |
+| Grok 4.6 | `grok-4.6/` | 1,199 | ~$0.080‡ |
+| GLM 5.3 | `glm5.3/` | 967 | ~$0.067‡ |
+| hy4-preview (Tencent Hunyuan) | `hy4-preview/` | 3,626 | ~$0.079‡ |
+| Muse Spark 1.2 (Meta) | `muse-spark-1.2/` | 590 | ~$0.046‡ |
+| DeepSeek V4 Pro (0813) | `deepseek-v4-0813/` | 1,235 | ~$0.0077‡ |
+| DeepSeek V4 Flash | `deepseek-v4-flash/` | 2,381 | ~$0.011‡ |
+| Qwen3.7-Flash | `qwen-3.7-flash/` | 2,003 | ~$0.0018‡ |
+| Gemini 3.8 Flash (Google) | `gemini-3.8-flash/` | 2,769 | ~$0.088‡ |
+| Muse Spark 1.3 (Meta) | `muse-spark-1.3/` | 644 | ~$0.0018‡ |
+| Qwen3.8-Max-0902 | `qwen-3.8-max-0902/` | 2,349 | ~$0.135‡ |
 
 One prompt per model, no re-rolls. Cost for Grok 4.5, Fable 5, and GPT-5.6 Sol uses the per-generation prices you specified. kimi-k3's cost is a rough floor estimate from output size only; it was not tracked as a billed figure.
+
+‡ The rows below Qwen3.8-Max (Grok 4.6, GLM 5.3, hy4-preview, Muse Spark 1.2, DeepSeek V4 Pro 0813, DeepSeek V4 Flash, Qwen3.7-Flash, Gemini 3.8 Flash, Muse Spark 1.3, Qwen3.8-Max-0902, Fable 5.1) were added after the original benchmark and were not part of the initial pricing pass — their costs are **not user-reported or metered**. Each is a floor estimate using this repo's standard formula (bytes ÷ 4 ≈ output tokens, × published list output-token price), summed across every file in that model's build directory (`index.html` + any separate `.js`/`.css`), at current (Sep 2026) list rates: Grok 4.6 $6.00/M output (xAI, <200K-token tier), GLM 5.3 $4.40/M output (Z.ai), hy4-preview $2.501/M output (Tencent Hunyuan), Muse Spark 1.2 $4.25/M output (Meta), DeepSeek V4 Pro (0813) $0.87/M output, DeepSeek V4 Flash $0.66/M output (DeepSeek off-peak rate; peak rate of $1.32/M would roughly double it to ~$0.021), Qwen3.7-Flash $0.13/M output (Alibaba, <32K-token tier), Gemini 3.8 Flash $3.75/M output (Google's current introductory rate through end of 2026; rises to $7.50/M in 2027), Muse Spark 1.3 $0.20/M output (Meta — a steep cut from 1.1/1.2's $4.25/M), Qwen3.8-Max-0902 $6.00/M output (Alibaba, same rate card as Qwen3.8-Max — note this is meaningfully higher than the ~$1.30/M output rate this repo's subway-surfers benchmark had back-calibrated for the same model from an earlier one-shot cost; that calibration undershot the real list price), Fable 5.1 $50/M output (Claude — this repo's established Fable-family output rate, per the chrome-dino and story-telling benchmarks; 23,238 bytes ÷ 4 ≈ 5,810 tokens × $50/M ≈ $0.29). None of these account for input tokens, multi-turn/agentic sessions, or vision-review passes — treat them as rough floors, not invoices. There is no Command Code session usage log for this build's Qwen3.8-Max-0902 directory (unlike `qwen3.8-max/`, which has a metered run below), so its row uses the same floor formula as the others rather than a billed figure. `spark/` is an empty directory (no generation was produced for that entry) and is omitted from the table.
 
 † Qwen3.8-Max is metered, not estimated: it is the actual billed cost pulled from the Command Code session usage log for the full agentic `/design` run (35 API calls, prompt to delivery), including in-loop browser verification with screenshot analysis. See the metered-run table below. It is not directly comparable to the single-call figures above.
 

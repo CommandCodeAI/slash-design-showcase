@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUNAR — Made from what the earth gives back</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        night: '#07110F',
+        pine: '#0F2620',
+        moss: '#2F5A46',
+        fern: '#7BA88A',
+        ivory: '#F1ECDF',
+        moon: '#E6DDBD',
+        ash: '#3A3632',
+        smoke: '#8C857A',
+      },
+      fontFamily: {
+        display: ['Fraunces', 'Georgia', 'serif'],
+        sans: ['Manrope', 'system-ui', 'sans-serif'],
+      },
+    }
+  }
+}
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { background: #07110F; color: #F1ECDF; overflow-x: hidden; }
+  ::selection { background: #E6DDBD; color: #07110F; }
+
+  /* ---------- global 3D canvas ---------- */
+  #cosmos { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+  /* ---------- hero parallax layers ---------- */
+  .layer { position: absolute; inset: 0; will-change: transform; }
+  .forest-svg { width: 100%; height: 100%; display: block; }
+
+  /* ---------- fine texture / grain ---------- */
+  .grain::after {
+    content: ""; position: fixed; inset: 0; z-index: 50; pointer-events: none; opacity: .045;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- chapter reveal ---------- */
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity 1.2s cubic-bezier(.2,.7,.2,1), transform 1.2s cubic-bezier(.2,.7,.2,1); }
+  .reveal.in { opacity: 1; transform: none; }
+  .reveal[data-delay="1"] { transition-delay: .15s; }
+  .reveal[data-delay="2"] { transition-delay: .3s; }
+  .reveal[data-delay="3"] { transition-delay: .45s; }
+
+  /* headline split words */
+  .split .w { display: inline-block; overflow: hidden; vertical-align: bottom; }
+  .split .w span { display: inline-block; transform: translateY(110%); }
+
+  /* soot particles */
+  .soot { position: absolute; border-radius: 9999px; background: #8C857A; opacity: .35; }
+
+  /* light beam */
+  .beam { background: radial-gradient(ellipse 40% 60% at 50% 0%, rgba(230,221,189,.28), transparent 70%); }
+
+  /* product ring rotation */
+  @keyframes ringspin { to { transform: rotate(360deg); } }
+  .ring { animation: ringspin 60s linear infinite; }
+  .ring-r { animation-direction: reverse; animation-duration: 90s; }
+
+  /* progress line */
+  #progress { position: fixed; left: 0; top: 0; height: 2px; width: 0; background: #E6DDBD; z-index: 60; }
+
+  .btn-moon { position: relative; overflow: hidden; }
+  .btn-moon::before { content:""; position:absolute; inset:0; background:#F1ECDF; transform: translateY(101%); transition: transform .5s cubic-bezier(.2,.7,.2,1); }
+  .btn-moon:hover::before, .btn-moon:focus-visible::before { transform: translateY(0); }
+  .btn-moon span { position: relative; z-index: 1; transition: color .5s; }
+  .btn-moon:hover span, .btn-moon:focus-visible span { color: #07110F; }
+
+  :focus-visible { outline: 2px solid #E6DDBD; outline-offset: 4px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .split .w span { transform: none; }
+    .ring { animation: none; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body class="grain font-sans antialiased">
+
+<div id="progress" aria-hidden="true"></div>
+<canvas id="cosmos" aria-hidden="true"></canvas>
+
+<!-- ============ NAV ============ -->
+<header class="fixed top-0 inset-x-0 z-40 mix-blend-difference">
+  <div class="max-w-7xl mx-auto px-6 md:px-10 py-6 flex items-center justify-between">
+    <a href="#top" class="font-display text-2xl tracking-[.35em] text-ivory">LUNAR</a>
+    <nav class="hidden md:flex gap-10 text-sm text-ivory/80">
+      <a href="#problem" class="hover:text-ivory transition">The problem</a>
+      <a href="#journey" class="hover:text-ivory transition">The journey</a>
+      <a href="#solution" class="hover:text-ivory transition">The solution</a>
+      <a href="#impact" class="hover:text-ivory transition">Impact</a>
+    </nav>
+    <a href="#cta" class="text-sm text-ivory border border-ivory/40 px-4 py-2 hover:bg-ivory hover:text-night transition">Reserve</a>
+  </div>
+</header>
+
+<main id="top" class="relative z-10">
+
+<!-- ============ HERO ============ -->
+<section id="hero" class="relative h-[100svh] min-h-[640px] overflow-hidden">
+  <!-- sky gradient (parallax slowest) -->
+  <div class="layer" data-speed="0.1" style="background: linear-gradient(180deg,#07110F 0%,#0F2620 55%,#2F5A46 100%);"></div>
+
+  <!-- stars -->
+  <div class="layer" data-speed="0.2" id="stars"></div>
+
+  <!-- distant ridge -->
+  <div class="layer" data-speed="0.35">
+    <svg class="forest-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <path fill="#0F2620" d="M0 640 L120 600 L220 630 L340 560 L470 610 L600 540 L720 590 L860 520 L980 580 L1120 530 L1260 590 L1360 560 L1440 600 L1440 900 L0 900Z"/>
+    </svg>
+  </div>
+
+  <!-- mid pines -->
+  <div class="layer" data-speed="0.55">
+    <svg class="forest-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <g fill="#1B3A2E" id="midpines"></g>
+    </svg>
+  </div>
+
+  <!-- foreground pines -->
+  <div class="layer" data-speed="0.85">
+    <svg class="forest-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <g fill="#07110F" id="frontpines"></g>
+      <rect x="0" y="820" width="1440" height="80" fill="#07110F"/>
+    </svg>
+  </div>
+
+  <!-- vignette -->
+  <div class="layer" style="background: radial-gradient(ellipse 70% 60% at 50% 40%, transparent 40%, rgba(7,17,15,.7) 100%);"></div>
+
+  <!-- copy -->
+  <div class="relative h-full flex flex-col justify-end pb-24 md:pb-28 px-6 md:px-10 max-w-7xl mx-auto">
+    <p class="text-fern/90 text-sm mb-6 max-w-sm hero-sub">Skincare grown in living forests, carried by moonlight, returned to soil.</p>
+    <h1 class="split font-display font-light leading-[.95] text-[13vw] md:text-[8.5rem] tracking-tight text-ivory">
+      <span class="w"><span>What&nbsp;</span></span><span class="w"><span>the&nbsp;</span></span><span class="w"><span>earth&nbsp;</span></span><br class="hidden md:block">
+      <span class="w"><span class="italic font-light text-moon">gives&nbsp;</span></span><span class="w"><span class="italic font-light text-moon">back.</span></span>
+    </h1>
+    <div class="mt-10 flex items-center gap-8 hero-sub">
+      <a href="#problem" class="text-ivory/70 text-sm flex items-center gap-3 group">
+        <span class="w-px h-10 bg-ivory/40 group-hover:h-14 transition-all"></span>
+        Scroll to begin
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHAPTER 1 — THE PROBLEM ============ -->
+<section id="problem" class="relative bg-ash overflow-hidden" style="background: linear-gradient(180deg,#07110F 0%,#2A2624 20%,#3A3632 60%,#2A2624 100%);">
+  <div id="sootfield" class="absolute inset-0 pointer-events-none" aria-hidden="true"></div>
+  <div class="relative max-w-7xl mx-auto px-6 md:px-10 py-40 md:py-56">
+    <div class="grid md:grid-cols-12 gap-10 items-end">
+      <div class="md:col-span-7">
+        <p class="reveal text-smoke text-sm mb-8">Chapter one</p>
+        <h2 class="reveal font-display font-light text-5xl md:text-7xl leading-[1.02] text-ivory" data-delay="1">
+          The beauty industry produces 120 billion units of packaging a year.
+          <span class="block mt-4 text-smoke italic">Almost none of it goes home.</span>
+        </h2>
+      </div>
+      <div class="md:col-span-5 md:pl-10">
+        <p class="reveal text-ivory/70 text-lg leading-relaxed" data-delay="2">
+          A cream is used in ninety days. Its jar lasts four centuries. The plastics, the microbeads, the air-freighted water — they don't disappear when you close the lid. They travel: into rivers, into fish, into the soil that grows the next harvest.
+        </p>
+        <p class="reveal text-ivory/70 text-lg leading-relaxed mt-6" data-delay="3">
+          We looked at that cycle and asked a simple question. What if a product could leave nothing behind but the forest it came from?
+        </p>
+      </div>
+    </div>
+
+    <!-- polluted horizon -->
+    <div class="reveal mt-32 relative h-64 md:h-96 overflow-hidden" data-delay="1">
+      <svg viewBox="0 0 1440 400" class="w-full h-full" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="smog" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#3A3632" stop-opacity="0"/>
+            <stop offset="1" stop-color="#1C1A18"/>
+          </linearGradient>
+        </defs>
+        <rect width="1440" height="400" fill="url(#smog)"/>
+        <g fill="#1C1A18" opacity=".9" id="cityline"></g>
+        <g stroke="#8C857A" stroke-width="1" opacity=".5" id="smokelines"></g>
+      </svg>
+      <div class="absolute inset-x-0 bottom-0 h-px bg-smoke/30"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHAPTER 2 — THE JOURNEY ============ -->
+<section id="journey" class="relative">
+  <div class="sticky top-0 h-[100svh] overflow-hidden flex items-center">
+    <div id="journey-bg" class="absolute inset-0 transition-none" style="background:#2A2624"></div>
+    <div class="beam absolute inset-0 opacity-0" id="journey-beam"></div>
+
+    <div class="relative max-w-7xl mx-auto px-6 md:px-10 w-full">
+      <div class="grid md:grid-cols-12 gap-8 items-center">
+        <div class="md:col-span-6">
+          <p class="text-fern/90 text-sm mb-6">Chapter two</p>
+          <div class="relative h-[19rem] md:h-[22rem]">
+            <div class="jstep absolute inset-0" data-step="0">
+              <h2 class="font-display font-light text-5xl md:text-7xl leading-[1.02] text-ivory">First, we stopped shipping water.</h2>
+              <p class="mt-6 text-ivory/70 text-lg max-w-md leading-relaxed">Most creams are 70% water. Ours arrive as a concentrate, waking up with a few drops from your own tap. One shipment does the work of four.</p>
+            </div>
+            <div class="jstep absolute inset-0" data-step="1">
+              <h2 class="font-display font-light text-5xl md:text-7xl leading-[1.02] text-ivory">Then we went back to the forest.</h2>
+              <p class="mt-6 text-ivory/70 text-lg max-w-md leading-relaxed">Every botanical is wild-harvested at night, when oils are densest, by cooperatives who own the land they walk. We buy the forest's yield, never the forest.</p>
+            </div>
+            <div class="jstep absolute inset-0" data-step="2">
+              <h2 class="font-display font-light text-5xl md:text-7xl leading-[1.02] text-ivory">And we designed the jar to disappear.</h2>
+              <p class="mt-6 text-ivory/70 text-lg max-w-md leading-relaxed">Pressed mycelium, sealed with beeswax. Bury it, and in ninety days — the same time it takes to finish the cream — it becomes soil again.</p>
+            </div>
+          </div>
+          <div class="mt-8 flex gap-2" aria-hidden="true">
+            <span class="jdot h-px w-14 bg-ivory/30 transition-all"></span>
+            <span class="jdot h-px w-14 bg-ivory/30 transition-all"></span>
+            <span class="jdot h-px w-14 bg-ivory/30 transition-all"></span>
+          </div>
+        </div>
+
+        <!-- morphing glyph: water drop → leaf → seed -->
+        <div class="md:col-span-6 flex justify-center">
+          <svg viewBox="0 0 400 400" class="w-64 h-64 md:w-[26rem] md:h-[26rem]" aria-hidden="true">
+            <path id="morph" fill="none" stroke="#E6DDBD" stroke-width="1.5"
+              d="M200 40 C 200 40, 90 190, 90 250 A 110 110 0 0 0 310 250 C 310 190, 200 40, 200 40 Z"/>
+            <circle cx="200" cy="200" r="170" fill="none" stroke="#E6DDBD" stroke-opacity=".15"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- scroll distance for the pinned section -->
+  <div class="h-[250vh]" aria-hidden="true"></div>
+</section>
+
+<!-- ============ CHAPTER 3 — THE SOLUTION ============ -->
+<section id="solution" class="relative overflow-hidden" style="background: linear-gradient(180deg,#0F2620 0%,#07110F 100%);">
+  <div class="max-w-7xl mx-auto px-6 md:px-10 py-40 md:py-56">
+    <div class="max-w-2xl">
+      <p class="reveal text-fern/90 text-sm mb-8">Chapter three</p>
+      <h2 class="reveal font-display font-light text-5xl md:text-7xl leading-[1.02] text-ivory" data-delay="1">Three rituals. One closed loop.</h2>
+      <p class="reveal mt-8 text-ivory/70 text-lg leading-relaxed" data-delay="2">Each product is grown, used and composted inside the same ninety-day cycle. Nothing enters the loop that can't leave it as nourishment.</p>
+    </div>
+
+    <!-- orbital product ecosystem -->
+    <div class="relative mt-24 md:mt-32 h-[34rem] md:h-[40rem] reveal" data-delay="2" id="ecosystem" style="perspective: 1200px;">
+      <div class="absolute inset-0 flex items-center justify-center" id="orbit-stage" style="transform-style: preserve-3d;">
+        <!-- rings -->
+        <div class="ring absolute w-[22rem] h-[22rem] md:w-[34rem] md:h-[34rem] rounded-full border border-ivory/15" style="transform: rotateX(70deg);"></div>
+        <div class="ring ring-r absolute w-[16rem] h-[16rem] md:w-[24rem] md:h-[24rem] rounded-full border border-fern/25" style="transform: rotateX(70deg) rotateZ(30deg);"></div>
+        <div class="absolute w-[9rem] h-[9rem] md:w-[13rem] md:h-[13rem] rounded-full" style="background: radial-gradient(circle at 35% 35%, #E6DDBD, #8C857A 55%, #3A3632 100%); box-shadow: 0 0 120px rgba(230,221,189,.25);"></div>
+        <p class="absolute text-night text-sm font-medium tracking-wide">the soil</p>
+
+        <!-- products -->
+        <article class="prod absolute w-44 md:w-56" data-angle="0">
+          <div class="h-28 md:h-36 mx-auto w-16 md:w-20 rounded-t-[3rem] rounded-b-md" style="background: linear-gradient(180deg,#F1ECDF,#E6DDBD 60%,#8C857A);"></div>
+          <h3 class="font-display text-2xl mt-4 text-ivory text-center">Dawn Concentrate</h3>
+          <p class="text-ivory/60 text-sm text-center mt-1">Wake with three drops of water.</p>
+        </article>
+        <article class="prod absolute w-44 md:w-56" data-angle="120">
+          <div class="h-20 md:h-24 mx-auto w-24 md:w-28 rounded-[2rem]" style="background: radial-gradient(circle at 30% 30%,#7BA88A,#2F5A46 70%);"></div>
+          <h3 class="font-display text-2xl mt-4 text-ivory text-center">Forest Balm</h3>
+          <p class="text-ivory/60 text-sm text-center mt-1">Pressed at night from pine resin.</p>
+        </article>
+        <article class="prod absolute w-44 md:w-56" data-angle="240">
+          <div class="h-24 md:h-28 mx-auto w-20 md:w-24 rounded-md" style="background: linear-gradient(160deg,#8C857A,#3A3632); border:1px solid rgba(241,236,223,.2)"></div>
+          <h3 class="font-display text-2xl mt-4 text-ivory text-center">The Mycelium Jar</h3>
+          <p class="text-ivory/60 text-sm text-center mt-1">Bury it. It becomes soil in ninety days.</p>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHAPTER 4 — IMPACT ============ -->
+<section id="impact" class="relative bg-night">
+  <div class="max-w-7xl mx-auto px-6 md:px-10 py-40 md:py-56">
+    <p class="reveal text-fern/90 text-sm mb-8">Chapter four</p>
+    <h2 class="reveal font-display font-light text-5xl md:text-7xl leading-[1.02] text-ivory max-w-3xl" data-delay="1">What one year of LUNAR returned.</h2>
+
+    <div class="mt-24 grid md:grid-cols-3 gap-y-20 md:gap-x-12">
+      <div class="stat">
+        <p class="font-display font-light text-7xl md:text-8xl text-moon leading-none"><span class="num" data-to="1200000" data-fmt="compact">0</span></p>
+        <p class="mt-5 text-ivory/70 text-lg max-w-xs">jars returned to soil instead of landfill.</p>
+      </div>
+      <div class="stat">
+        <p class="font-display font-light text-7xl md:text-8xl text-moon leading-none"><span class="num" data-to="84" data-suffix="%">0</span></p>
+        <p class="mt-5 text-ivory/70 text-lg max-w-xs">less shipping weight by leaving out the water.</p>
+      </div>
+      <div class="stat">
+        <p class="font-display font-light text-7xl md:text-8xl text-moon leading-none"><span class="num" data-to="3140" data-suffix=" ha">0</span></p>
+        <p class="mt-5 text-ivory/70 text-lg max-w-xs">of old-growth forest kept standing under cooperative ownership.</p>
+      </div>
+    </div>
+
+    <figure class="mt-32 md:mt-40 border-t border-ivory/15 pt-12 grid md:grid-cols-12 gap-8">
+      <blockquote class="reveal md:col-span-8 font-display italic font-light text-3xl md:text-4xl leading-snug text-ivory/90">
+        “I buried the jar under the apple tree in March. By June there was nothing there but darker earth. That's the first time a purchase has ever felt like a return.”
+      </blockquote>
+      <figcaption class="reveal md:col-span-4 md:pt-2 text-ivory/60 text-sm self-end" data-delay="1">Ines Halvorsen, member since the first harvest</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section id="cta" class="relative overflow-hidden min-h-[100svh] flex items-center" style="background: radial-gradient(ellipse 80% 50% at 50% 110%, #2F5A46 0%, #0F2620 45%, #07110F 100%);">
+  <div class="max-w-7xl mx-auto px-6 md:px-10 py-40 w-full text-center">
+    <p class="reveal text-fern/90 text-sm mb-10">The next harvest opens at the new moon</p>
+    <h2 class="reveal font-display font-light text-6xl md:text-[7.5rem] leading-[.95] tracking-tight text-ivory" data-delay="1">
+      Take something<br><span class="italic text-moon">that gives back.</span>
+    </h2>
+    <p class="reveal mt-10 text-ivory/70 text-lg max-w-lg mx-auto leading-relaxed" data-delay="2">Membership is limited to what the forest can offer each season. Reserve your place and we'll write when the moon is right.</p>
+    <div class="reveal mt-14 flex flex-col sm:flex-row items-center justify-center gap-4" data-delay="3">
+      <a href="#" class="btn-moon inline-block border border-ivory px-10 py-5 text-ivory text-base"><span>Reserve the next harvest</span></a>
+      <a href="#problem" class="text-ivory/60 text-sm px-6 py-5 hover:text-ivory transition">Read the full cycle report</a>
+    </div>
+  </div>
+</section>
+
+<footer class="relative bg-night border-t border-ivory/10">
+  <div class="max-w-7xl mx-auto px-6 md:px-10 py-12 flex flex-col md:flex-row gap-6 justify-between text-sm text-ivory/50">
+    <p class="font-display text-xl tracking-[.35em] text-ivory/80">LUNAR</p>
+    <p>Grown in the Cascades. Harvested by moonlight. Returned to soil.</p>
+    <div class="flex gap-6">
+      <a href="#" class="hover:text-ivory transition">Cycle report</a>
+      <a href="#" class="hover:text-ivory transition">Cooperatives</a>
+      <a href="#" class="hover:text-ivory transition">Contact</a>
+    </div>
+  </div>
+</footer>
+
+</main>
+
+<script>
+(() => {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* ---------- generate forest layers ---------- */
+  const pine = (x, base, h, w) => `M${x} ${base - h} L${x - w * .35} ${base - h * .62} L${x - w * .18} ${base - h * .62} L${x - w * .55} ${base - h * .32} L${x - w * .3} ${base - h * .32} L${x - w * .8} ${base} L${x + w * .8} ${base} L${x + w * .3} ${base - h * .32} L${x + w * .55} ${base - h * .32} L${x + w * .18} ${base - h * .62} L${x + w * .35} ${base - h * .62} Z`;
+  const fill = (id, count, base, hMin, hMax, wMin, wMax) => {
+    const g = document.getElementById(id); let d = '';
+    for (let i = 0; i < count; i++) {
+      const x = (i / count) * 1560 - 60 + Math.random() * 40;
+      const h = hMin + Math.random() * (hMax - hMin);
+      const w = wMin + Math.random() * (wMax - wMin);
+      d += `<path d="${pine(x, base + Math.random() * 30, h, w)}"/>`;
+    }
+    g.innerHTML = d;
+  };
+  fill('midpines', 34, 760, 160, 300, 60, 110);
+  fill('frontpines', 22, 900, 260, 460, 90, 170);
+
+  /* ---------- stars ---------- */
+  const stars = document.getElementById('stars'); let sd = '';
+  for (let i = 0; i < 140; i++) {
+    const s = Math.random() * 1.8 + .4;
+    sd += `<i style="position:absolute;left:${Math.random()*100}%;top:${Math.random()*60}%;width:${s}px;height:${s}px;border-radius:50%;background:#F1ECDF;opacity:${.25 + Math.random()*.6}"></i>`;
+  }
+  stars.innerHTML = sd;
+
+  /* ---------- city + smoke lines ---------- */
+  const city = document.getElementById('cityline'); let cd = '';
+  for (let x = 0; x < 1440; x += 18 + Math.random() * 40) {
+    const h = 40 + Math.random() * 200;
+    cd += `<rect x="${x}" y="${400 - h}" width="${14 + Math.random() * 40}" height="${h}"/>`;
+  }
+  city.innerHTML = cd;
+  const smoke = document.getElementById('smokelines'); let sm = '';
+  for (let i = 0; i < 12; i++) {
+    const x = 60 + i * 120 + Math.random() * 60;
+    sm += `<path d="M${x} 400 C ${x+20} 320, ${x-30} 260, ${x+10} 180 S ${x-10} 60, ${x+30} 0" fill="none"/>`;
+  }
+  smoke.innerHTML = sm;
+
+  /* ---------- soot particles ---------- */
+  const field = document.getElementById('sootfield'); let fd = '';
+  for (let i = 0; i < 60; i++) {
+    const s = 2 + Math.random() * 5;
+    fd += `<span class="soot" style="left:${Math.random()*100}%;top:${Math.random()*100}%;width:${s}px;height:${s}px"></span>`;
+  }
+  field.innerHTML = fd;
+
+  /* ---------- hero parallax + headline ---------- */
+  if (!reduce) {
+    document.querySelectorAll('#hero .layer[data-speed]').forEach(l => {
+      gsap.to(l, { yPercent: -parseFloat(l.dataset.speed) * 60, ease: 'none',
+        scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true } });
+    });
+    gsap.to('.split .w span', { y: 0, duration: 1.4, stagger: .08, ease: 'power4.out', delay: .3 });
+    gsap.from('.hero-sub', { opacity: 0, duration: 1.2, delay: 1.2, ease: 'power2.out' });
+    gsap.to('#hero .relative.h-full', { opacity: 0, y: -80, ease: 'none',
+      scrollTrigger: { trigger: '#hero', start: '40% top', end: 'bottom top', scrub: true } });
+  } else {
+    gsap.set('.split .w span', { y: 0 });
+  }
+
+  /* ---------- soot drift ---------- */
+  if (!reduce) {
+    gsap.to('.soot', { y: -300, x: () => (Math.random() - .5) * 120, ease: 'none',
+      scrollTrigger: { trigger: '#problem', start: 'top bottom', end: 'bottom top', scrub: 1.5 } });
+  }
+
+  /* ---------- intersection observer chapter reveals ---------- */
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: .18, rootMargin: '0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  /* ---------- journey: pinned, scrubbed, 3 steps ---------- */
+  const steps = gsap.utils.toArray('.jstep');
+  const dots = gsap.utils.toArray('.jdot');
+  const morph = document.getElementById('morph');
+  const shapes = [
+    'M200 40 C 200 40, 90 190, 90 250 A 110 110 0 0 0 310 250 C 310 190, 200 40, 200 40 Z',
+    'M200 60 C 80 100, 60 260, 120 340 C 200 360, 320 300, 330 180 C 335 120, 300 60, 200 60 Z',
+    'M200 90 C 260 90, 300 160, 300 230 C 300 300, 250 330, 200 330 C 150 330, 100 300, 100 230 C 100 160, 140 90, 200 90 Z'
+  ];
+  const bgs = ['#2A2624', '#1B3A2E', '#0F2620'];
+  const setStep = (i) => {
+    steps.forEach((s, k) => gsap.to(s, { opacity: k === i ? 1 : 0, y: k === i ? 0 : (k < i ? -24 : 24), duration: .7, ease: 'power2.out', overwrite: true }));
+    dots.forEach((d, k) => d.style.background = k === i ? '#E6DDBD' : 'rgba(241,236,223,.3)');
+    gsap.to('#journey-bg', { backgroundColor: bgs[i], duration: 1.2, ease: 'power2.inOut', overwrite: true });
+    gsap.to('#journey-beam', { opacity: i === 2 ? 1 : 0, duration: 1.2, overwrite: true });
+    morph.setAttribute('d', shapes[i]);
+  };
+  gsap.set(steps, { opacity: 0, y: 24 }); setStep(0);
+  ScrollTrigger.create({
+    trigger: '#journey', start: 'top top', end: 'bottom bottom',
+    onUpdate: self => {
+      const i = Math.min(2, Math.floor(self.progress * 3));
+      if (i !== window.__jstep) { window.__jstep = i; setStep(i); }
+    }
+  });
+  if (!reduce) {
+    gsap.to('#morph', { rotation: 360, transformOrigin: '50% 50%', ease: 'none',
+      scrollTrigger: { trigger: '#journey', start: 'top top', end: 'bottom bottom', scrub: 1 } });
+  }
+
+  /* ---------- solution: product orbit driven by scroll ---------- */
+  const prods = gsap.utils.toArray('.prod');
+  const placeProducts = (spin) => {
+    const isMobile = window.innerWidth < 768;
+    const rx = isMobile ? 150 : 300, rz = isMobile ? 60 : 120;
+    prods.forEach(p => {
+      const a = (parseFloat(p.dataset.angle) + spin) * Math.PI / 180;
+      const x = Math.cos(a) * rx, z = Math.sin(a) * rz;
+      const depth = (z + rz) / (2 * rz); // 0 back, 1 front
+      p.style.transform = `translate(${x}px, ${-z * .5}px) scale(${.7 + depth * .45})`;
+      p.style.opacity = .35 + depth * .65;
+      p.style.zIndex = Math.round(depth * 10);
+    });
+  };
+  placeProducts(0);
+  ScrollTrigger.create({
+    trigger: '#solution', start: 'top bottom', end: 'bottom top', scrub: true,
+    onUpdate: self => placeProducts(self.progress * 220)
+  });
+  if (!reduce) {
+    gsap.to('#orbit-stage', { rotateX: 8, rotateY: -14, ease: 'none',
+      scrollTrigger: { trigger: '#solution', start: 'top bottom', end: 'bottom top', scrub: true } });
+  }
+  window.addEventListener('resize', () => placeProducts(0));
+
+  /* ---------- impact numbers ---------- */
+  const fmt = (v, el) => {
+    const suffix = el.dataset.suffix || '';
+    if (el.dataset.fmt === 'compact') return (v >= 1e6 ? (v / 1e6).toFixed(1) + 'M' : Math.round(v).toLocaleString()) + suffix;
+    return Math.round(v).toLocaleString() + suffix;
+  };
+  gsap.utils.toArray('.stat').forEach((s, i) => {
+    const num = s.querySelector('.num'); const to = parseFloat(num.dataset.to);
+    const o = { v: 0 };
+    gsap.from(s, { y: 60, opacity: 0, duration: 1, delay: i * .12, ease: 'power3.out',
+      scrollTrigger: { trigger: s, start: 'top 85%', once: true } });
+    gsap.to(o, { v: to, duration: reduce ? 0 : 2.2, delay: i * .12, ease: 'power3.out',
+      onUpdate: () => num.textContent = fmt(o.v, num),
+      scrollTrigger: { trigger: s, start: 'top 85%', once: true } });
+  });
+
+  /* ---------- progress line ---------- */
+  gsap.to('#progress', { width: '100%', ease: 'none',
+    scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: true } });
+
+  /* ---------- THREE.JS: earth + moon travelling with scroll ---------- */
+  const canvas = document.getElementById('cosmos');
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, .1, 100);
+  camera.position.set(0, 0, 10);
+
+  const key = new THREE.DirectionalLight(0xE6DDBD, 1.6); key.position.set(4, 3, 5); scene.add(key);
+  const rim = new THREE.DirectionalLight(0x7BA88A, .9); rim.position.set(-5, -2, -3); scene.add(rim);
+  scene.add(new THREE.AmbientLight(0x0F2620, 1.2));
+
+  // earth: layered green sphere with a soft atmosphere shell
+  const earthMat = new THREE.MeshStandardMaterial({ color: 0x2F5A46, roughness: .85, metalness: .05, flatShading: true });
+  const earth = new THREE.Mesh(new THREE.IcosahedronGeometry(1.4, 3), earthMat);
+  const atmo = new THREE.Mesh(new THREE.SphereGeometry(1.52, 48, 48),
+    new THREE.MeshBasicMaterial({ color: 0x7BA88A, transparent: true, opacity: .09, side: THREE.BackSide }));
+  const earthGroup = new THREE.Group(); earthGroup.add(earth, atmo); scene.add(earthGroup);
+
+  // moon: pale, cratered by noise-jitter on vertices
+  const moonGeo = new THREE.SphereGeometry(.55, 40, 40);
+  const pos = moonGeo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const v = new THREE.Vector3().fromBufferAttribute(pos, i);
+    v.multiplyScalar(1 + (Math.sin(v.x * 9) * Math.cos(v.y * 7) * Math.sin(v.z * 11)) * .025);
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  moonGeo.computeVertexNormals();
+  const moon = new THREE.Mesh(moonGeo, new THREE.MeshStandardMaterial({ color: 0xE6DDBD, roughness: .95, metalness: 0 }));
+  const halo = new THREE.Mesh(new THREE.SphereGeometry(.68, 32, 32),
+    new THREE.MeshBasicMaterial({ color: 0xF1ECDF, transparent: true, opacity: .12, side: THREE.BackSide }));
+  const moonGroup = new THREE.Group(); moonGroup.add(moon, halo); scene.add(moonGroup);
+
+  // dust field
+  const dustGeo = new THREE.BufferGeometry();
+  const dustCount = 500, dArr = new Float32Array(dustCount * 3);
+  for (let i = 0; i < dustCount * 3; i++) dArr[i] = (Math.random() - .5) * 30;
+  dustGeo.setAttribute('position', new THREE.BufferAttribute(dArr, 3));
+  const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ color: 0xE6DDBD, size: .035, transparent: true, opacity: .55 }));
+  scene.add(dust);
+
+  // scroll-driven state
+  const state = { p: 0, ex: 0, ey: 0, es: 1, mx: 0, my: 0, ms: 1, eo: 1, mo: 1, tint: 0 };
+  ScrollTrigger.create({
+    trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: 1.2,
+    onUpdate: self => state.p = self.progress
+  });
+
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const ease = (t) => t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+  const stop = (p, a, b) => Math.min(1, Math.max(0, (p - a) / (b - a)));
+
+  // keyframes across the page (progress 0→1): hero moon rises, problem earth goes ashen, journey earth greens, solution both orbit, impact/cta moon dominates
+  const frame = (p) => {
+    const hero = stop(p, 0, .12), prob = stop(p, .1, .3), jour = stop(p, .3, .58), sol = stop(p, .58, .78), end = stop(p, .78, 1);
+    // moon path
+    state.mx = lerp(3.4, -3.2, ease(hero)) + lerp(0, 3.6, ease(sol)) + lerp(0, -3.6, ease(end));
+    state.my = lerp(-3.8, 2.4, ease(hero)) - 1.6 * ease(prob) + 1.6 * ease(jour) - 2.4 * ease(end);
+    state.ms = lerp(.6, 1, ease(hero)) + .6 * ease(sol) + 1.6 * ease(end);
+    // earth path
+    state.ex = -6 + 6 * ease(prob) - 1.5 * ease(sol) + 2.2 * ease(end);
+    state.ey = -1.2 + .8 * ease(jour) - .4 * ease(sol);
+    state.es = .9 + .35 * ease(jour) - .25 * ease(end);
+    state.eo = ease(prob) * (1 - .55 * ease(end));
+    state.tint = ease(prob) * (1 - ease(jour)); // 1 = ashen
+  };
+
+  const ash = new THREE.Color(0x3A3632), green = new THREE.Color(0x2F5A46);
+  const clock = new THREE.Clock();
+  const render = () => {
+    const t = clock.getElapsedTime();
+    frame(state.p);
+    earthGroup.position.set(state.ex, state.ey, 0);
+    earthGroup.scale.setScalar(state.es);
+    earth.rotation.y = t * .08 + state.p * 4;
+    earth.rotation.x = .3;
+    earthMat.color.copy(green).lerp(ash, state.tint);
+    atmo.material.opacity = .09 * (1 - state.tint);
+    earthGroup.visible = state.eo > .02;
+    earthMat.opacity = state.eo; earthMat.transparent = true;
+
+    moonGroup.position.set(state.mx, state.my + Math.sin(t * .6) * .06, 1.5);
+    moonGroup.scale.setScalar(state.ms);
+    moon.rotation.y = t * .05 + state.p * 2;
+
+    dust.rotation.y = t * .01 + state.p * .8;
+    dust.position.y = -state.p * 3;
+
+    camera.position.x = Math.sin(state.p * Math.PI) * .6;
+    camera.lookAt(0, 0, 0);
+    renderer.render(scene, camera);
+    if (!reduce) requestAnimationFrame(render);
+  };
+  render();
+  if (reduce) window.addEventListener('scroll', render, { passive: true });
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+})();
+</script>
+</body>
+</html>
