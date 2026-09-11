@@ -43,6 +43,7 @@
 | GPT-5.6 Sol | `gp-5.6-sol/` | ~$0.1500 | 631 |
 | DeepSeek | `DeepSeek-V4-Pro/` | $0.0008 | 748 |
 | DeepSeek | `DeepSeek-V4-Pro 0813` | $0.00055 | 739 | (new price - 0.0036)
+| DeepSeek | `DeepSeek-V4.1-flash` | $0.0089 | 739 
 | Gemini 3.6 Flash | `gemini-3.6-flash/` | $0.1500 (5-6 prompts) | 1,411 |
 | Gemini 3.7 Flash | `gemini-3.7-flash/` | $0.0083 ( 2 prompts) | 1,411 |
 | qwen-3.7-flash | `qwen-3.7-flash/` | $0.006 (8 prompts) | 482 |

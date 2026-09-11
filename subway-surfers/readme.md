@@ -26,6 +26,7 @@
 |---|---|---:|---:|
 | Opus 5 (Anthropic) | `opus-5/` | ~$0.37 | 1360 |
 | Fable 5 (Claude) | `Fable-5/` | $0.6000 | 672 |
+| DSV4.1-Flash | `DeepSeek v4.1 Flash/` | $0.024 | 672 |
 | GLM 5.3 (Zai) | `GLM 5.3/` | $0.0168 | 672 |
 | GPT-5.5 (ChatGPT) | `GPT-5.5/` | $0.7000 | 1423 |
 | GPT-5.6 Sol (OpenAI) | `GPT-5.6-sol/` | $0.3265 | 1501 |
