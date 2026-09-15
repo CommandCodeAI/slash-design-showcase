@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mira Voss, creative developer</title>
+<meta name="description" content="Mira Voss is a creative developer in Copenhagen building interactive interfaces, motion systems, and hand-written front-end architecture. Five selected projects, 2024 to 2026.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#121110">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Instrument+Serif:ital@0;1&display=swap">
+<link rel="stylesheet" href="styles.css">
+<script>
+(function () {
+  var root = document.documentElement;
+  root.classList.add('js');
+  var saved = null;
+  try { saved = localStorage.getItem('mv-motion'); } catch (e) {}
+  var prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  root.dataset.motion = saved || (prefersReduce ? 'reduced' : 'full');
+})();
+</script>
+<noscript><style>.loader{display:none}.cursor{display:none}</style></noscript>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<div class="loader" data-loader>
+  <div class="loader__row">
+    <span class="loader__mark">Mira Voss</span>
+    <span class="loader__count" data-loader-count>00</span>
+  </div>
+  <div class="loader__rail" aria-hidden="true"><span class="loader__bar" data-loader-bar></span></div>
+  <p class="loader__note">Setting the page. Type, canvas, and motion.</p>
+</div>
+
+<div class="cursor" data-cursor aria-hidden="true">
+  <span class="cursor__dot"></span>
+  <span class="cursor__ring"><span class="cursor__label" data-cursor-label></span></span>
+</div>
+
+<div class="grain" aria-hidden="true"></div>
+
+<header class="hdr" data-header>
+  <div class="hdr__inner">
+    <a class="hdr__brand" href="#top">
+      <span class="hdr__mark" aria-hidden="true">MV</span>
+      <span class="hdr__name">Mira Voss</span>
+    </a>
+
+    <nav class="hdr__nav" aria-label="Sections">
+      <ul>
+        <li><a href="#work" data-navlink><span class="hdr__num" aria-hidden="true">01</span>Work</a></li>
+        <li><a href="#method" data-navlink><span class="hdr__num" aria-hidden="true">02</span>Method</a></li>
+        <li><a href="#playground" data-navlink><span class="hdr__num" aria-hidden="true">03</span>Playground</a></li>
+        <li><a href="#contact" data-navlink><span class="hdr__num" aria-hidden="true">04</span>Contact</a></li>
+      </ul>
+    </nav>
+
+    <div class="hdr__meta">
+      <p class="hdr__status"><span class="pulse" aria-hidden="true"></span>Booking Nov 2026</p>
+      <p class="hdr__clock"><span class="hdr__clockzone">CET</span> <span data-clock>--:--:--</span></p>
+      <button class="hdr__menu" type="button" data-menu-open aria-expanded="false" aria-controls="menu">
+        <span class="hdr__menulines" aria-hidden="true"><i></i><i></i></span>
+        Menu
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+
+  <section class="hero" id="top" aria-labelledby="hero-title">
+    <canvas class="hero__field" data-field data-field-hero aria-hidden="true"></canvas>
+    <div class="hero__veil" aria-hidden="true"></div>
+
+    <div class="hero__inner wrap">
+      <div class="hero__meta">
+        <p>Portfolio, MMXXVI</p>
+        <p class="hero__coords">Copenhagen, 55.68°N 12.57°E</p>
+        <p>Independent since 2016</p>
+      </div>
+
+      <div class="hero__core">
+        <p class="hero__kicker">
+          <span>Creative developer</span>
+          <span class="hero__tl" aria-hidden="true"></span>
+          <span>Front-end architecture</span>
+        </p>
+
+        <h1 class="hero__title" id="hero-title">
+          <span class="hero__line"><span class="hero__word">Mira</span></span>
+          <span class="hero__line hero__line--shift"><span class="hero__word hero__word--it">Voss</span><span class="hero__star" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false"><path d="M12 2v20M2 12h20M5 5l14 14M19 5L5 19"/></svg>
+          </span></span>
+        </h1>
+
+        <p class="hero__lede">
+          <span class="hero__ledepre">I build interfaces that behave like</span>
+          <span class="roll" aria-hidden="true">
+            <span class="roll__track" data-roll>
+              <span class="roll__word">objects.</span>
+              <span class="roll__word">instruments.</span>
+              <span class="roll__word">systems.</span>
+              <span class="roll__word">arguments.</span>
+            </span>
+          </span>
+          <span class="sr-only">objects, instruments, systems, and arguments.</span>
+          <span class="hero__ledepost">Ten years of front-end, most of it spent on the parts nobody documents.</span>
+        </p>
+      </div>
+
+      <div class="hero__foot">
+        <a class="scrollcue" href="#work">
+          <span class="scrollcue__ring" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 4v14M6 12l6 6 6-6"/></svg></span>
+          <span class="scrollcue__text">Five projects</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker__track" data-ticker>
+        <span class="ticker__item">Interaction design<span class="tick"></span></span>
+        <span class="ticker__item">Creative development<span class="tick"></span></span>
+        <span class="ticker__item">WebGL and Canvas<span class="tick"></span></span>
+        <span class="ticker__item">Motion systems<span class="tick"></span></span>
+        <span class="ticker__item">Design systems<span class="tick"></span></span>
+        <span class="ticker__item">Accessibility<span class="tick"></span></span>
+        <span class="ticker__item">Performance budgets<span class="tick"></span></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="prologue" aria-labelledby="prologue-title">
+    <div class="wrap prologue__grid">
+      <div class="sectag">
+        <span class="sectag__label">Prologue</span>
+        <span class="sectag__rule" aria-hidden="true"></span>
+      </div>
+      <div class="prologue__body">
+        <h2 class="prologue__title" id="prologue-title" data-lines>
+          <span class="ln" style="--i:0"><span class="ln__i">Most portfolios show screens.</span></span>
+          <span class="ln" style="--i:1"><span class="ln__i">This one shows <em>the work</em></span></span>
+          <span class="ln" style="--i:2"><span class="ln__i"><em>that made them.</em></span></span>
+        </h2>
+        <p class="prologue__text" data-reveal data-reveal-delay="120">
+          Interfaces are not pictures. They are objects with weight, timing, and consequences. The first two hundred milliseconds decide whether a thing feels alive, and the way a number changes decides whether you trust it. I spend my time there, on the parts that are hard to see and easy to feel.
+        </p>
+        <p class="prologue__text prologue__text--tight" data-reveal data-reveal-delay="220">
+          Five projects below. Each one shipped, and each one broke something on the way.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="work" id="work" aria-labelledby="work-title">
+    <div class="wrap">
+      <header class="sechead">
+        <div class="sectag">
+          <span class="sectag__num" aria-hidden="true">01</span>
+          <span class="sectag__label">Selected work</span>
+        </div>
+        <h2 class="sechead__title" id="work-title" data-lines>
+          <span class="ln" style="--i:0"><span class="ln__i">Index</span></span>
+        </h2>
+        <p class="sechead__note" data-reveal>2024 to 2026. Open a row for the full case study.</p>
+      </header>
+
+      <ol class="index" data-index>
+        <li class="index__row" data-row data-slug="aperture" style="--accent:oklch(0.74 0.11 232); --accent-ink:oklch(0.17 0.03 232)">
+          <a class="index__link" href="#/work/aperture"><span class="index__num">01</span><span class="index__title">Aperture</span><span class="index__disc">Immersive report</span><span class="index__year">2026</span><span class="index__go" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
+            <span class="sr-only">, case study</span>
+          </a>
+        </li>
+        <li class="index__row" data-row data-slug="halcyon" style="--accent:oklch(0.80 0.13 78); --accent-ink:oklch(0.18 0.04 78)">
+          <a class="index__link" href="#/work/halcyon"><span class="index__num">02</span><span class="index__title">Halcyon</span><span class="index__disc">Commerce</span><span class="index__year">2025</span><span class="index__go" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
+            <span class="sr-only">, case study</span>
+          </a>
+        </li>
+        <li class="index__row" data-row data-slug="cadence" style="--accent:oklch(0.86 0.17 132); --accent-ink:oklch(0.19 0.06 132)">
+          <a class="index__link" href="#/work/cadence"><span class="index__num">03</span><span class="index__title">Cadence</span><span class="index__disc">Web application</span><span class="index__year">2025</span><span class="index__go" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
+            <span class="sr-only">, case study</span>
+          </a>
+        </li>
+        <li class="index__row" data-row data-slug="terra" style="--accent:oklch(0.70 0.14 42); --accent-ink:oklch(0.18 0.05 42)">
+          <a class="index__link" href="#/work/terra"><span class="index__num">04</span><span class="index__title">Terra</span><span class="index__disc">Data story</span><span class="index__year">2024</span><span class="index__go" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
+            <span class="sr-only">, case study</span>
+          </a>
+        </li>
+        <li class="index__row" data-row data-slug="mono" style="--accent:oklch(0.78 0.10 268); --accent-ink:oklch(0.19 0.04 268)">
+          <a class="index__link" href="#/work/mono"><span class="index__num">05</span><span class="index__title">Mono</span><span class="index__disc">Design system</span><span class="index__year">2024</span><span class="index__go" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
+            <span class="sr-only">, case study</span>
+          </a>
+        </li>
+      </ol>
+    </div>
+
+    <div class="peek" data-peek aria-hidden="true">
+      <div class="peek__inner">
+        <canvas class="peek__canvas" data-peek-canvas></canvas>
+        <span class="peek__label">Open<span class="peek__arrow" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M7 17L17 7M8 7h9v9"/></svg></span></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="method" id="method" aria-labelledby="method-title">
+    <div class="wrap method__grid">
+      <div class="method__aside">
+        <div class="sectag">
+          <span class="sectag__num" aria-hidden="true">02</span>
+          <span class="sectag__label">Method</span>
+        </div>
+        <h2 class="method__title" id="method-title" data-lines>
+          <span class="ln" style="--i:0"><span class="ln__i">How the work</span></span>
+          <span class="ln" style="--i:1"><span class="ln__i">gets made</span></span>
+        </h2>
+        <p class="method__note" data-reveal>Four habits that survive contact with a real deadline.</p>
+
+        <div class="caps" data-reveal data-reveal-delay="160">
+          <h3 class="caps__title">Capabilities</h3>
+          <ul class="caps__list">
+            <li>Front-end architecture</li>
+            <li>Interaction design</li>
+            <li>WebGL and Canvas</li>
+            <li>Motion systems</li>
+            <li>Design systems</li>
+            <li>Accessibility</li>
+            <li>Performance budgets</li>
+            <li>Creative direction</li>
+          </ul>
+        </div>
+      </div>
+
+      <ol class="steps" data-stagger>
+        <li class="step" data-reveal>
+          <span class="step__num" aria-hidden="true">01</span>
+          <div class="step__body">
+            <h3 class="step__title">Interrogate</h3>
+            <p class="step__text">Before the first line of code I want the constraint that makes this project different from the last one. Usually it is not technical. Usually it is a person, a deadline, or a number nobody has agreed on yet.</p>
+          </div>
+        </li>
+        <li class="step" data-reveal>
+          <span class="step__num" aria-hidden="true">02</span>
+          <div class="step__body">
+            <h3 class="step__title">Compose</h3>
+            <p class="step__text">Structure first, then rhythm, then surface. Every layout decision is settled before a single colour is chosen, because colour cannot rescue a page that does not know where the eye should land.</p>
+          </div>
+        </li>
+        <li class="step" data-reveal>
+          <span class="step__num" aria-hidden="true">03</span>
+          <div class="step__body">
+            <h3 class="step__title">Build</h3>
+            <p class="step__text">Hand-written front-end. No framework I cannot explain to your team in one meeting, and no dependency that outlives the problem it solved.</p>
+          </div>
+        </li>
+        <li class="step" data-reveal>
+          <span class="step__num" aria-hidden="true">04</span>
+          <div class="step__body">
+            <h3 class="step__title">Ship</h3>
+            <p class="step__text">A performance budget is a design constraint, not a cleanup task. When the budget is gone, the slow thing gets cut rather than optimised later.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="play" id="playground" aria-labelledby="play-title">
+    <div class="wrap">
+      <header class="sechead">
+        <div class="sectag">
+          <span class="sectag__num" aria-hidden="true">03</span>
+          <span class="sectag__label">Playground</span>
+        </div>
+        <h2 class="sechead__title" id="play-title" data-lines>
+          <span class="ln" style="--i:0"><span class="ln__i">Studies</span></span>
+        </h2>
+        <p class="sechead__note" data-reveal>Three sketches kept around because they still do something useful.</p>
+      </header>
+
+      <div class="studies">
+        <article class="study" data-reveal>
+          <div class="study__stage" data-kinetic>
+            <p class="kinetic" aria-hidden="true">
+              <span class="kinetic__ch">T</span><span class="kinetic__ch">E</span><span class="kinetic__ch">N</span><span class="kinetic__ch">S</span><span class="kinetic__ch">I</span><span class="kinetic__ch">O</span><span class="kinetic__ch">N</span>
+            </p>
+            <p class="sr-only">A kinetic type study. Letters lean toward the pointer.</p>
+          </div>
+          <div class="study__foot">
+            <h3 class="study__title">Kinetic type</h3>
+            <p class="study__note">Letters that lean toward the pointer, damped so they settle instead of snapping.</p>
+            <p class="study__hint">Move your pointer</p>
+          </div>
+        </article>
+
+        <article class="study" data-reveal>
+          <div class="study__stage" data-tilt>
+            <div class="stack" aria-hidden="true">
+              <span class="stack__card stack__card--back"></span>
+              <span class="stack__card stack__card--mid"></span>
+              <span class="stack__card stack__card--front">
+                <span class="stack__glyph">MV</span>
+              </span>
+            </div>
+            <p class="sr-only">A depth study. Three layers rotate in perspective toward the pointer.</p>
+          </div>
+          <div class="study__foot">
+            <h3 class="study__title">Depth stack</h3>
+            <p class="study__note">Three planes on one transform origin. Rotation is capped at twelve degrees so type never distorts.</p>
+            <p class="study__hint">Move your pointer</p>
+          </div>
+        </article>
+
+        <article class="study" data-reveal>
+          <div class="study__stage study__stage--field">
+            <canvas class="study__canvas" data-field data-field-study aria-hidden="true"></canvas>
+            <button class="study__btn" type="button" data-reseed>
+              <span class="study__btnicon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6"/></svg></span>
+              Regenerate field
+            </button>
+            <p class="sr-only">A generative field study. Regenerate draws a new one.</p>
+          </div>
+          <div class="study__foot">
+            <h3 class="study__title">Signal field</h3>
+            <p class="study__note">The hero plate, untethered. Flow angle from layered sine noise, seeded per project.</p>
+            <p class="study__hint">Press regenerate</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact" id="contact" aria-labelledby="contact-title">
+    <div class="wrap">
+      <div class="sectag">
+        <span class="sectag__num" aria-hidden="true">04</span>
+        <span class="sectag__label">Contact</span>
+      </div>
+
+      <div class="contact__grid">
+        <h2 class="contact__title" id="contact-title" data-lines>
+          <span class="ln" style="--i:0"><span class="ln__i">Send me</span></span>
+          <span class="ln" style="--i:1"><span class="ln__i">the hard part.</span></span>
+        </h2>
+
+        <div class="contact__side">
+          <p class="contact__text" data-reveal>Tell me the problem, the deadline, and the range you have in mind. I answer everything within two working days, including the work I turn down.</p>
+          <p class="contact__avail" data-reveal data-reveal-delay="120"><span class="pulse" aria-hidden="true"></span>Booking from November 2026. Two slots left this year.</p>
+        </div>
+      </div>
+
+      <div class="contact__actions" data-reveal data-reveal-delay="180">
+        <a class="btn btn--primary" href="mailto:hello@miravoss.studio?subject=Project%20enquiry" data-magnetic>
+          <span class="btn__label">hello@miravoss.studio</span>
+          <span class="btn__icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
+        </a>
+        <button class="btn btn--ghost" type="button" data-copy="hello@miravoss.studio">
+          <span class="btn__icon btn__icon--lead" aria-hidden="true"><svg class="i-copy" viewBox="0 0 24 24" focusable="false"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg><svg class="i-check" viewBox="0 0 24 24" focusable="false"><path d="M5 13l4 4 10-11"/></svg></span>
+          <span class="btn__label" data-copy-label>Copy address</span>
+        </button>
+        <p class="contact__live" data-copy-status role="status" aria-live="polite"></p>
+      </div>
+
+      <dl class="facts" data-stagger>
+        <div class="fact" data-reveal>
+          <dt>Based</dt>
+          <dd>Copenhagen, Denmark</dd>
+        </div>
+        <div class="fact" data-reveal>
+          <dt>Local time</dt>
+          <dd><span class="zone">CET</span> <span data-clock>--:--:--</span></dd>
+        </div>
+        <div class="fact" data-reveal>
+          <dt>Working with</dt>
+          <dd>Studios, publishers, research groups</dd>
+        </div>
+        <div class="fact" data-reveal>
+          <dt>Typical engagement</dt>
+          <dd>Six to sixteen weeks</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+</main>
+
+<footer class="colophon">
+  <div class="wrap">
+    <div class="colophon__grid">
+      <div class="colophon__col">
+        <h2 class="colophon__title">Colophon</h2>
+        <p>Set in Instrument Serif and Instrument Sans. Hand-written HTML, CSS, and JavaScript. No framework, no build step, no tracker.</p>
+      </div>
+      <div class="colophon__col">
+        <h3 class="colophon__head">Sections</h3>
+        <ul class="colophon__list">
+          <li><a href="#work">Work</a></li>
+          <li><a href="#method">Method</a></li>
+          <li><a href="#playground">Playground</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+      <div class="colophon__col">
+        <h3 class="colophon__head">Elsewhere</h3>
+        <ul class="colophon__list">
+          <li><a href="mailto:hello@miravoss.studio">Email</a></li>
+          <li><a href="#top">Top of page</a></li>
+        </ul>
+      </div>
+      <div class="colophon__col">
+        <h3 class="colophon__head">Motion</h3>
+        <div class="motion" role="group" aria-label="Motion preference">
+          <button type="button" class="motion__opt" data-motion-set="full" aria-pressed="false">Full</button>
+          <button type="button" class="motion__opt" data-motion-set="reduced" aria-pressed="false">Reduced</button>
+          <button type="button" class="motion__opt" data-motion-set="none" aria-pressed="false">None</button>
+        </div>
+        <p class="colophon__hint">Saved to this browser. Overrides the system setting.</p>
+      </div>
+    </div>
+
+    <div class="colophon__base">
+      <p>© 2026 Mira Voss</p>
+      <p class="colophon__clock"><span class="zone">CET</span> <span data-clock>--:--:--</span></p>
+      <a class="colophon__top" href="#top">Back to top<span aria-hidden="true">↑</span></a>
+    </div>
+  </div>
+</footer>
+
+<dialog class="menu" id="menu" data-menu aria-label="Menu">
+  <div class="menu__inner">
+    <div class="menu__top">
+      <span class="menu__mark">Mira Voss</span>
+      <button class="menu__close" type="button" data-menu-close>
+        <span class="menu__x" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        Close
+      </button>
+    </div>
+    <nav class="menu__nav" aria-label="Sections">
+      <ul>
+        <li><a href="#work" data-menu-link><span class="menu__num" aria-hidden="true">01</span>Work</a></li>
+        <li><a href="#method" data-menu-link><span class="menu__num" aria-hidden="true">02</span>Method</a></li>
+        <li><a href="#playground" data-menu-link><span class="menu__num" aria-hidden="true">03</span>Playground</a></li>
+        <li><a href="#contact" data-menu-link><span class="menu__num" aria-hidden="true">04</span>Contact</a></li>
+      </ul>
+    </nav>
+    <div class="menu__foot">
+      <a class="menu__mail" href="mailto:hello@miravoss.studio">hello@miravoss.studio</a>
+      <p class="menu__clock"><span class="zone">CET</span> <span data-clock>--:--:--</span></p>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="case" data-case aria-labelledby="case-title">
+  <div class="case__wipe" data-case-wipe aria-hidden="true"></div>
+  <div class="case__shell">
+    <header class="case__bar">
+      <button class="case__close" type="button" data-case-close>
+        <span class="case__closeicon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M15 5l-7 7 7 7"/></svg></span>
+        <span>Index</span>
+      </button>
+      <p class="case__counter"><span data-case-index>01</span><span class="case__slash" aria-hidden="true">/</span><span data-case-total>05</span></p>
+      <div class="case__meter" aria-hidden="true"><span data-case-meter></span></div>
+    </header>
+
+    <div class="case__scroll" data-case-scroll tabindex="-1">
+      <div class="case__content" data-case-content></div>
+    </div>
+  </div>
+</dialog>
+
+<script src="main.js" defer></script>
+</body>
+</html>
