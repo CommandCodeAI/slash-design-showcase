@@ -27,9 +27,8 @@ Requirements:
 
 | Model | File | LOC | Bytes | Est. cost |
 |---|---|---:|---:|---:|
-| DeepSeek V4.1 Flash | `index.html` | 1,759 | 68,661 | $0.055 |sss
+| DeepSeek V4.1 Flash | `index.html` | 1,759 | 68,661 | $0.055 
 
-One-shot generation of a full Three.js scene (ship model, container stacking, animated water shader with waves/foam/wake, lighting, OrbitControls), followed by a couple of play-and-fix passes on the UI/scene. Cost is a floor estimate, not user-reported or metered: output bytes ÷ 4 ≈ output tokens, × DeepSeek's [published Flash-tier output rate](https://api-docs.deepseek.com/quick_start/pricing) ($0.60/MTok off-peak, $1.20/MTok peak; peak = 01:00–04:00 and 06:00–10:00 UTC weekdays). A single pass floors at ~$0.0103 (off-peak) to ~$0.0206 (peak); scaled to 2–3 total generation passes (initial + fix passes, each assumed roughly the same size as the kept 68,661-byte file since intermediate drafts weren't measured), it lands around ~$0.021–$0.031 off-peak or ~$0.041–$0.062 peak. This only counts visible output tokens — it doesn't add input tokens for the prompt above (a few hundred tokens, low single-digit cents-of-a-cent either way) or any hidden reasoning tokens the model may have spent working out the shader/geometry math before emitting code, so treat it as a rough floor, not an invoice.
 
 ## Share
 
