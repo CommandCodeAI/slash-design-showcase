@@ -35,6 +35,7 @@
 | Gemini 3.8 Flash (Google) | `gemini-3.8-flash/` | ~$0.04 | 1373 |
 | Kimi K3 (Moonshot AI) | `Kimi-K3/` | ~$0.12 (floor)* | 862 |
 | qwen-3.8-max-0902 (Alibaba) | `qwen-3.8-max-0902/` | ~$0.18 (est. multi-turn session)† | 769 |
+| Qwen-3.8 Omni Flash | `Qwen-3.8 Omni Flash` | $0.026 | 1607 
 
 
 ## Method
