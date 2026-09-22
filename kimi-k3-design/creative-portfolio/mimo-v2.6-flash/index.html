@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Mira Solheim is a frontend developer and creative in Oslo, building websites and products where motion, typography, and code are one material.">
+  <meta name="theme-color" content="#1c1814">
+  <title>Mira Solheim | Frontend developer and creative</title>
+  <script>document.documentElement.classList.add('js')</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <div class="progress" aria-hidden="true"><span id="progressFill"></span></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="site-head" id="siteHead">
+    <a class="mark" href="#top">Mira Solheim</a>
+    <nav class="nav" aria-label="Primary">
+      <a href="#work" data-spy="work"><span class="nav-idx" aria-hidden="true">01</span> Work</a>
+      <a href="#about" data-spy="about"><span class="nav-idx" aria-hidden="true">02</span> About</a>
+      <a href="#contact" data-spy="contact"><span class="nav-idx" aria-hidden="true">03</span> Contact</a>
+    </nav>
+    <p class="head-status"><span class="dot" aria-hidden="true"></span>Booking October 2026</p>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top" aria-labelledby="heroTitle">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="container hero-inner">
+        <p class="hero-eyebrow mono">Frontend developer &amp; creative<span class="sep" aria-hidden="true">/</span>Oslo, Norway</p>
+        <h1 class="hero-title" id="heroTitle">
+          <span class="mask" style="--d:180ms"><span>Mira</span></span>
+          <span class="mask" style="--d:300ms"><span><em>Solheim</em></span></span>
+        </h1>
+        <div class="hero-foot">
+          <p class="hero-claim" style="--d:520ms">I make websites where the design and the engineering come from the same hand.</p>
+          <a class="scroll-cue mono" href="#work" style="--d:640ms">Selected work
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8 2v10M3.5 8.5 8 13l4.5-4.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="work" id="work" aria-labelledby="workHeading">
+      <div class="container">
+        <div class="sec-rule" data-rule aria-hidden="true"></div>
+        <div class="sec-head" data-reveal>
+          <p class="sec-index mono">01</p>
+          <h2 class="sec-title" id="workHeading"><span class="mask"><span>Selected work</span></span></h2>
+          <p class="sec-note mono">Four projects, 2023–2025</p>
+        </div>
+
+        <ul class="work-list">
+          <li>
+            <article class="work-item">
+              <h3 class="work-h">
+                <button class="row" id="rowKvist" type="button" aria-expanded="false" aria-controls="caseKvist">
+                  <span class="row-idx mono">01</span>
+                  <span class="row-title">Kvist</span>
+                  <span class="row-kind mono">Storefront</span>
+                  <span class="row-year mono">2025</span>
+                  <span class="row-chevron" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="m3 6 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span>
+                </button>
+              </h3>
+              <div class="case" id="caseKvist" inert>
+                <div class="case-inner">
+                  <div class="case-art" aria-hidden="true">
+                    <svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" focusable="false">
+                      <defs>
+                        <radialGradient id="kvGlow" cx="50%" cy="42%" r="55%">
+                          <stop offset="0" style="stop-color:var(--accent);stop-opacity:.5"/>
+                          <stop offset="1" style="stop-color:var(--accent);stop-opacity:0"/>
+                        </radialGradient>
+                      </defs>
+                      <rect width="800" height="500" class="art-bg"/>
+                      <circle cx="400" cy="210" r="190" fill="url(#kvGlow)"/>
+                      <g class="art-line">
+                        <path d="M120 420a280 280 0 0 1 560 0" fill="none"/>
+                        <path d="M195 420a205 205 0 0 1 410 0" fill="none"/>
+                        <path d="M270 420a130 130 0 0 1 260 0" fill="none"/>
+                        <path d="M300 0v150M400 0v96M500 0v184" fill="none"/>
+                      </g>
+                      <circle cx="300" cy="158" r="9" class="art-accent-fill"/>
+                      <circle cx="400" cy="104" r="9" class="art-accent-fill"/>
+                      <circle cx="500" cy="192" r="9" class="art-accent-fill"/>
+                      <line x1="60" y1="420" x2="740" y2="420" class="art-line"/>
+                    </svg>
+                  </div>
+                  <div class="case-body">
+                    <p class="case-blurb">A quiet, gallery-like storefront for a Copenhagen lighting atelier. Every product page renders its light in real time, so a lamp can be previewed at any dimming level before it ships.</p>
+                    <dl class="case-facts">
+                      <div><dt class="mono">Role</dt><dd>Design and build</dd></div>
+                      <div><dt class="mono">Stack</dt><dd>Next.js, Hydrogen, GSAP</dd></div>
+                      <div><dt class="mono">Year</dt><dd>2025</dd></div>
+                      <div><dt class="mono">Result</dt><dd>Conversion up 38% in Q1</dd></div>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </li>
+          <li>
+            <article class="work-item">
+              <h3 class="work-h">
+                <button class="row" id="rowPapier" type="button" aria-expanded="false" aria-controls="casePapier">
+                  <span class="row-idx mono">02</span>
+                  <span class="row-title">Papier</span>
+                  <span class="row-kind mono">Digital edition</span>
+                  <span class="row-year mono">2025</span>
+                  <span class="row-chevron" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="m3 6 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span>
+                </button>
+              </h3>
+              <div class="case" id="casePapier" inert>
+                <div class="case-inner">
+                  <div class="case-art" aria-hidden="true">
+                    <svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" focusable="false">
+                      <rect width="800" height="500" class="art-bg"/>
+                      <g class="art-line">
+                        <line x1="470" y1="40" x2="470" y2="460"/>
+                        <line x1="560" y1="40" x2="560" y2="460"/>
+                        <line x1="650" y1="40" x2="650" y2="460"/>
+                        <line x1="740" y1="40" x2="740" y2="460"/>
+                        <line x1="470" y1="130" x2="740" y2="130"/>
+                        <line x1="470" y1="392" x2="740" y2="392"/>
+                      </g>
+                      <g class="art-bars">
+                        <rect x="490" y="170" width="230" height="10"/>
+                        <rect x="490" y="196" width="230" height="10"/>
+                        <rect x="490" y="222" width="196" height="10"/>
+                        <rect x="490" y="248" width="230" height="10"/>
+                        <rect x="490" y="274" width="152" height="10"/>
+                        <rect x="490" y="316" width="230" height="10"/>
+                        <rect x="490" y="342" width="176" height="10"/>
+                      </g>
+                      <text x="70" y="410" class="art-glyph">P</text>
+                      <rect x="76" y="74" width="54" height="12" class="art-accent-fill"/>
+                    </svg>
+                  </div>
+                  <div class="case-body">
+                    <p class="case-blurb">The web edition of an independent print magazine, set with the same variable typefaces as the paper issue. Articles stream in with zero layout shift, even on a first visit over mobile data.</p>
+                    <dl class="case-facts">
+                      <div><dt class="mono">Role</dt><dd>Design and build</dd></div>
+                      <div><dt class="mono">Stack</dt><dd>Astro, Sanity, variable fonts</dd></div>
+                      <div><dt class="mono">Year</dt><dd>2025</dd></div>
+                      <div><dt class="mono">Result</dt><dd>CLS 0.00 across 412 articles</dd></div>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </li>
+          <li>
+            <article class="work-item">
+              <h3 class="work-h">
+                <button class="row" id="rowApsis" type="button" aria-expanded="false" aria-controls="caseApsis">
+                  <span class="row-idx mono">03</span>
+                  <span class="row-title">Apsis</span>
+                  <span class="row-kind mono">Operations console</span>
+                  <span class="row-year mono">2024</span>
+                  <span class="row-chevron" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="m3 6 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span>
+                </button>
+              </h3>
+              <div class="case" id="caseApsis" inert>
+                <div class="case-inner">
+                  <div class="case-art" aria-hidden="true">
+                    <svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" focusable="false">
+                      <rect width="800" height="500" class="art-bg"/>
+                      <g transform="translate(400 250) rotate(-14)" class="art-line">
+                        <ellipse rx="80" ry="36" fill="none"/>
+                        <ellipse rx="150" ry="68" fill="none"/>
+                        <ellipse rx="226" ry="102" fill="none"/>
+                        <ellipse rx="308" ry="140" fill="none"/>
+                        <line x1="-360" y1="0" x2="360" y2="0" stroke-dasharray="2 10"/>
+                        <line x1="0" y1="-190" x2="0" y2="190" stroke-dasharray="2 10"/>
+                      </g>
+                      <g transform="translate(400 250) rotate(-14)">
+                        <circle cx="150" cy="0" r="7" class="art-accent-fill"/>
+                        <circle cx="-226" cy="0" r="5" class="art-ink-fill"/>
+                        <circle cx="0" cy="-140" r="5" class="art-ink-fill"/>
+                        <circle cx="218" cy="42" r="5" class="art-ink-fill"/>
+                        <g class="art-line">
+                          <circle cx="150" cy="0" r="20" fill="none"/>
+                          <line x1="150" y1="-34" x2="150" y2="-52"/>
+                          <line x1="150" y1="34" x2="150" y2="52"/>
+                          <line x1="116" y1="0" x2="98" y2="0"/>
+                          <line x1="184" y1="0" x2="202" y2="0"/>
+                        </g>
+                      </g>
+                      <g class="art-bars">
+                        <rect x="48" y="52" width="118" height="8"/>
+                        <rect x="48" y="70" width="74" height="8"/>
+                        <rect x="640" y="440" width="112" height="8"/>
+                      </g>
+                    </svg>
+                  </div>
+                  <div class="case-body">
+                    <p class="case-blurb">A ground-station console that keeps hundreds of satellites, pass windows, and downlink queues on one screen without ever dropping a frame during a live pass.</p>
+                    <dl class="case-facts">
+                      <div><dt class="mono">Role</dt><dd>Lead frontend</dd></div>
+                      <div><dt class="mono">Stack</dt><dd>React, WebGL, WebSockets</dd></div>
+                      <div><dt class="mono">Year</dt><dd>2024</dd></div>
+                      <div><dt class="mono">Result</dt><dd>840 satellites tracked at 60fps</dd></div>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </li>
+          <li>
+            <article class="work-item">
+              <h3 class="work-h">
+                <button class="row" id="rowSverm" type="button" aria-expanded="false" aria-controls="caseSverm">
+                  <span class="row-idx mono">04</span>
+                  <span class="row-title">Sverm</span>
+                  <span class="row-kind mono">Generative instrument</span>
+                  <span class="row-year mono">2023</span>
+                  <span class="row-chevron" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="m3 6 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span>
+                </button>
+              </h3>
+              <div class="case" id="caseSverm" inert>
+                <div class="case-inner">
+                  <div class="case-art" aria-hidden="true">
+                    <svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" focusable="false">
+                      <rect width="800" height="500" class="art-bg"/>
+                      <path d="M-20 340C140 340 200 140 400 140s280 180 440 180" class="art-flow" fill="none"/>
+                      <path d="M-20 400C160 400 240 240 420 240s260 130 440 130" class="art-flow-dim" fill="none"/>
+                      <g class="art-accent-fill">
+                        <circle cx="86" cy="332" r="4"/><circle cx="140" cy="318" r="6"/>
+                        <circle cx="196" cy="286" r="3"/><circle cx="248" cy="238" r="5"/>
+                        <circle cx="302" cy="188" r="7"/><circle cx="356" cy="156" r="3"/>
+                        <circle cx="410" cy="142" r="5"/><circle cx="466" cy="150" r="4"/>
+                        <circle cx="522" cy="172" r="7"/><circle cx="578" cy="204" r="3"/>
+                        <circle cx="632" cy="244" r="5"/><circle cx="688" cy="286" r="6"/>
+                        <circle cx="744" cy="318" r="3"/>
+                      </g>
+                      <g class="art-ink-fill">
+                        <circle cx="120" cy="388" r="3"/><circle cx="212" cy="352" r="4"/>
+                        <circle cx="284" cy="300" r="3"/><circle cx="352" cy="262" r="5"/>
+                        <circle cx="428" cy="244" r="3"/><circle cx="500" cy="252" r="4"/>
+                        <circle cx="566" cy="282" r="3"/><circle cx="636" cy="322" r="5"/>
+                        <circle cx="708" cy="366" r="3"/><circle cx="180" cy="410" r="2.5"/>
+                        <circle cx="470" cy="316" r="2.5"/><circle cx="596" cy="352" r="2.5"/>
+                        <circle cx="330" cy="368" r="2.5"/><circle cx="700" cy="256" r="2.5"/>
+                        <circle cx="248" cy="428" r="2.5"/><circle cx="530" cy="410" r="2.5"/>
+                      </g>
+                      <g class="art-line">
+                        <path d="M56 64h140M56 64v56"/>
+                        <path d="M744 436H604M744 436v-56"/>
+                      </g>
+                    </svg>
+                  </div>
+                  <div class="case-body">
+                    <p class="case-blurb">A browser instrument that conducts a swarm of ten thousand particles with your voice. Built as a study in sound-driven motion and released free to play.</p>
+                    <dl class="case-facts">
+                      <div><dt class="mono">Role</dt><dd>Creative code</dd></div>
+                      <div><dt class="mono">Stack</dt><dd>TypeScript, Web Audio, Canvas</dd></div>
+                      <div><dt class="mono">Year</dt><dd>2023</dd></div>
+                      <div><dt class="mono">Result</dt><dd>10,000 particles, one mic input</dd></div>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="about" id="about" aria-labelledby="aboutHeading">
+      <div class="container">
+        <div class="sec-rule" data-rule aria-hidden="true"></div>
+        <div class="sec-head" data-reveal>
+          <p class="sec-index mono">02</p>
+          <h2 class="sec-title" id="aboutHeading"><span class="mask"><span>About</span></span></h2>
+          <p class="sec-note mono">Oslo, Norway</p>
+        </div>
+        <div class="about-grid">
+          <div class="about-text" data-reveal>
+            <p class="about-lead">For eight years I have worked at the seam between design and engineering: first as a frontend developer in Stockholm studios, now independently from Oslo.</p>
+            <p>I prototype in the browser, art-direct in Figma, and stay on a project until the last easing curve feels right. The work below is a selection; the rest of the archive is available on request.</p>
+          </div>
+          <div class="about-facts" data-reveal style="--i:1">
+            <div class="fact">
+              <h3 class="fact-h mono">Capabilities</h3>
+              <ul>
+                <li>Interface engineering</li>
+                <li>Motion and interaction</li>
+                <li>Design systems</li>
+                <li>Web art direction</li>
+              </ul>
+            </div>
+            <div class="fact">
+              <h3 class="fact-h mono">Stack</h3>
+              <ul>
+                <li>TypeScript, React, Next.js, Astro</li>
+                <li>WebGL, Canvas, GSAP</li>
+                <li>Figma, Tailwind, Sanity</li>
+              </ul>
+            </div>
+            <div class="fact">
+              <h3 class="fact-h mono">Recognition</h3>
+              <ul>
+                <li>Awwwards, Honorable Mention, 2025</li>
+                <li>CSS Design Awards, Site of the Day, 2024</li>
+                <li>FWA of the Day, 2024</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="quote" aria-label="Testimonial">
+      <div class="container">
+        <div class="sec-rule" data-rule aria-hidden="true"></div>
+        <figure data-reveal>
+          <blockquote>
+            <p class="mask"><span>“Mira art-directed our launch page and then built it herself. The first external code review assumed it came from a team of four.”</span></p>
+          </blockquote>
+          <figcaption class="mono">Lea Marchetti, founder, Papier Magazine</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="contact" id="contact" aria-labelledby="contactHeading">
+      <div class="container">
+        <div class="contact-head" data-reveal>
+          <p class="sec-index mono">03</p>
+          <h2 class="contact-title" id="contactHeading">
+            <span class="mask"><span>Let's talk</span></span>
+            <span class="mask"><span><em>about your project.</em></span></span>
+          </h2>
+        </div>
+        <div class="contact-body" data-reveal style="--i:1">
+          <a class="mail" href="mailto:hello@mirasolheim.studio">hello@mirasolheim.studio</a>
+          <div class="contact-actions">
+            <button class="btn" type="button" id="copyEmail"><span id="copyLabel">Copy email</span></button>
+            <p class="copy-status mono" role="status" id="copyStatus"></p>
+          </div>
+          <div class="contact-meta">
+            <p class="mono">Booking projects for October 2026. Replies within two days.</p>
+            <ul class="socials">
+              <li><a class="btn btn-ghost" href="https://github.com" rel="me noopener">GitHub</a></li>
+              <li><a class="btn btn-ghost" href="https://www.linkedin.com" rel="me noopener">LinkedIn</a></li>
+              <li><a class="btn btn-ghost" href="https://www.are.na" rel="me noopener">Are.na</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-foot">
+    <div class="container foot-grid">
+      <p class="foot-mark">Mira Solheim</p>
+      <p class="foot-colophon mono">Set in Bodoni Moda and Archivo. Hand-built in Oslo.</p>
+      <p class="foot-copy mono">© <span id="year">2026</span> Mira Solheim</p>
+      <a class="to-top mono" href="#top" id="toTop" hidden>Back to top
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8 14V4M3.5 7.5 8 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+      </a>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rail Rush</title>
+<style>
+  :root {
+    --ink: #1a1430;
+    --paper: #fff6e8;
+    --sun: #ffb703;
+    --coral: #ff5d4a;
+    --mint: #2ec4b6;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background:
+      radial-gradient(1200px 700px at 50% -10%, #3d2a78 0%, transparent 55%),
+      #120e22;
+    color: var(--paper);
+    font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  }
+  body {
+    display: grid;
+    place-items: center;
+    min-height: 100dvh;
+  }
+  .stage {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    padding: 16px 12px 20px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 15px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #ffe08a;
+  }
+  .hint {
+    margin: 0;
+    font-size: 13px;
+    color: #c9bddf;
+    text-align: center;
+    max-width: 42ch;
+    line-height: 1.35;
+  }
+  canvas {
+    width: min(400px, calc(100vw - 24px));
+    height: auto;
+    aspect-ratio: 400 / 700;
+    border-radius: 22px;
+    background: #87d4ff;
+    box-shadow:
+      0 0 0 1px rgba(255, 230, 170, 0.35),
+      0 18px 50px rgba(0, 0, 0, 0.45);
+    touch-action: none;
+    display: block;
+  }
+  kbd {
+    font-family: inherit;
+    font-size: 12px;
+    border: 1px solid #6d5a96;
+    border-bottom-width: 2px;
+    border-radius: 6px;
+    padding: 1px 6px;
+    color: #fff6e8;
+    background: #2a2144;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    canvas { box-shadow: 0 0 0 1px rgba(255, 230, 170, 0.35); }
+  }
+</style>
+</head>
+<body>
+<main class="stage">
+  <h1>Rail Rush</h1>
+  <canvas id="game" width="400" height="700" aria-label="Rail Rush endless runner"></canvas>
+  <p class="hint">
+    <kbd>←</kbd> <kbd>→</kbd> lanes · <kbd>Space</kbd> or swipe up jump · <kbd>↓</kbd> slide
+  </p>
+</main>
+<script>
+(() => {
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const W = 400, H = 700;
+  const LANES = [116, 200, 284];
+  const HORIZON_SPREAD = 0.6;
+  const HORIZON = 250;
+  const PLAYER_Y = 548;
+  const VANISH = 680;
+  const GRAVITY = 1900;
+  const JUMP_V = 640;
+
+  let pointer = null;
+  const held = new Set();
+  const state = {
+    mode: "ready", t: 0, dist: 0, coins: 0,
+    best: Number(localStorage.getItem("railrush-best") || 0),
+    speed: 210, spawn: 0.6, shake: 0, flash: 0,
+    entities: [], buildings: [], clouds: [], player: null
+  };
+
+  function makePlayer() {
+    return { lane: 1, x: 200, y: 0, vy: 0, slide: 0, run: 0, alive: true };
+  }
+  function seed() {
+    state.clouds = [
+      { x: 40, y: 48, s: 1 }, { x: 180, y: 30, s: 0.7 },
+      { x: 300, y: 70, s: 1.05 }, { x: 110, y: 96, s: 0.5 }
+    ];
+    const colors = [["#ff8fab","#ffd166"],["#7bdff2","#c4b5fd"],["#ffe66d","#ff6b6b"],["#90e0ef","#ffb4a2"],["#b9fbc0","#f4a261"]];
+    state.buildings = [];
+    for (let i = 0; i < 8; i++) {
+      const c = colors[i % colors.length];
+      state.buildings.push({ x: i * 70, side: "L", a: c[0], b: c[1], w: 46, h: 54 + (i % 3) * 16 });
+      state.buildings.push({ x: i * 70 + 18, side: "R", a: colors[(i+2)%5][0], b: colors[(i+2)%5][1], w: 44, h: 48 + (i % 4) * 12 });
+    }
+    state.player = makePlayer();
+  }
+  seed();
+
+  function reset() {
+    state.mode = "run";
+    state.t = 0; state.dist = 0; state.coins = 0;
+    state.speed = 210; state.spawn = 0.7;
+    state.shake = 0; state.flash = 0;
+    state.entities = [];
+    state.player = makePlayer();
+  }
+
+  function spawn() {
+    const lane = Math.floor(Math.random() * 3);
+    const roll = Math.random();
+    const z = VANISH;
+    if (roll < 0.38) {
+      state.entities.push({ kind: "barrier", lane, z, hit: false });
+    } else if (roll < 0.68) {
+      state.entities.push({ kind: "train", lane, z, hit: false, color: lane });
+    } else {
+      for (let i = 0; i < 5; i++) state.entities.push({ kind: "coin", lane, z: z - i * 48, hit: false, hop: roll > 0.84 });
+    }
+  }
+
+  function cam(z) {
+    const t = Math.max(0, Math.min(1, z / VANISH));
+    const n = 1 - t;
+    return {
+      s: 0.22 + n * 0.95,
+      y: HORIZON + 8 + (PLAYER_Y - HORIZON) * n,
+      x(lane) { return 200 + (LANES[lane] - 200) * (HORIZON_SPREAD + (1 - HORIZON_SPREAD) * n); }
+    };
+  }
+
+  function jump() {
+    const p = state.player;
+    if (state.mode !== "run" || p.y > 1) return;
+    p.vy = JUMP_V; p.slide = 0;
+  }
+  function slide() {
+    if (state.mode !== "run") return;
+    const p = state.player;
+    if (p.y > 8) p.vy = -900;
+    p.slide = 0.55;
+  }
+  function lane(dir) {
+    if (state.mode !== "run") return;
+    state.player.lane = Math.max(0, Math.min(2, state.player.lane + dir));
+  }
+  function crash() {
+    if (state.mode !== "run") return;
+    state.mode = "over"; state.shake = 10; state.flash = 1; state.player.alive = false;
+    const score = Math.floor(state.dist);
+    if (score > state.best) {
+      state.best = score;
+      localStorage.setItem("railrush-best", String(score));
+    }
+  }
+
+  function update(dt) {
+    state.t += dt;
+    state.shake = Math.max(0, state.shake - dt * 24);
+    state.flash = Math.max(0, state.flash - dt * 2.2);
+    state.clouds.forEach(c => { c.x -= dt * (6 + c.s * 4); if (c.x < -60) c.x = W + 20; });
+    const scroll = state.mode === "run" ? state.speed * 0.12 : 16;
+    state.buildings.forEach(b => { b.x -= dt * scroll; if (b.x < -80) b.x = W + 30; });
+    const p = state.player;
+    p.run += dt * 10;
+    if (state.mode !== "run") return;
+    state.speed = Math.min(340, 210 + state.dist * 0.03);
+    state.dist += state.speed * dt * 0.08;
+    state.spawn -= dt;
+    if (state.spawn <= 0) { spawn(); state.spawn = Math.max(1.35, 1.85 - state.dist / 3000); }
+    p.x += (LANES[p.lane] - p.x) * Math.min(1, dt * 12);
+    p.vy -= GRAVITY * dt;
+    p.y += p.vy * dt;
+    if (p.y <= 0) { p.y = 0; p.vy = 0; }
+    if (p.slide > 0) p.slide -= dt;
+    const sliding = p.slide > 0 && p.y < 8;
+    for (const e of state.entities) {
+      e.z -= state.speed * dt;
+      if (e.hit || Math.abs(p.x - LANES[e.lane]) > 38 || e.z < 6 || e.z > 78) continue;
+      if (e.kind === "coin") {
+        if (e.hop ? p.y > 28 : p.y < 80) { e.hit = true; state.coins++; }
+      } else if (e.kind === "barrier") {
+        if (p.y < 46) crash();
+      } else if (!sliding) crash();
+    }
+    state.entities = state.entities.filter(e => e.z > -30 && !e.hit);
+  }
+
+  function rr(x, y, w, h, r) {
+    const rad = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + rad, y);
+    ctx.arcTo(x + w, y, x + w, y + h, rad);
+    ctx.arcTo(x + w, y + h, x, y + h, rad);
+    ctx.arcTo(x, y + h, x, y, rad);
+    ctx.arcTo(x, y, x + w, y, rad);
+    ctx.closePath();
+  }
+
+  function sky() {
+    const g = ctx.createLinearGradient(0, 0, 0, 280);
+    g.addColorStop(0, "#6a5bff"); g.addColorStop(0.5, "#ff7a59"); g.addColorStop(1, "#ffd36a");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    state.clouds.forEach(c => {
+      ctx.beginPath();
+      ctx.ellipse(c.x, c.y, 24 * c.s, 10 * c.s, 0, 0, 7);
+      ctx.ellipse(c.x + 14 * c.s, c.y + 2, 14 * c.s, 8 * c.s, 0, 0, 7);
+      ctx.fill();
+    });
+  }
+  function city() {
+    state.buildings.forEach(b => {
+      const bx = b.side === "L" ? (b.x % 190) - 20 : W - 54 - ((b.x + 30) % 160);
+      ctx.fillStyle = b.a;
+      ctx.fillRect(bx, HORIZON - b.h + 6, b.w, b.h);
+      ctx.fillStyle = b.b;
+      ctx.fillRect(bx, HORIZON - b.h + 6, b.w, 5);
+      ctx.fillStyle = "rgba(255,255,255,0.85)";
+      for (let r = 0; r < 3; r++) for (let c = 0; c < 2; c++) {
+        if ((r + c + b.h) % 3 === 0) continue;
+        ctx.fillRect(bx + 8 + c * 14, HORIZON - b.h + 18 + r * 14, 6, 7);
+      }
+    });
+  }
+  function laneX(lane, y) {
+    const n = (y - HORIZON) / (PLAYER_Y - HORIZON);
+    return 200 + (LANES[lane] - 200) * (HORIZON_SPREAD + (1 - HORIZON_SPREAD) * n);
+  }
+  function road() {
+    const top = HORIZON + 2;
+    const bot = H + 12;
+    const edge = (lane, y) => laneX(lane, y);
+    ctx.fillStyle = "#e0b15e";
+    ctx.beginPath();
+    ctx.moveTo(edge(0, top) - 28, top);
+    ctx.lineTo(edge(2, top) + 28, top);
+    ctx.lineTo(edge(2, bot) + 70, bot);
+    ctx.lineTo(edge(0, bot) - 70, bot);
+    ctx.closePath();
+    ctx.fill();
+    const g = ctx.createLinearGradient(0, top, 0, bot);
+    g.addColorStop(0, "#5a4d86");
+    g.addColorStop(1, "#241b3d");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(edge(0, top) - 10, top);
+    ctx.lineTo(edge(2, top) + 10, top);
+    ctx.lineTo(edge(2, bot) + 28, bot);
+    ctx.lineTo(edge(0, bot) - 28, bot);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,224,138,0.9)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(edge(0, top) - 10, top);
+    ctx.lineTo(edge(0, bot) - 28, bot);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(edge(2, top) + 10, top);
+    ctx.lineTo(edge(2, bot) + 28, bot);
+    ctx.stroke();
+    ctx.setLineDash([14, 16]);
+    ctx.lineDashOffset = -((state.dist * 6) % 30);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(255,246,232,0.45)";
+    [0, 1].forEach((gap) => {
+      ctx.beginPath();
+      ctx.moveTo((edge(gap, top) + edge(gap + 1, top)) / 2, top + 8);
+      ctx.lineTo((edge(gap, bot) + edge(gap + 1, bot)) / 2, bot);
+      ctx.stroke();
+    });
+    ctx.setLineDash([]);
+  }
+
+  function coin(x, y, s) {
+    ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+    ctx.fillStyle = "#c47a00"; ctx.beginPath(); ctx.arc(1, 2, 11, 0, 7); ctx.fill();
+    ctx.fillStyle = "#ffc83d"; ctx.beginPath(); ctx.arc(0, 0, 10, 0, 7); ctx.fill();
+    ctx.strokeStyle = "#fff1b8"; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = "#8a4b00"; ctx.font = "700 11px Trebuchet MS"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("$", 0, 1); ctx.restore();
+  }
+  function barrier(x, y, s) {
+    ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+    ctx.fillStyle = "rgba(20,14,36,0.25)"; ctx.beginPath(); ctx.ellipse(0, 4, 28, 6, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = "#2a2144"; rr(-22, -6, 8, 12, 2); ctx.fill(); rr(14, -6, 8, 12, 2); ctx.fill();
+    ctx.fillStyle = "#ff4d3a"; rr(-32, -36, 64, 30, 6); ctx.fill();
+    ctx.fillStyle = "#fff6e8";
+    for (let i = -24; i < 28; i += 12) ctx.fillRect(i, -30, 6, 18);
+    ctx.restore();
+  }
+  function train(x, y, s, color) {
+    const body = ["#2ec4b6", "#ff7b59", "#7aa2ff"][color % 3];
+    const dark = ["#0f7f77", "#d4533a", "#4d6fd6"][color % 3];
+    ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+    ctx.fillStyle = "rgba(20,14,36,0.25)"; ctx.beginPath(); ctx.ellipse(0, 6, 36, 7, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = "#1a1430"; ctx.beginPath(); ctx.arc(-24, 2, 8, 0, 7); ctx.arc(24, 2, 8, 0, 7); ctx.fill();
+    ctx.fillStyle = "#d7d7de"; ctx.beginPath(); ctx.arc(-24, 2, 3.5, 0, 7); ctx.arc(24, 2, 3.5, 0, 7); ctx.fill();
+    ctx.fillStyle = dark; rr(-42, -78, 84, 78, 12); ctx.fill();
+    ctx.fillStyle = body; rr(-42, -102, 84, 32, 12); ctx.fill();
+    ctx.fillStyle = "#eafcff"; rr(-28, -94, 22, 16, 3); ctx.fill(); rr(6, -94, 22, 16, 3); ctx.fill();
+    ctx.fillStyle = "#ffe08a"; ctx.fillRect(-36, -70, 10, 6);
+    ctx.fillStyle = "#ff5d4a"; ctx.fillRect(26, -70, 10, 6);
+    ctx.fillStyle = "rgba(255,255,255,0.16)"; ctx.fillRect(-34, -58, 68, 5);
+    ctx.restore();
+  }
+  function runner(p, ghost) {
+    const jump = p.y > 12;
+    const slide = p.slide > 0 && !jump;
+    const step = Math.sin(p.run);
+    ctx.save();
+    ctx.translate(p.x, PLAYER_Y - p.y);
+    ctx.scale(1.15, 1.15);
+    if (ghost) ctx.globalAlpha = 0.45;
+    ctx.fillStyle = "rgba(20,14,36,0.22)";
+    ctx.beginPath(); ctx.ellipse(0, 8, slide ? 30 : 18, 6, 0, 0, 7); ctx.fill();
+    const leg = (x, rot) => {
+      ctx.save(); ctx.translate(x, -8); ctx.rotate(rot);
+      ctx.fillStyle = "#241833"; rr(-5, 0, 10, 24, 5); ctx.fill();
+      ctx.restore();
+    };
+    const arm = (x, rot) => {
+      ctx.save(); ctx.translate(x, -42); ctx.rotate(rot);
+      ctx.fillStyle = "#241833"; rr(-4, 0, 8, 20, 4); ctx.fill();
+      ctx.restore();
+    };
+    if (slide) {
+      leg(-10, 1.15); leg(8, 0.55);
+      ctx.fillStyle = "#ff5a45"; rr(-20, -24, 42, 18, 9); ctx.fill();
+      ctx.fillStyle = "#2ec4b6"; ctx.fillRect(-4, -20, 14, 6);
+      ctx.fillStyle = "#ffe7a8"; ctx.beginPath(); ctx.arc(18, -22, 12, 0, 7); ctx.fill();
+      ctx.fillStyle = "#241833"; rr(8, -32, 22, 8, 4); ctx.fill();
+      ctx.fillStyle = "#1a1430"; ctx.fillRect(14, -24, 3, 3); ctx.fillRect(20, -24, 3, 3);
+    } else {
+      leg(-8, jump ? -0.6 : step * 0.6);
+      leg(8, jump ? 0.45 : -step * 0.6);
+      arm(-14, jump ? -1.2 : -0.35 - step * 0.3);
+      arm(14, jump ? -1.0 : 0.45 + step * 0.3);
+      ctx.fillStyle = "#ff5a45"; rr(-16, -50, 32, 32, 12); ctx.fill();
+      ctx.fillStyle = "#2ec4b6"; rr(-9, -42, 18, 10, 4); ctx.fill();
+      ctx.fillStyle = "#ffe7a8"; ctx.beginPath(); ctx.arc(0, -64, 14, 0, 7); ctx.fill();
+      ctx.fillStyle = "#241833"; rr(-13, -76, 26, 10, 5); ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.beginPath(); ctx.arc(-4, -64, 2.6, 0, 7); ctx.arc(5, -64, 2.6, 0, 7); ctx.fill();
+      ctx.fillStyle = "#1a1430";
+      ctx.beginPath(); ctx.arc(-4, -64, 1.3, 0, 7); ctx.arc(5, -64, 1.3, 0, 7); ctx.fill();
+    }
+    ctx.restore();
+  }
+  function props(far) {
+    state.entities.filter(e => e.z > -10 && e.z < VANISH + 20 && (far ? e.z > 90 : e.z <= 90))
+      .sort((a, b) => b.z - a.z)
+      .forEach(e => {
+        const c = cam(e.z);
+        const x = c.x(e.lane);
+        if (e.kind === "coin") coin(x, c.y - (e.hop ? 64 : 28) * c.s, c.s);
+        else if (e.kind === "barrier") barrier(x, c.y, c.s);
+        else train(x, c.y, c.s, e.color || 0);
+      });
+  }
+  function hud() {
+    ctx.fillStyle = "rgba(26,20,48,0.5)";
+    rr(14, 14, 146, 50, 14); ctx.fill(); rr(240, 14, 146, 50, 14); ctx.fill();
+    ctx.fillStyle = "#ffe08a"; ctx.font = "700 11px Trebuchet MS"; ctx.textAlign = "left";
+    ctx.fillText("DISTANCE", 26, 32); ctx.fillText("COINS", 252, 32);
+    ctx.fillStyle = "#fff6e8"; ctx.font = "700 20px Trebuchet MS";
+    ctx.fillText(String(Math.floor(state.dist)).padStart(4, "0"), 26, 52);
+    ctx.fillText(String(state.coins), 252, 52);
+  }
+  function panel(title, lines, cta) {
+    ctx.fillStyle = "rgba(18,14,34,0.48)"; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#fff6e8"; rr(36, 190, 328, 320, 26); ctx.fill();
+    ctx.fillStyle = "#ff5d4a"; ctx.fillRect(36, 190, 328, 12);
+    ctx.fillStyle = "#1a1430"; ctx.textAlign = "center"; ctx.font = "700 28px Trebuchet MS";
+    ctx.fillText(title, 200, 252);
+    ctx.fillStyle = "#4a4068"; ctx.font = "16px Trebuchet MS";
+    lines.forEach((line, i) => ctx.fillText(line, 200, 294 + i * 28));
+    ctx.fillStyle = "#2ec4b6"; rr(90, 430, 220, 50, 25); ctx.fill();
+    ctx.fillStyle = "#08332f"; ctx.font = "700 18px Trebuchet MS"; ctx.fillText(cta, 200, 461);
+  }
+  function draw() {
+    ctx.save();
+    if (state.shake) ctx.translate((Math.random() - 0.5) * state.shake, (Math.random() - 0.5) * state.shake);
+    sky(); city(); road(); props(true);
+    runner(state.player, !state.player.alive);
+    props(false); hud();
+    if (state.flash) { ctx.fillStyle = "rgba(255,255,255," + state.flash * 0.4 + ")"; ctx.fillRect(0, 0, W, H); }
+    if (state.mode === "ready") panel("Rail Rush", ["Three lanes. No brakes.", "Jump the barriers.", "Slide under the trains.", "Best " + state.best], "Tap or space to run");
+    else if (state.mode === "over") panel("Wiped out", ["Distance " + Math.floor(state.dist), "Coins " + state.coins, "Best " + state.best], "Tap or space to retry");
+    ctx.restore();
+  }
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.033, (now - last) / 1000);
+    last = now; update(dt); draw(); requestAnimationFrame(frame);
+  }
+  function go() { if (state.mode !== "run") reset(); }
+  window.addEventListener("keydown", e => {
+    if (["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"," "].includes(e.key)) e.preventDefault();
+    if (held.has(e.key)) return;
+    held.add(e.key);
+    if (e.key === " " || e.key === "ArrowUp") { if (state.mode !== "run") reset(); else jump(); }
+    else if (e.key === "ArrowDown") state.mode === "run" ? slide() : reset();
+    else if (e.key === "ArrowLeft") lane(-1);
+    else if (e.key === "ArrowRight") lane(1);
+  });
+  window.addEventListener("keyup", e => held.delete(e.key));
+  canvas.addEventListener("pointerdown", e => { pointer = { x: e.clientX, y: e.clientY }; });
+  canvas.addEventListener("pointerup", e => {
+    if (!pointer) return;
+    const dx = e.clientX - pointer.x, dy = e.clientY - pointer.y;
+    pointer = null;
+    if (Math.abs(dx) < 28 && Math.abs(dy) < 28) { go(); return; }
+    if (state.mode !== "run") { reset(); return; }
+    if (Math.abs(dy) > Math.abs(dx)) dy < 0 ? jump() : slide();
+    else lane(dx > 0 ? 1 : -1);
+  });
+  canvas.addEventListener("pointercancel", () => { pointer = null; });
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

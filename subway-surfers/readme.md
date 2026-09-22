@@ -31,10 +31,12 @@
 | GPT-5.5 (ChatGPT) | `GPT-5.5/` | $0.7000 | 1423 |
 | GPT-5.6 Sol (OpenAI) | `GPT-5.6-sol/` | $0.3265 | 1501 |
 | Grok 4.5 (xAI) | `Grok-4.5/` | $0.4000 | 1326 |
+| Grok 4.7 (xAI) | `Grok-4.7/` | $0.35 | 453 (6-7 iteration, fix the character & the road , car etc)
 | Gemini 3.6 Flash (Google) | `gemini-3.6-falsh/` | not estimated§ | 1465 |
 | Gemini 3.8 Flash (Google) | `gemini-3.8-flash/` | ~$0.04 | 1373 |
 | Kimi K3 (Moonshot AI) | `Kimi-K3/` | ~$0.12 (floor)* | 862 |
 | qwen-3.8-max-0902 (Alibaba) | `qwen-3.8-max-0902/` | ~$0.18 (est. multi-turn session)† | 769 |
+| Mimo v2.6 Flash | `Mimo v2.6 Flash` | $0.018 | 1142
 | Qwen-3.8 Omni Flash | `Qwen-3.8 Omni Flash` | $0.026 | 1607 
 
 

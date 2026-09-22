@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Pip the Robin</title>
+<style>
+  :root {
+    --ink: #2a1830;
+    --paper: #fff6e8;
+    --blush: #ff8aa8;
+    --focus: #ffe08a;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 110%, #3a2148 0%, transparent 55%),
+      radial-gradient(circle at 18% 12%, #4d2d5c 0%, transparent 36%),
+      #1a1024;
+    font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+    color: var(--paper);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .stage {
+    position: relative;
+    width: min(100vw, calc((100dvh - env(safe-area-inset-bottom)) * 0.625));
+    height: min(100dvh, calc(100vw * 1.6));
+    max-height: 100dvh;
+  }
+  canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border-radius: clamp(0px, 2vw, 22px);
+    touch-action: none;
+    user-select: none;
+    cursor: pointer;
+    box-shadow:
+      0 0 0 1px rgba(255, 214, 160, 0.16),
+      0 28px 70px rgba(8, 2, 16, 0.55);
+  }
+  canvas:focus { outline: none; }
+  canvas:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 4px;
+  }
+  .hud {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    gap: 8px;
+  }
+  .hud-top {
+    top: max(10px, env(safe-area-inset-top));
+    right: 10px;
+  }
+  button {
+    appearance: none;
+    border: 0;
+    margin: 0;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: rgba(26, 14, 34, 0.72);
+    color: var(--paper);
+    font: 700 13px/1 "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    box-shadow: inset 0 0 0 1px rgba(255, 230, 190, 0.28);
+  }
+  button:hover { background: rgba(48, 24, 58, 0.88); }
+  button:active { transform: translateY(1px); }
+  button:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
+  }
+  button[aria-pressed="true"] { color: #c9b8d4; }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    canvas { cursor: default; }
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <canvas id="game" width="480" height="768" tabindex="0"
+    aria-label="Pip the Robin. Press space or tap to flap. Thread the gaps between the orchard pipes."></canvas>
+  <div class="hud hud-top">
+    <button id="mute" type="button" aria-pressed="false" aria-label="Mute sound">Sound on</button>
+  </div>
+</div>
+<p id="live" class="sr-only" role="status" aria-live="polite"></p>
+<p class="sr-only">Keyboard: space, W, or up arrow flaps. Enter or R restarts after a crash. M toggles sound. Touch: tap anywhere on the orchard.</p>
+
+<script>
+'use strict';
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d', { alpha: false });
+const live = document.getElementById('live');
+const muteBtn = document.getElementById('mute');
+
+const VW = 480;
+const VH = 768;
+const GROUND = 112;
+const FLOOR = VH - GROUND;
+const FONT = '"Trebuchet MS", "Segoe UI", system-ui, sans-serif';
+
+const C = {
+  sky0: '#2a1840',
+  sky1: '#6b3a78',
+  sky2: '#e07a62',
+  sky3: '#ffc58a',
+  moon: '#fff3d4',
+  moonShade: '#f0d7a4',
+  star: '#fff8e8',
+  cloud: 'rgba(255, 214, 196, 0.22)',
+  hillFar: '#4a2a62',
+  hillMid: '#6d3a62',
+  hillNear: '#8a4560',
+  tree: '#3a2144',
+  trunk: '#5a3048',
+  leaf: '#c45b78',
+  blossom: '#ffb3c7',
+  grass: '#3f6b4a',
+  grassDark: '#2c4d36',
+  soil: '#6b4638',
+  soilDark: '#4e3128',
+  pipe: '#7d4e9a',
+  pipeLit: '#b07ac8',
+  pipeShade: '#542f6c',
+  pipeLip: '#ffd6a0',
+  body: '#ffd15c',
+  bodyShade: '#f0a93a',
+  belly: '#fff6df',
+  wing: '#f4b23a',
+  wingDeep: '#e0892a',
+  beak: '#ff7a3c',
+  beakDark: '#e25822',
+  eye: '#241820',
+  blush: '#ff8aa8',
+  outline: '#5a341c',
+  panel: '#fff6e8',
+  ink: '#2a1830',
+  mute: '#8a6d78'
+};
+
+const state = {
+  mode: 'ready',
+  score: 0,
+  best: 0,
+  bird: null,
+  pipes: [],
+  spawn: 0,
+  t: 0,
+  shake: 0,
+  flash: 0,
+  card: 0,
+  particles: [],
+  passed: 0,
+  muted: false,
+  reduced: false,
+  announceAt: 0
+};
+
+let audioCtx = null;
+let last = 0;
+let dpr = 1;
+
+function loadBest() {
+  try {
+    const n = Number(localStorage.getItem('pip-moth-best'));
+    if (Number.isFinite(n) && n >= 0) state.best = n;
+    state.muted = localStorage.getItem('pip-moth-mute') === '1';
+  } catch (_) {}
+  paintMute();
+}
+
+function saveBest() {
+  try { localStorage.setItem('pip-moth-best', String(state.best)); } catch (_) {}
+}
+
+function paintMute() {
+  muteBtn.textContent = state.muted ? 'Sound off' : 'Sound on';
+  muteBtn.setAttribute('aria-pressed', state.muted ? 'true' : 'false');
+  muteBtn.setAttribute('aria-label', state.muted ? 'Unmute sound' : 'Mute sound');
+}
+
+function say(text) {
+  if (live.textContent === text) live.textContent = '';
+  live.textContent = text;
+}
+
+function tone(freq, dur, type, gain, slide) {
+  if (state.muted) return;
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    if (!audioCtx) audioCtx = new AC();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const t0 = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    if (slide) osc.frequency.exponentialRampToValueAtTime(Math.max(40, slide), t0 + dur);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(gain, t0 + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(g);
+    g.connect(audioCtx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  } catch (_) {}
+}
+
+function flapSound() { tone(620, 0.09, 'triangle', 0.05, 880); }
+function scoreSound() { tone(740 + Math.min(state.score, 12) * 28, 0.12, 'sine', 0.06); }
+function dieSound() { tone(280, 0.28, 'sawtooth', 0.05, 70); }
+
+function resetRun() {
+  state.mode = 'ready';
+  state.score = 0;
+  state.passed = 0;
+  state.pipes = [];
+  state.spawn = 0.4;
+  state.shake = 0;
+  state.flash = 0;
+  state.card = 0;
+  state.particles = [];
+  state.bird = {
+    x: 148,
+    y: FLOOR * 0.42,
+    vy: 0,
+    rot: 0,
+    flap: 0,
+    wing: 0,
+    bob: Math.random() * Math.PI * 2,
+    blink: 2.4
+  };
+}
+
+function difficulty() {
+  const s = state.score;
+  return {
+    speed: 168 + Math.min(s, 30) * 3.4,
+    gap: Math.max(148, 214 - Math.min(s, 24) * 2.4),
+    interval: Math.max(1.05, 1.55 - Math.min(s, 20) * 0.02)
+  };
+}
+
+function spawnPipe() {
+  const { gap } = difficulty();
+  const margin = 56;
+  const minY = margin + gap * 0.5;
+  const maxY = FLOOR - margin - gap * 0.5;
+  const cy = minY + Math.random() * (maxY - minY);
+  state.pipes.push({
+    x: VW + 70,
+    cy,
+    gap,
+    scored: false,
+    w: 78
+  });
+}
+
+function flap() {
+  if (state.mode === 'over') {
+    if (state.card > 0.86) {
+      resetRun();
+      state.mode = 'play';
+      state.bird.vy = -292;
+      state.bird.flap = 1;
+      flapSound();
+      say('New flight. Score 0.');
+    }
+    return;
+  }
+  if (state.mode === 'ready') {
+    state.mode = 'play';
+    say('Flying.');
+  }
+  if (state.mode !== 'play') return;
+  state.bird.vy = -292;
+  state.bird.flap = 1;
+  flapSound();
+  burst(state.bird.x - 8, state.bird.y + 6, 5, 0.45);
+}
+
+function crash(cause) {
+  if (state.mode !== 'play') return;
+  state.mode = 'over';
+  state.cause = cause;
+  state.shake = 1;
+  state.flash = 1;
+  state.bird.vy = Math.min(state.bird.vy, -80);
+  if (state.score > state.best) {
+    state.best = state.score;
+    saveBest();
+  }
+  dieSound();
+  burst(state.bird.x, state.bird.y, 16, 1);
+  const bestBit = state.score > 0 && state.score === state.best ? ' New best.' : '';
+  say('Crashed. Score ' + state.score + '.' + bestBit + ' Press enter to fly again.');
+}
+
+function burst(x, y, n, power) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const s = (40 + Math.random() * 140) * power;
+    state.particles.push({
+      x, y,
+      vx: Math.cos(a) * s,
+      vy: Math.sin(a) * s - 30,
+      life: 0.45 + Math.random() * 0.4,
+      age: 0,
+      r: 2 + Math.random() * 3.5,
+      hue: Math.random() < 0.5 ? '#ffd0e0' : '#ffe08a'
+    });
+  }
+}
+
+function circleRect(cx, cy, r, rx, ry, rw, rh) {
+  const nx = Math.max(rx, Math.min(cx, rx + rw));
+  const ny = Math.max(ry, Math.min(cy, ry + rh));
+  const dx = cx - nx;
+  const dy = cy - ny;
+  return dx * dx + dy * dy < r * r;
+}
+
+function hitTest() {
+  const b = state.bird;
+  const r = 15;
+  if (b.y + r >= FLOOR) return 'ground';
+  for (const p of state.pipes) {
+    const topH = p.cy - p.gap / 2;
+    const botY = p.cy + p.gap / 2;
+    if (circleRect(b.x, b.y, r, p.x, -20, p.w, topH + 20)) return 'pipe';
+    if (circleRect(b.x, b.y, r, p.x, botY, p.w, FLOOR - botY + 8)) return 'pipe';
+  }
+  return '';
+}
+
+function update(dt) {
+  state.t += dt;
+  const b = state.bird;
+  b.bob += dt;
+  b.blink -= dt;
+  if (b.blink < 0) b.blink = 2.1 + Math.random() * 2.6;
+  b.flap = Math.max(0, b.flap - dt * 6.5);
+  b.wing += dt * (state.mode === 'play' ? 14 : 5.5);
+
+  if (state.mode === 'ready') {
+    b.y = FLOOR * 0.42 + Math.sin(b.bob * 2.2) * 8;
+    b.vy = 0;
+    b.rot = Math.sin(b.bob * 2.2) * 0.08;
+  }
+
+  if (state.mode === 'play') {
+    const g = 980;
+    b.vy = Math.min(540, b.vy + g * dt);
+    b.y += b.vy * dt;
+    const target = Math.max(-0.55, Math.min(1.15, b.vy / 420));
+    b.rot += (target - b.rot) * Math.min(1, dt * 9);
+    if (b.y < 28) {
+      b.y = 28;
+      if (b.vy < 0) b.vy = 0;
+    }
+    const diff = difficulty();
+    state.spawn -= dt;
+    if (state.spawn <= 0) {
+      spawnPipe();
+      state.spawn = diff.interval;
+    }
+    for (const p of state.pipes) {
+      p.x -= diff.speed * dt;
+      if (!p.scored && p.x + p.w < b.x - 8) {
+        p.scored = true;
+        state.score += 1;
+        state.passed += 1;
+        scoreSound();
+        if (state.score === 1 || state.score % 5 === 0) say('Score ' + state.score);
+      }
+    }
+    state.pipes = state.pipes.filter(p => p.x > -140);
+    const hit = hitTest();
+    if (hit) crash(hit);
+  }
+
+  if (state.mode === 'over') {
+    const g = 1100;
+    b.vy = Math.min(640, b.vy + g * dt);
+    b.y = Math.min(FLOOR - 16, b.y + b.vy * dt);
+    b.rot += (1.35 - b.rot) * Math.min(1, dt * 6);
+    state.card = Math.min(1, state.card + dt * 2.4);
+    state.shake = Math.max(0, state.shake - dt * 2.2);
+    state.flash = Math.max(0, state.flash - dt * 2.8);
+  }
+
+  for (const p of state.particles) {
+    p.age += dt;
+    p.vy += 280 * dt;
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+  }
+  state.particles = state.particles.filter(p => p.age < p.life);
+}
+
+function fit() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  canvas.width = Math.round(VW * dpr);
+  canvas.height = Math.round(VH * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function rr(x, y, w, h, r) {
+  const rad = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + rad, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rad);
+  ctx.arcTo(x + w, y + h, x, y + h, rad);
+  ctx.arcTo(x, y + h, x, y, rad);
+  ctx.arcTo(x, y, x + w, y, rad);
+  ctx.closePath();
+}
+
+function sky() {
+  const g = ctx.createLinearGradient(0, 0, 0, VH);
+  g.addColorStop(0, C.sky0);
+  g.addColorStop(0.42, C.sky1);
+  g.addColorStop(0.72, C.sky2);
+  g.addColorStop(1, C.sky3);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, VW, VH);
+
+  const moonX = 362, moonY = 118, moonR = 46;
+  const halo = ctx.createRadialGradient(moonX, moonY, 8, moonX, moonY, 110);
+  halo.addColorStop(0, 'rgba(255, 236, 196, 0.55)');
+  halo.addColorStop(1, 'rgba(255, 236, 196, 0)');
+  ctx.fillStyle = halo;
+  ctx.beginPath();
+  ctx.arc(moonX, moonY, 110, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = C.moon;
+  ctx.beginPath();
+  ctx.arc(moonX, moonY, moonR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = C.moonShade;
+  ctx.beginPath();
+  ctx.arc(moonX - 12, moonY - 8, 9, 0, Math.PI * 2);
+  ctx.arc(moonX + 10, moonY + 8, 6, 0, Math.PI * 2);
+  ctx.arc(moonX + 4, moonY - 16, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = C.star;
+  for (let i = 0; i < 28; i++) {
+    const sx = (i * 97) % VW;
+    const sy = 18 + (i * 53) % 250;
+    const tw = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(state.t * 1.7 + i));
+    ctx.globalAlpha = state.reduced ? 0.8 : tw;
+    ctx.fillRect(sx, sy, i % 5 === 0 ? 2.5 : 1.6, i % 5 === 0 ? 2.5 : 1.6);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function cloud(x, y, s) {
+  ctx.beginPath();
+  ctx.arc(x, y, 18 * s, 0, Math.PI * 2);
+  ctx.arc(x + 22 * s, y - 8 * s, 24 * s, 0, Math.PI * 2);
+  ctx.arc(x + 48 * s, y, 16 * s, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function hills() {
+  const far = state.t * 12;
+  ctx.fillStyle = C.hillFar;
+  ctx.beginPath();
+  ctx.moveTo(0, 470);
+  for (let x = 0; x <= VW; x += 8) {
+    const y = 430 + Math.sin((x + far) * 0.01) * 26 + Math.sin((x + far) * 0.023) * 12;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(VW, 520);
+  ctx.lineTo(0, 520);
+  ctx.fill();
+
+  const mid = state.t * 28;
+  ctx.fillStyle = C.hillMid;
+  ctx.beginPath();
+  ctx.moveTo(0, 540);
+  for (let x = 0; x <= VW; x += 8) {
+    const y = 500 + Math.sin((x + mid) * 0.014) * 22 + Math.cos((x + mid) * 0.008) * 16;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(VW, 600);
+  ctx.lineTo(0, 600);
+  ctx.fill();
+
+  ctx.fillStyle = C.cloud;
+  const drift = (state.t * 18) % (VW + 220);
+  cloud(80 - drift * 0.25, 168, 1);
+  cloud(280 - drift * 0.25, 210, 0.75);
+  cloud(460 - drift * 0.25, 150, 0.9);
+}
+
+function tree(x, base, scale) {
+  ctx.save();
+  ctx.translate(x, base);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = C.trunk;
+  ctx.fillRect(-5, -46, 10, 50);
+  ctx.fillStyle = C.leaf;
+  ctx.beginPath();
+  ctx.arc(0, -62, 26, 0, Math.PI * 2);
+  ctx.arc(-16, -48, 16, 0, Math.PI * 2);
+  ctx.arc(16, -46, 15, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = C.blossom;
+  ctx.beginPath();
+  ctx.arc(-8, -70, 5, 0, Math.PI * 2);
+  ctx.arc(10, -60, 4, 0, Math.PI * 2);
+  ctx.arc(-14, -50, 3.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function orchard() {
+  const scroll = state.t * 46;
+  const span = 220;
+  const shift = scroll % span;
+  for (let i = -1; i < 5; i++) {
+    const x = i * span - shift + 40;
+    tree(x, 612, 0.85 + (i % 2) * 0.18);
+  }
+  ctx.fillStyle = C.hillNear;
+  ctx.beginPath();
+  ctx.moveTo(0, 640);
+  for (let x = 0; x <= VW; x += 10) {
+    const y = 618 + Math.sin((x + scroll * 0.4) * 0.02) * 10;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(VW, 680);
+  ctx.lineTo(0, 680);
+  ctx.fill();
+}
+
+function pipeBody(x, y, w, h, flip) {
+  if (h <= 0) return;
+  const lip = 22;
+  ctx.fillStyle = C.pipeShade;
+  rr(x, y, w, h, 8);
+  ctx.fill();
+  ctx.fillStyle = C.pipe;
+  ctx.fillRect(x + 5, y, w - 16, h);
+  ctx.fillStyle = C.pipeLit;
+  ctx.fillRect(x + 12, y, 10, h);
+  const ly = flip ? y + h - lip : y;
+  ctx.fillStyle = C.pipeShade;
+  rr(x - 7, ly, w + 14, lip, 7);
+  ctx.fill();
+  ctx.fillStyle = C.pipeLip;
+  ctx.fillRect(x - 7, ly + (flip ? 5 : 4), w + 14, 5);
+  ctx.fillStyle = C.pipeLit;
+  ctx.fillRect(x + 8, ly + 6, 8, lip - 10);
+}
+
+function drawPipes() {
+  for (const p of state.pipes) {
+    const topH = p.cy - p.gap / 2;
+    const botY = p.cy + p.gap / 2;
+    pipeBody(p.x, 0, p.w, topH, true);
+    pipeBody(p.x, botY, p.w, FLOOR - botY, false);
+  }
+}
+
+function drawBird(b) {
+  ctx.save();
+  ctx.translate(b.x, b.y);
+  ctx.rotate(b.rot);
+  ctx.scale(1.35, 1.35);
+
+  const lift = state.reduced ? 0.25 : Math.sin(b.wing);
+  const flap = state.reduced ? 0 : b.flap;
+  const wingUp = Math.max(0, -lift) * 1.15 + flap * 0.85;
+
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+
+  ctx.fillStyle = C.bodyShade;
+  ctx.strokeStyle = C.outline;
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.moveTo(-10, 0);
+  ctx.lineTo(-24, -7 - wingUp * 2);
+  ctx.lineTo(-18, 1);
+  ctx.lineTo(-26, 7);
+  ctx.lineTo(-14, 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = C.body;
+  ctx.beginPath();
+  ctx.ellipse(-1, 2, 16, 13, -0.08, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = C.outline;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.save();
+  ctx.translate(-2, 0);
+  ctx.rotate(-0.15 - wingUp * 1.15);
+  ctx.fillStyle = C.wing;
+  ctx.strokeStyle = C.outline;
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.moveTo(6, 2);
+  ctx.quadraticCurveTo(-2, -14, -8, -18);
+  ctx.quadraticCurveTo(-14, -6, -6, 6);
+  ctx.quadraticCurveTo(0, 10, 8, 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.strokeStyle = C.wingDeep;
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(-2, -12);
+  ctx.quadraticCurveTo(-4, -2, 2, 4);
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.fillStyle = C.belly;
+  ctx.beginPath();
+  ctx.ellipse(2, 6, 9, 7, 0.05, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = C.body;
+  ctx.beginPath();
+  ctx.arc(8, -6, 10, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = C.outline;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.fillStyle = '#fff8ee';
+  ctx.beginPath();
+  ctx.moveTo(4, -14);
+  ctx.quadraticCurveTo(7, -18, 10, -13);
+  ctx.quadraticCurveTo(8, -12, 6, -13);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = C.beak;
+  ctx.beginPath();
+  ctx.moveTo(15, -8);
+  ctx.lineTo(28, -4);
+  ctx.lineTo(15, -2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = C.outline;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.strokeStyle = C.beakDark;
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(16, -5);
+  ctx.lineTo(25, -4);
+  ctx.stroke();
+
+  const dead = state.mode === 'over';
+  if (dead) {
+    ctx.strokeStyle = C.eye;
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(6, -10);
+    ctx.lineTo(12, -4);
+    ctx.moveTo(12, -10);
+    ctx.lineTo(6, -4);
+    ctx.stroke();
+  } else if (b.blink < 0.12) {
+    ctx.strokeStyle = C.eye;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(6, -7);
+    ctx.lineTo(13, -7);
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(10, -7, 4.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = C.outline;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = C.eye;
+    ctx.beginPath();
+    ctx.arc(11.2, -7, 2.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(12, -7.8, 0.9, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = C.blush;
+  ctx.globalAlpha = 0.75;
+  ctx.beginPath();
+  ctx.ellipse(5, -2, 2.6, 1.6, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  ctx.restore();
+}
+
+function ground() {
+  const scroll = (state.mode === 'play' ? state.t * difficulty().speed : state.t * 36) % 48;
+  ctx.fillStyle = C.grassDark;
+  ctx.fillRect(0, FLOOR, VW, GROUND);
+  ctx.fillStyle = C.grass;
+  ctx.fillRect(0, FLOOR, VW, 18);
+  ctx.fillStyle = '#8fd18a';
+  for (let x = -48; x < VW + 48; x += 16) {
+    const gx = x - scroll;
+    ctx.beginPath();
+    ctx.moveTo(gx, FLOOR + 8);
+    ctx.quadraticCurveTo(gx + 4, FLOOR - 8, gx + 8, FLOOR + 6);
+    ctx.quadraticCurveTo(gx + 10, FLOOR - 4, gx + 14, FLOOR + 8);
+    ctx.fill();
+  }
+  ctx.fillStyle = C.soil;
+  ctx.fillRect(0, FLOOR + 28, VW, GROUND - 28);
+  ctx.fillStyle = C.soilDark;
+  for (let i = 0; i < 18; i++) {
+    const px = ((i * 67) - scroll * 1.4 + 400) % VW;
+    const py = FLOOR + 42 + (i % 5) * 12;
+    ctx.fillRect(px, py, 5, 3);
+  }
+}
+
+function particles() {
+  for (const p of state.particles) {
+    const a = 1 - p.age / p.life;
+    ctx.globalAlpha = a;
+    ctx.fillStyle = p.hue;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r * a, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function roundScore() {
+  const label = String(state.score);
+  ctx.save();
+  ctx.font = '700 54px ' + FONT;
+  ctx.textAlign = 'center';
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = 'rgba(42, 24, 48, 0.45)';
+  ctx.strokeText(label, VW / 2, 92);
+  ctx.fillStyle = '#fff8ee';
+  ctx.fillText(label, VW / 2, 92);
+  ctx.restore();
+}
+
+function medal(score) {
+  if (score >= 20) return { name: 'Moon', fill: '#ffe08a', rim: '#e0a84a' };
+  if (score >= 10) return { name: 'Blossom', fill: '#ffb3c7', rim: '#e07a96' };
+  if (score >= 5) return { name: 'Dew', fill: '#d7f3ff', rim: '#7eb4c9' };
+  return null;
+}
+
+function paperCard() {
+  const k = state.reduced ? 1 : easeOut(state.card);
+  const y = 188 + (1 - k) * 36;
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, k * 1.3);
+  ctx.translate(VW / 2, y);
+  ctx.fillStyle = 'rgba(42, 24, 48, 0.18)';
+  rr(-158, 8, 316, 292, 22);
+  ctx.fill();
+  ctx.fillStyle = C.panel;
+  rr(-164, 0, 328, 286, 22);
+  ctx.fill();
+  ctx.strokeStyle = '#f0d8c0';
+  ctx.lineWidth = 2;
+  rr(-164, 0, 328, 286, 22);
+  ctx.stroke();
+
+  ctx.fillStyle = C.ink;
+  ctx.textAlign = 'center';
+  ctx.font = '700 28px ' + FONT;
+  const fresh = state.score > 0 && state.score === state.best;
+  ctx.fillText(fresh ? 'New best' : 'Night ended', 0, 52);
+  ctx.font = '600 15px ' + FONT;
+  ctx.fillStyle = C.mute;
+  ctx.fillText(state.cause === 'ground' ? 'Pip met the grass' : 'Pip clipped a pipe', 0, 76);
+
+  ctx.font = '700 13px ' + FONT;
+  ctx.fillStyle = C.mute;
+  ctx.fillText('SCORE', -70, 118);
+  ctx.fillText('BEST', 70, 118);
+  ctx.font = '700 40px ' + FONT;
+  ctx.fillStyle = C.ink;
+  ctx.fillText(String(state.score), -70, 162);
+  ctx.fillText(String(state.best), 70, 162);
+
+  const m = medal(state.score);
+  if (m) {
+    ctx.beginPath();
+    ctx.arc(0, 168, 18, 0, Math.PI * 2);
+    ctx.fillStyle = m.rim;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(0, 168, 13, 0, Math.PI * 2);
+    ctx.fillStyle = m.fill;
+    ctx.fill();
+    ctx.font = '700 12px ' + FONT;
+    ctx.fillStyle = C.mute;
+    ctx.fillText(m.name, 0, 204);
+  }
+
+  ctx.font = '700 16px ' + FONT;
+  ctx.fillStyle = C.ink;
+  ctx.fillText(state.card > 0.86 ? 'Tap or press enter' : '…', 0, 248);
+  ctx.restore();
+}
+
+function readyCard() {
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(42, 24, 48, 0.28)';
+  rr(VW / 2 - 150, 168, 300, 118, 18);
+  ctx.fill();
+  ctx.fillStyle = '#fff8ee';
+  ctx.font = '700 30px ' + FONT;
+  ctx.fillText('Pip the Robin', VW / 2, 214);
+  ctx.font = '600 16px ' + FONT;
+  ctx.fillStyle = '#ffe0c8';
+  ctx.fillText('Tap or press space to lift', VW / 2, 248);
+  ctx.restore();
+}
+
+function easeOut(t) {
+  const x = Math.max(0, Math.min(1, t));
+  return 1 - Math.pow(1 - x, 3);
+}
+
+function frame(ts) {
+  if (!last) last = ts;
+  let dt = (ts - last) / 1000;
+  last = ts;
+  if (dt > 0.05) dt = 0.05;
+  if (state.reduced) dt = Math.min(dt, 0.02);
+  update(dt);
+
+  ctx.save();
+  if (state.shake > 0 && !state.reduced) {
+    const mag = state.shake * 7;
+    ctx.translate((Math.random() - 0.5) * mag, (Math.random() - 0.5) * mag);
+  }
+  sky();
+  hills();
+  orchard();
+  drawPipes();
+  ground();
+  particles();
+  drawBird(state.bird);
+  if (state.mode !== 'over') roundScore();
+  if (state.mode === 'ready') readyCard();
+  if (state.mode === 'over') paperCard();
+  if (state.flash > 0) {
+    ctx.fillStyle = 'rgba(255, 246, 232, ' + (state.flash * 0.55) + ')';
+    ctx.fillRect(-20, -20, VW + 40, VH + 40);
+  }
+  ctx.restore();
+  requestAnimationFrame(frame);
+}
+
+function onPointer(e) {
+  if (e.target === muteBtn) return;
+  e.preventDefault();
+  canvas.focus();
+  flap();
+}
+
+muteBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  state.muted = !state.muted;
+  try { localStorage.setItem('pip-moth-mute', state.muted ? '1' : '0'); } catch (_) {}
+  paintMute();
+  say(state.muted ? 'Sound off.' : 'Sound on.');
+});
+
+canvas.addEventListener('pointerdown', onPointer, { passive: false });
+window.addEventListener('keydown', (e) => {
+  if (e.target === muteBtn) return;
+  if (e.key === 'm' || e.key === 'M') {
+    muteBtn.click();
+    return;
+  }
+  const flapKey = e.code === 'Space' || e.code === 'ArrowUp' || e.key === 'w' || e.key === 'W';
+  const restart = e.key === 'Enter' || e.key === 'r' || e.key === 'R';
+  if (flapKey || (restart && state.mode === 'over')) {
+    e.preventDefault();
+    flap();
+  }
+});
+window.addEventListener('resize', fit);
+document.addEventListener('visibilitychange', () => { last = 0; });
+
+state.reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+loadBest();
+resetRun();
+fit();
+say('Pip the Robin. Tap or press space to fly. Best score ' + state.best + '.');
+canvas.focus({ preventScroll: true });
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -40,10 +40,12 @@
 | qwen-3.8-max | `qwen-3.8-max/` | $0.0248 | 1,124 |
 | Opus 5 (Claude) | `opus-5/` | ~$0.2539 | 497 |
 | Grok 4.6 | `Grok 4.5` | $0.095 | 1040 |
+| Grok 4.7 | `Grok-4.7` | $0.20 | 939 | ( 2 iteration, fix bird)
 | GPT-5.6 Sol | `gp-5.6-sol/` | ~$0.1500 | 631 |
 | DeepSeek | `DeepSeek-V4-Pro/` | $0.0008 | 748 |
 | DeepSeek | `DeepSeek-V4-Pro 0813` | $0.00055 | 739 | (new price - 0.0036)
 | DeepSeek | `DeepSeek-V4.1-flash` | $0.0089 | 739 
+| Mimo V2.6 Flash | `Mimo-v2.6-flash` | $0.005 | 1064
 | Qwen-3.8 Omni Flash | `Qwen-3.8 Omni Flash` | $0.013 | 1607 
 | Gemini 3.6 Flash | `gemini-3.6-flash/` | $0.1500 (5-6 prompts) | 1,411 |
 | Gemini 3.7 Flash | `gemini-3.7-flash/` | $0.0083 ( 2 prompts) | 1,411 |
